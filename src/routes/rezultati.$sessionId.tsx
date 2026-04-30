@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Lock, Sparkles, Plus, History } from "lucide-react";
+import { CaseStudyPreview } from "@/components/CaseStudyPreview";
 import { SERVICE_LABELS, SERVICE_TAGLINES } from "@/lib/diagnostic-types";
 import type { ServiceKey } from "@/lib/diagnostic-types";
 import { getResult } from "@/server/diagnostic.functions";
@@ -192,6 +193,13 @@ function ResultPage() {
               mainBottleneck={data.diagnosis || "Mungon prania online"}
               recommendedService={SERVICE_LABELS[primary]}
               className="mt-10 sm:mt-12"
+            />
+
+            {/* Relevant case study */}
+            <CaseStudyPreview
+              filterService={primary}
+              limit={1}
+              title="Rast real i ngjashëm"
             />
           </>
         )}

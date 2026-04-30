@@ -17,6 +17,11 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AnalizoBiznesinRouteImport } from './routes/analizo-biznesin'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ServicesWeb3dRouteImport } from './routes/services/web-3d'
+import { Route as ServicesSocialMediaRouteImport } from './routes/services/social-media'
+import { Route as ServicesSeoRouteImport } from './routes/services/seo'
+import { Route as ServicesGoogleMapsRouteImport } from './routes/services/google-maps'
+import { Route as Services360MediaRouteImport } from './routes/services/360-media'
 import { Route as RezultatiSessionIdRouteImport } from './routes/rezultati.$sessionId'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 import { Route as ApiPublicExitSurveyRouteImport } from './routes/api/public/exit-survey'
@@ -61,6 +66,31 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ServicesWeb3dRoute = ServicesWeb3dRouteImport.update({
+  id: '/services/web-3d',
+  path: '/services/web-3d',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesSocialMediaRoute = ServicesSocialMediaRouteImport.update({
+  id: '/services/social-media',
+  path: '/services/social-media',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesSeoRoute = ServicesSeoRouteImport.update({
+  id: '/services/seo',
+  path: '/services/seo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesGoogleMapsRoute = ServicesGoogleMapsRouteImport.update({
+  id: '/services/google-maps',
+  path: '/services/google-maps',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Services360MediaRoute = Services360MediaRouteImport.update({
+  id: '/services/360-media',
+  path: '/services/360-media',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RezultatiSessionIdRoute = RezultatiSessionIdRouteImport.update({
   id: '/rezultati/$sessionId',
   path: '/rezultati/$sessionId',
@@ -87,6 +117,11 @@ export interface FileRoutesByFullPath {
   '/historiku': typeof HistorikuRoute
   '/krahaso': typeof KrahasoRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
+  '/services/360-media': typeof Services360MediaRoute
+  '/services/google-maps': typeof ServicesGoogleMapsRoute
+  '/services/seo': typeof ServicesSeoRoute
+  '/services/social-media': typeof ServicesSocialMediaRoute
+  '/services/web-3d': typeof ServicesWeb3dRoute
   '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
   '/api/public/track': typeof ApiPublicTrackRoute
 }
@@ -100,6 +135,11 @@ export interface FileRoutesByTo {
   '/historiku': typeof HistorikuRoute
   '/krahaso': typeof KrahasoRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
+  '/services/360-media': typeof Services360MediaRoute
+  '/services/google-maps': typeof ServicesGoogleMapsRoute
+  '/services/seo': typeof ServicesSeoRoute
+  '/services/social-media': typeof ServicesSocialMediaRoute
+  '/services/web-3d': typeof ServicesWeb3dRoute
   '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
   '/api/public/track': typeof ApiPublicTrackRoute
 }
@@ -114,6 +154,11 @@ export interface FileRoutesById {
   '/historiku': typeof HistorikuRoute
   '/krahaso': typeof KrahasoRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
+  '/services/360-media': typeof Services360MediaRoute
+  '/services/google-maps': typeof ServicesGoogleMapsRoute
+  '/services/seo': typeof ServicesSeoRoute
+  '/services/social-media': typeof ServicesSocialMediaRoute
+  '/services/web-3d': typeof ServicesWeb3dRoute
   '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
   '/api/public/track': typeof ApiPublicTrackRoute
 }
@@ -129,6 +174,11 @@ export interface FileRouteTypes {
     | '/historiku'
     | '/krahaso'
     | '/rezultati/$sessionId'
+    | '/services/360-media'
+    | '/services/google-maps'
+    | '/services/seo'
+    | '/services/social-media'
+    | '/services/web-3d'
     | '/api/public/exit-survey'
     | '/api/public/track'
   fileRoutesByTo: FileRoutesByTo
@@ -142,6 +192,11 @@ export interface FileRouteTypes {
     | '/historiku'
     | '/krahaso'
     | '/rezultati/$sessionId'
+    | '/services/360-media'
+    | '/services/google-maps'
+    | '/services/seo'
+    | '/services/social-media'
+    | '/services/web-3d'
     | '/api/public/exit-survey'
     | '/api/public/track'
   id:
@@ -155,6 +210,11 @@ export interface FileRouteTypes {
     | '/historiku'
     | '/krahaso'
     | '/rezultati/$sessionId'
+    | '/services/360-media'
+    | '/services/google-maps'
+    | '/services/seo'
+    | '/services/social-media'
+    | '/services/web-3d'
     | '/api/public/exit-survey'
     | '/api/public/track'
   fileRoutesById: FileRoutesById
@@ -169,6 +229,11 @@ export interface RootRouteChildren {
   HistorikuRoute: typeof HistorikuRoute
   KrahasoRoute: typeof KrahasoRoute
   RezultatiSessionIdRoute: typeof RezultatiSessionIdRoute
+  Services360MediaRoute: typeof Services360MediaRoute
+  ServicesGoogleMapsRoute: typeof ServicesGoogleMapsRoute
+  ServicesSeoRoute: typeof ServicesSeoRoute
+  ServicesSocialMediaRoute: typeof ServicesSocialMediaRoute
+  ServicesWeb3dRoute: typeof ServicesWeb3dRoute
   ApiPublicExitSurveyRoute: typeof ApiPublicExitSurveyRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
 }
@@ -231,6 +296,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/services/web-3d': {
+      id: '/services/web-3d'
+      path: '/services/web-3d'
+      fullPath: '/services/web-3d'
+      preLoaderRoute: typeof ServicesWeb3dRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/social-media': {
+      id: '/services/social-media'
+      path: '/services/social-media'
+      fullPath: '/services/social-media'
+      preLoaderRoute: typeof ServicesSocialMediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/seo': {
+      id: '/services/seo'
+      path: '/services/seo'
+      fullPath: '/services/seo'
+      preLoaderRoute: typeof ServicesSeoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/google-maps': {
+      id: '/services/google-maps'
+      path: '/services/google-maps'
+      fullPath: '/services/google-maps'
+      preLoaderRoute: typeof ServicesGoogleMapsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/360-media': {
+      id: '/services/360-media'
+      path: '/services/360-media'
+      fullPath: '/services/360-media'
+      preLoaderRoute: typeof Services360MediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/rezultati/$sessionId': {
       id: '/rezultati/$sessionId'
       path: '/rezultati/$sessionId'
@@ -265,6 +365,11 @@ const rootRouteChildren: RootRouteChildren = {
   HistorikuRoute: HistorikuRoute,
   KrahasoRoute: KrahasoRoute,
   RezultatiSessionIdRoute: RezultatiSessionIdRoute,
+  Services360MediaRoute: Services360MediaRoute,
+  ServicesGoogleMapsRoute: ServicesGoogleMapsRoute,
+  ServicesSeoRoute: ServicesSeoRoute,
+  ServicesSocialMediaRoute: ServicesSocialMediaRoute,
+  ServicesWeb3dRoute: ServicesWeb3dRoute,
   ApiPublicExitSurveyRoute: ApiPublicExitSurveyRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
 }

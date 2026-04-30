@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { getLastSessionId } from "@/lib/visitor-id";
 import { track } from "@/lib/analytics";
 import { ExitIntentSurvey } from "@/components/ExitIntentSurvey";
+import { CaseStudyPreview } from "@/components/CaseStudyPreview";
 
 export function Landing() {
   const [returning, setReturning] = useState(false);
@@ -140,6 +141,10 @@ export function Landing() {
           ))}
         </motion.div>
       </main>
+
+      {/* Case Studies Section */}
+      <CaseStudyPreview limit={3} title="Rezultate reale nga klientët tanë" />
+
       <ExitIntentSurvey />
     </div>
   );
