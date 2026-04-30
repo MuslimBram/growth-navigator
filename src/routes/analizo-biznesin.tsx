@@ -203,8 +203,8 @@ Ngarko screenshot-e ose shkruaj shifrat me tekst.`,
         copy[copy.length - 1] = {
           role: "bot",
           text: res.analysis.unreadable
-            ? "Nuk arrita ta lexoj qartë raportin. Shih më poshtë."
-            : "AI lexoi raportet e tua. Shih analizën më poshtë.",
+            ? "Nuk arrita ta lexoj qartë raportin. Provo përsëri me screenshot më të pastër."
+            : "AI e analizoi biznesin tënd! 🎯\n\nLër kontaktin tënd dhe ne do ta dërgojmë diagnozën e plotë brenda 24 orëve.",
         };
         return copy;
       });
