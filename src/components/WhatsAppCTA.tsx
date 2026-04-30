@@ -85,8 +85,7 @@ export function WhatsAppCTA({
       {/* Fallback: copy message */}
       <div className="mt-4">
         <p className="text-xs text-muted-foreground">
-          Nuk u hap? Kopjo mesazhin dhe dërgoje manualisht në WhatsApp:{" "}
-          <span className="font-medium text-foreground">+355 69 722 1224</span>
+          Nuk u hap? Kopjo mesazhin dhe dërgoje manualisht në WhatsApp.
         </p>
         <button
           type="button"
