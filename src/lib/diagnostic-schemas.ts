@@ -1,49 +1,40 @@
 import { z } from "zod";
 
-// Keep these enums in sync with diagnostic-types.ts.
-// We allow ALL valid AnswerValue strings — semantic validity is enforced at
-// the question level on the client, server treats values as opaque labels.
-
+// Dynamic question system — answers are partial since not all questions are shown.
 export const ANSWER_VALUES = [
-  "yes",
-  "partial",
-  "no",
-  "basic",
-  "likes_only",
-  "not_optimized",
-  "nothing",
+  "yes", "partial", "no",
+  "0", "1_5", "5_20", "dont_know",
+  "whatsapp", "phone", "dm", "website_form", "not_often",
+  "works_well", "not_much",
+  "cheap_price", "quality", "no_answer",
+  "2_4h", "5_8h", "8_plus",
+  "something", "writes_sometimes", "clear_path",
 ] as const;
 
 export const ANSWER_KEYS = [
-  "seo",
-  "website",
-  "visual360",
-  "social_conversion",
-  "google_maps",
-  "differentiation",
+  "online_leads", "contact_method", "automation", "measurement",
+  "ads", "brand_positioning", "working_hours", "virtual_experience",
+  "funnel", "ai_usage",
 ] as const;
 
 export const SERVICE_KEYS = [
-  "seo",
-  "web_3d",
-  "photo_video_360",
-  "social_media",
-  "google_maps",
-  "combined_package",
+  "seo", "web_3d", "photo_video_360", "social_media",
+  "google_maps", "combined_package", "automation", "ads",
+  "analytics_measurement",
 ] as const;
 
 const answerValueSchema = z.enum(ANSWER_VALUES);
 
-export const answersSchema = z.object({
-  seo: answerValueSchema,
-  website: answerValueSchema,
-  visual360: answerValueSchema,
-  social_conversion: answerValueSchema,
-  google_maps: answerValueSchema,
-  differentiation: answerValueSchema,
-});
+// Dynamic: answers object has at least 6 keys (core questions), up to 8
+export const answersSchema = z.record(
+  z.enum(ANSWER_KEYS),
+  answerValueSchema,
+).refine(
+  (obj) => Object.keys(obj).length >= 6,
+  { message: "Duhen të paktën 6 përgjigje." },
+);
 
-export type AnswersInput = z.infer<typeof answersSchema>;
+export type AnswersInput = Record<string, string>;
 
 export const submitDiagnosisSchema = z.object({
   answers: answersSchema,
@@ -91,4 +82,3 @@ export const submitLeadSchema = z.object({ sessionId: z.string().uuid() }).and(
 );
 
 export type SubmitLeadInput = z.infer<typeof submitLeadSchema>;
-

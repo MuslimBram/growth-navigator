@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { ArrowLeft, ArrowRight, Check, AlertCircle, Home } from "lucide-react";
 import {
-  QUESTIONS,
+  getVisibleQuestions,
   type AnswersMap,
   type AnswerValue,
 } from "@/lib/diagnostic-types";
@@ -18,8 +18,7 @@ export const Route = createFileRoute("/diagnoze")({
       { title: "Diagnoza — Muslimi Digital" },
       {
         name: "description",
-        content:
-          "Përgjigju 6 pyetjeve të shkurtra për të zbuluar hendekun e biznesit tënd.",
+        content: "Përgjigju pyetjeve të shkurtra për të zbuluar hendekun e biznesit tënd.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -40,8 +39,7 @@ function loadProgress(): PersistedState | null {
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PersistedState;
-    if (typeof parsed.step !== "number" || typeof parsed.answers !== "object")
-      return null;
+    if (typeof parsed.step !== "number" || typeof parsed.answers !== "object") return null;
     return parsed;
   } catch {
     return null;
@@ -52,9 +50,7 @@ function saveProgress(state: PersistedState) {
   if (typeof window === "undefined") return;
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    /* quota exceeded — ignore */
-  }
+  } catch { /* quota exceeded */ }
 }
 
 function clearProgress() {
@@ -72,15 +68,19 @@ function DiagnozePage() {
   const submitOnceRef = useRef(false);
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [resumed, setResumed] = useState(false);
+  // Dynamic question list based on current answers
+  const visibleQuestions = useMemo(() => getVisibleQuestions(answers), [answers]);
+  const total = visibleQuestions.length;
+  const current = visibleQuestions[step];
+  const progress = total > 0 ? ((step) / total) * 100 : 0;
 
   // Restore progress on mount
   useEffect(() => {
     const saved = loadProgress();
     if (saved && Object.keys(saved.answers).length > 0) {
-      setStep(Math.min(saved.step, QUESTIONS.length - 1));
       setAnswers(saved.answers);
-      setResumed(true);
+      const vis = getVisibleQuestions(saved.answers);
+      setStep(Math.min(saved.step, vis.length - 1));
       track({ event: "resume_prompt_shown", step: saved.step });
     } else {
       track({ event: "diagnosis_start" });
@@ -94,10 +94,10 @@ function DiagnozePage() {
     }
   }, [step, answers]);
 
-  // Cleanup pending feedback timer on unmount + log exit if mid-flow
+  // Log exit if mid-flow
   useEffect(() => {
     const onLeave = () => {
-      if (!submitOnceRef.current && Object.keys(answers).length > 0 && Object.keys(answers).length < QUESTIONS.length) {
+      if (!submitOnceRef.current && Object.keys(answers).length > 0 && Object.keys(answers).length < total) {
         track({ event: "exit_diagnosis", step, metadata: { answered: Object.keys(answers).length } });
       }
     };
@@ -106,14 +106,10 @@ function DiagnozePage() {
       window.removeEventListener("beforeunload", onLeave);
       if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
     };
-  }, [step, answers]);
-
-  const total = QUESTIONS.length;
-  const current = QUESTIONS[step];
-  const progress = (step / total) * 100;
+  }, [step, answers, total]);
 
   const handleAnswer = (value: AnswerValue, weak: boolean) => {
-    if (submitting) return;
+    if (submitting || !current) return;
     setError(null);
     const next: AnswersMap = { ...answers, [current.key]: value };
     setAnswers(next);
@@ -130,7 +126,9 @@ function DiagnozePage() {
 
   const advance = (collected: AnswersMap) => {
     setFeedback(null);
-    if (step + 1 >= total) {
+    // Recompute visible questions with updated answers
+    const newVisible = getVisibleQuestions(collected);
+    if (step + 1 >= newVisible.length) {
       void submit(collected);
     } else {
       setStep(step + 1);
@@ -150,7 +148,6 @@ function DiagnozePage() {
     setSubmitting(true);
     setError(null);
 
-    // Final validation — guarantees we have all 6 answers in valid shape.
     const parsed = answersSchema.safeParse(collected);
     if (!parsed.success) {
       submitOnceRef.current = false;
@@ -172,9 +169,7 @@ function DiagnozePage() {
       console.error(e);
       submitOnceRef.current = false;
       setSubmitting(false);
-      setError(
-        "Diçka shkoi keq gjatë analizës. Kontrollo lidhjen dhe provo përsëri."
-      );
+      setError("Diçka shkoi keq gjatë analizës. Kontrollo lidhjen dhe provo përsëri.");
     }
   };
 
@@ -287,9 +282,9 @@ function DiagnozePage() {
                 Kjo zgjat disa sekonda.
               </p>
             </motion.div>
-          ) : (
+          ) : current ? (
             <motion.div
-              key={`q-${step}`}
+              key={`q-${current.key}`}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
@@ -336,7 +331,7 @@ function DiagnozePage() {
                 })}
               </div>
             </motion.div>
-          )}
+          ) : null}
         </AnimatePresence>
       </main>
     </div>

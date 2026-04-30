@@ -6,7 +6,10 @@ export type ServiceKey =
   | "photo_video_360"
   | "social_media"
   | "google_maps"
-  | "combined_package";
+  | "combined_package"
+  | "automation"
+  | "ads"
+  | "analytics_measurement";
 
 export const SERVICE_LABELS: Record<ServiceKey, string> = {
   seo: "SEO — Optimizim për Google",
@@ -15,6 +18,9 @@ export const SERVICE_LABELS: Record<ServiceKey, string> = {
   social_media: "Menaxhim i Rrjeteve Sociale",
   google_maps: "Google Maps për Biznes",
   combined_package: "Paketë e Kombinuar Premium",
+  automation: "Automatizim & AI",
+  ads: "Reklama Dixhitale (Facebook/Google Ads)",
+  analytics_measurement: "Matje & Analitikë",
 };
 
 export const SERVICE_TAGLINES: Record<ServiceKey, string> = {
@@ -24,24 +30,48 @@ export const SERVICE_TAGLINES: Record<ServiceKey, string> = {
   social_media: "Postime që sjellin klientë, jo vetëm pëlqime.",
   google_maps: "Të gjejnë në hartë me vlerësime që tërheqin.",
   combined_package: "Strategji e plotë që të dallon nga konkurrentët.",
+  automation: "Sisteme që punojnë për ty 24/7, edhe kur fle.",
+  ads: "Reklama që sjellin klientë me ROI të matshëm.",
+  analytics_measurement: "Vendime të bazuara në të dhëna, jo supozime.",
 };
 
 export type AnswerKey =
-  | "seo"
-  | "website"
-  | "visual360"
-  | "social_conversion"
-  | "google_maps"
-  | "differentiation";
+  | "online_leads"
+  | "contact_method"
+  | "automation"
+  | "measurement"
+  | "ads"
+  | "brand_positioning"
+  | "working_hours"
+  | "growth_match"
+  | "virtual_experience"
+  | "funnel"
+  | "ai_usage";
 
 export type AnswerValue =
-  | "yes"           // strong / no problem
-  | "partial"       // somewhat / unsure
-  | "no"            // weak / missing
-  | "basic"         // for website
-  | "likes_only"    // for social
-  | "not_optimized" // for google_maps
-  | "nothing";      // for differentiation
+  | "yes"
+  | "partial"
+  | "no"
+  | "0"
+  | "1_5"
+  | "5_20"
+  | "dont_know"
+  | "whatsapp"
+  | "phone"
+  | "dm"
+  | "website_form"
+  | "not_often"
+  | "works_well"
+  | "not_much"
+  | "cheap_price"
+  | "quality"
+  | "no_answer"
+  | "2_4h"
+  | "5_8h"
+  | "8_plus"
+  | "something"
+  | "writes_sometimes"
+  | "clear_path";
 
 export interface QuestionConfig {
   key: AnswerKey;
@@ -51,88 +81,169 @@ export interface QuestionConfig {
   options: Array<{
     value: AnswerValue;
     label: string;
-    weak: boolean; // true = reveals a gap
+    weak: boolean;
   }>;
-  /** Short, punchy message shown after a weak answer. */
   weakFeedback: string;
+  /** If defined, question only shows when this returns true */
+  showIf?: (answers: AnswersMap) => boolean;
 }
 
 export const QUESTIONS: QuestionConfig[] = [
+  // 1. LEADS & KONVERTIM — always shown
   {
-    key: "seo",
-    question: "Kur dikush kërkon shërbimin tënd në Google, a je në faqen e parë?",
-    subtitle: "Mendo për fjalët kyçe që një klient i ri do shkruante.",
-    service: "seo",
-    options: [
-      { value: "yes", label: "Po, dal në faqen e parë", weak: false },
-      { value: "partial", label: "Nganjëherë, jo gjithmonë", weak: true },
-      { value: "no", label: "Jo, ose nuk e di", weak: true },
-    ],
-    weakFeedback: "Pa SEO, edhe faqja më e bukur është e padukshme.",
-  },
-  {
-    key: "website",
-    question:
-      "A ke një faqe interneti që i bën klientët të thonë 'wow', apo thjesht një kartëvizitë online?",
-    subtitle: "Faqja e parë krijon perceptimin e parë.",
-    service: "web_3d",
-    options: [
-      { value: "yes", label: "Po, faqe profesionale moderne", weak: false },
-      { value: "basic", label: "Faqe e thjeshtë / e vjetër", weak: true },
-      { value: "no", label: "Nuk kam faqe", weak: true },
-    ],
-    weakFeedback: "Një faqe e thjeshtë nuk mjafton. Duhet të besojnë para se të blejnë.",
-  },
-  {
-    key: "visual360",
-    question:
-      "A ke foto 360° ose video që e bëjnë klientin të ndihet sikur ka hyrë brenda biznesit tënd?",
-    subtitle: "Përvoja vizuale shet para se të flasësh.",
-    service: "photo_video_360",
-    options: [
-      { value: "yes", label: "Po, kam foto/video 360° profesionale", weak: false },
-      { value: "partial", label: "Vetëm disa foto të zakonshme", weak: true },
-      { value: "no", label: "Jo, ende jo", weak: true },
-    ],
-    weakFeedback: "Shitja fillon nga vëmendja. Pa 360°, po shet me foto që nuk bindin.",
-  },
-  {
-    key: "social_conversion",
-    question:
-      "Postimet që bën në rrjete sociale — sjellin klientë që të kontaktojnë, apo vetëm pëlqime?",
-    subtitle: "Engagement nuk është shitje.",
-    service: "social_media",
-    options: [
-      { value: "yes", label: "Po, sjellin klientë realë", weak: false },
-      { value: "likes_only", label: "Vetëm pëlqime, pa kontakte", weak: true },
-      { value: "no", label: "Nuk postoj rregullisht", weak: true },
-    ],
-    weakFeedback: "Like-et nuk paguajnë faturat. Klientët po.",
-  },
-  {
-    key: "google_maps",
-    question: "Nëse dikush kërkon në Google Maps, a të gjen dot? Dhe a ke vlerësime aty?",
-    subtitle: "Maps është vendi ku merren vendimet lokale.",
-    service: "google_maps",
-    options: [
-      { value: "yes", label: "Po, jam në Maps me vlerësime të mira", weak: false },
-      { value: "not_optimized", label: "Jam aty, por pa vlerësime / jo i optimizuar", weak: true },
-      { value: "no", label: "Nuk më gjejnë në Maps", weak: true },
-    ],
-    weakFeedback: "Po të mos gjesh dot në hartë, je sikur nuk ekziston.",
-  },
-  {
-    key: "differentiation",
-    question: "Çfarë të dallon nga konkurrentët? Apo po shet njësoj si gjithë të tjerët?",
-    subtitle: "Pa dallim, çmimi mbetet i vetmi argument.",
+    key: "online_leads",
+    question: "Sa klientë të vijnë çdo muaj nga online?",
+    subtitle: "Mendo për klientë që të gjejnë përmes internetit.",
     service: "combined_package",
     options: [
-      { value: "yes", label: "Kam një pozicionim të qartë", weak: false },
-      { value: "partial", label: "Kam disa ide, por pa strategji", weak: true },
-      { value: "nothing", label: "Sinqerisht, jo shumë", weak: true },
+      { value: "0", label: "0 — asnjë", weak: true },
+      { value: "1_5", label: "1–5 klientë", weak: true },
+      { value: "5_20", label: "5–20 klientë", weak: false },
+      { value: "dont_know", label: "Nuk e di", weak: true },
     ],
-    weakFeedback: "Pa dallim, je thjesht një tjetër ofertë në det.",
+    weakFeedback: "Problemi yt nuk është mungesa e klientëve… është mungesa e sistemit për t'i kapur.",
+  },
+  // 2. SHITJA — always shown
+  {
+    key: "contact_method",
+    question: "Si të kontaktojnë zakonisht klientët?",
+    subtitle: "Rruga kryesore që klientët përdorin për të arritur tek ti.",
+    service: "web_3d",
+    options: [
+      { value: "website_form", label: "Formë në website", weak: false },
+      { value: "whatsapp", label: "WhatsApp", weak: true },
+      { value: "phone", label: "Telefon", weak: true },
+      { value: "dm", label: "DM në rrjete sociale", weak: true },
+      { value: "not_often", label: "Nuk më kontaktojnë shpesh", weak: true },
+    ],
+    weakFeedback: "Po humbet klientë sepse nuk ke një rrugë të qartë për shitje.",
+  },
+  // 3. AUTOMATION — shown if contact method is weak
+  {
+    key: "automation",
+    question: "A ke ndonjë sistem që u përgjigjet klientëve automatikisht?",
+    subtitle: "P.sh. chatbot, auto-reply, email sekuencë.",
+    service: "automation",
+    options: [
+      { value: "yes", label: "Po", weak: false },
+      { value: "no", label: "Jo", weak: true },
+    ],
+    weakFeedback: "Po humbet kohë dhe klientë çdo ditë pa e kuptuar.",
+    showIf: (a) => {
+      const v = a.contact_method;
+      return v === "whatsapp" || v === "phone" || v === "dm" || v === "not_often";
+    },
+  },
+  // 4. MATJA — always shown
+  {
+    key: "measurement",
+    question: "A e di saktë sa njerëz hyjnë dhe sa blejnë?",
+    subtitle: "Matja e trafikut, konvertimeve, ROI-t.",
+    service: "analytics_measurement",
+    options: [
+      { value: "yes", label: "Po, i ndjek numrat", weak: false },
+      { value: "partial", label: "Pjesërisht", weak: true },
+      { value: "no", label: "Jo", weak: true },
+    ],
+    weakFeedback: "Pa matje, po merr vendime me mend.",
+  },
+  // 5. REKLAMAT — always shown
+  {
+    key: "ads",
+    question: "A përdor reklama (Facebook / Google Ads)?",
+    subtitle: "Reklama të paguara për të arritur klientë të rinj.",
+    service: "ads",
+    options: [
+      { value: "works_well", label: "Po, funksionojnë mirë", weak: false },
+      { value: "not_much", label: "Po, por nuk funksionojnë shumë", weak: true },
+      { value: "no", label: "Jo", weak: true },
+    ],
+    weakFeedback: "Po lë tregun në dorë të atyre që paguajnë për vëmendje.",
+  },
+  // 6. POZICIONIMI (BRAND) — always shown
+  {
+    key: "brand_positioning",
+    question: "Kur dikush dëgjon për biznesin tënd, çfarë mendon menjëherë?",
+    subtitle: "Identiteti i brendit tënd në mendjen e klientëve.",
+    service: "combined_package",
+    options: [
+      { value: "quality", label: "Cilësi", weak: false },
+      { value: "cheap_price", label: "Çmim i lirë", weak: true },
+      { value: "dont_know", label: "Nuk e di", weak: true },
+      { value: "no_answer", label: "Nuk kam përgjigje", weak: true },
+    ],
+    weakFeedback: "Pa identitet, je i zëvendësueshëm.",
+  },
+  // 7. KOHË VS RRITJE — always shown
+  {
+    key: "working_hours",
+    question: "Sa orë në ditë punon për biznesin?",
+    subtitle: "Dhe a po rritet siç duhet për këtë kohë?",
+    service: "automation",
+    options: [
+      { value: "2_4h", label: "2–4 orë", weak: false },
+      { value: "5_8h", label: "5–8 orë", weak: true },
+      { value: "8_plus", label: "8+ orë", weak: true },
+    ],
+    weakFeedback: "Problemi nuk është sa punon… por si punon.",
+  },
+  // 8. EKSPERIENCA VR/360 — always shown
+  {
+    key: "virtual_experience",
+    question: "A mundet klienti të 'hyjë' virtualisht në biznesin tënd para se të vijë?",
+    subtitle: "Tur virtual, foto 360°, eksperiencë online.",
+    service: "photo_video_360",
+    options: [
+      { value: "yes", label: "Po", weak: false },
+      { value: "no", label: "Jo", weak: true },
+    ],
+    weakFeedback: "Konkurrentët që japin eksperiencë fitojnë më shpejt.",
+  },
+  // 9. FUNNEL — always shown
+  {
+    key: "funnel",
+    question: "Çfarë ndodh pasi dikush të sheh për herë të parë?",
+    subtitle: "Rruga nga vëmendja tek blerja.",
+    service: "combined_package",
+    options: [
+      { value: "something", label: "Asgjë", weak: true },
+      { value: "writes_sometimes", label: "Më shkruan ndonjëherë", weak: true },
+      { value: "clear_path", label: "Ka një rrugë të qartë (website, CTA, etj.)", weak: false },
+    ],
+    weakFeedback: "Ti ke vëmendje… por nuk ke sistem për ta kthyer në klient.",
+  },
+  // 10. AI & TEKNOLOGJIA — shown if funnel or automation is weak
+  {
+    key: "ai_usage",
+    question: "A përdor ndonjë AI për biznesin tënd?",
+    subtitle: "ChatGPT, automatizim, mjete dixhitale të avancuara.",
+    service: "automation",
+    options: [
+      { value: "yes", label: "Po", weak: false },
+      { value: "no", label: "Jo", weak: true },
+      { value: "dont_know", label: "Nuk e di si", weak: true },
+    ],
+    weakFeedback: "Bizneset që përdorin AI po lëvizin më shpejt se ti.",
+    showIf: (a) => {
+      return a.funnel === "something" || a.funnel === "writes_sometimes" ||
+             a.automation === "no" || a.working_hours === "8_plus";
+    },
   },
 ];
 
 export type AnswersMap = Partial<Record<AnswerKey, AnswerValue>>;
+
+/**
+ * Compute the list of visible questions given current answers.
+ * Always returns max 8 questions.
+ */
+export function getVisibleQuestions(answers: AnswersMap): QuestionConfig[] {
+  const visible: QuestionConfig[] = [];
+  for (const q of QUESTIONS) {
+    if (visible.length >= 8) break;
+    if (!q.showIf || q.showIf(answers)) {
+      visible.push(q);
+    }
+  }
+  return visible;
+}
