@@ -2,8 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const TELEGRAM_GATEWAY = "https://connector-gateway.lovable.dev/telegram";
-// Your Telegram chat ID — update after running /start on the bot
-const ADMIN_CHAT_ID = "";
 
 const notifyLeadSchema = z.object({
   businessName: z.string().optional(),
