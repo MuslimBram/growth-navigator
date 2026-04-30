@@ -397,19 +397,9 @@ function AnalysisLeadCapture({ diagnosisText, onSuccess }: { diagnosisText: stri
         email: email.trim() || null,
         whatsapp: whatsapp.trim() || null,
         business_name: businessName.trim() || null,
-      });
+        diagnosis_notes: diagnosisText || null,
+      } as any);
       if (error) throw error;
-
-      // Also store the diagnosis with the lead's contact for admin
-      if (diagnosisText) {
-        await supabase.from("ai_analysis_results").insert({
-          visitor_id: getVisitorId(),
-          diagnosis_text: diagnosisText,
-          contact_email: email.trim() || null,
-          contact_whatsapp: whatsapp.trim() || null,
-          business_name: businessName.trim() || null,
-        });
-      }
 
       onSuccess();
     } catch (err) {
