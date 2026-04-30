@@ -262,7 +262,7 @@ function AnalyzePage() {
               AI Konsulent Strategjik
             </span>
           </div>
-          <h1 className="text-balance text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+          <h1 className="text-balance text-2xl font-bold leading-tight tracking-tight sm:text-3xl md:text-4xl">
             Ku po <span className="text-gradient-primary">ngec</span> biznesi yt online?
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
