@@ -187,7 +187,7 @@ function DiagnozePage() {
       <div className="pointer-events-none absolute inset-0 bg-radial-glow opacity-50" />
 
       {/* Header with progress */}
-      <header className="relative z-10 mx-auto max-w-2xl px-6 pt-8">
+      <header className="relative z-10 mx-auto max-w-2xl px-4 pt-6 sm:px-6 sm:pt-8">
         <div className="mb-4 flex items-center gap-2">
           <Link
             to="/"
