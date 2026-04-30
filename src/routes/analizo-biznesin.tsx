@@ -182,14 +182,25 @@ function AnalyzePage() {
         .replace("---FUND---", "")
         .trim();
 
-      setMessages((m) => {
-        const copy = [...m];
-        copy[copy.length - 1] = { role: "bot", text: cleanReply };
-        return copy;
-      });
-
       if (res.isDiagnosis) {
+        // Store diagnosis but DON'T show it to user
+        setDiagnosisText(cleanReply);
         setIsDiagnosis(true);
+        // Replace "thinking" bubble with a prompt to leave contact
+        setMessages((m) => {
+          const copy = [...m];
+          copy[copy.length - 1] = {
+            role: "bot",
+            text: "Analiza jote është gati! 🎯\n\nLër kontaktin tënd më poshtë dhe Muslimi Digital do ta dërgojë diagnozën e plotë sa më shpejtë.",
+          };
+          return copy;
+        });
+      } else {
+        setMessages((m) => {
+          const copy = [...m];
+          copy[copy.length - 1] = { role: "bot", text: cleanReply };
+          return copy;
+        });
       }
 
       // Reset input
