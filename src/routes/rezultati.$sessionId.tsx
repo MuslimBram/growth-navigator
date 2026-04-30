@@ -147,28 +147,9 @@ function ResultPage() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
-              className="mt-10 grid grid-cols-2 gap-4"
+              className="mt-10"
             >
-              <div className="rounded-2xl border border-warning/30 bg-warning/5 p-5">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                  Klientë të humbur / muaj
-                </div>
-                <div className="mt-2 font-display text-3xl font-bold text-warning sm:text-4xl">
-                  <AnimatedCounter value={data.estimated_lost_clients} prefix="~" />
-                </div>
-              </div>
-              <div className="rounded-2xl border border-warning/30 bg-warning/5 p-5">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                  Të ardhura / muaj
-                </div>
-                <div className="mt-2 font-display text-3xl font-bold text-warning sm:text-4xl">
-                  <AnimatedCounter value={data.estimated_lost_eur} prefix="~€" />
-                </div>
-              </div>
             </motion.div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Vlerësim konservativ bazuar në përgjigjet e tua. Realiteti shpesh është më i lartë.
-            </p>
 
             <motion.div
               initial={{ opacity: 0, scale: 0.97 }}
