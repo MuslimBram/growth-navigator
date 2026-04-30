@@ -153,7 +153,9 @@ export function LeadCapture({ sessionId, primaryServiceLabel, onSuccess }: Props
       </div>
 
       <a
-        href={waLink}
+        href={`https://wa.me/355697221224?text=${encodeURIComponent(
+          `Përshëndetje! Sapo plotësova diagnozën. Më rekomandohet: ${primaryServiceLabel}. Dua të diskutoj më shumë.`
+        )}`}
         target="_blank"
         rel="noopener noreferrer"
         className="mt-4 flex w-full items-center justify-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-6 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
