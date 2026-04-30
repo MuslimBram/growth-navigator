@@ -3,12 +3,15 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getLastSessionId } from "@/lib/visitor-id";
+import { track } from "@/lib/analytics";
+import { ExitIntentSurvey } from "@/components/ExitIntentSurvey";
 
 export function Landing() {
   const [returning, setReturning] = useState(false);
 
   useEffect(() => {
     setReturning(Boolean(getLastSessionId()));
+    track({ event: "landing_view" });
   }, []);
 
   return (
@@ -87,6 +90,7 @@ export function Landing() {
         >
           <Link
             to="/diagnoze"
+            onClick={() => track({ event: "diagnosis_start", metadata: { source: "hero_cta" } })}
             className="group inline-flex items-center gap-3 rounded-full bg-gradient-primary px-8 py-4 text-base font-semibold text-primary-foreground shadow-glow transition-all hover:scale-[1.03] hover:shadow-glow-soft"
           >
             Nis Diagnozën Falas
