@@ -1,0 +1,1 @@
+ALTER TABLE public.diagnostic_leads ADD COLUMN IF NOT EXISTS diagnosis_notes TEXT;
