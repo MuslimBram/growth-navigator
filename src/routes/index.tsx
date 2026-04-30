@@ -1,26 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Landing } from "@/components/Landing";
 
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "Muslimi Digital — Diagnoza Falas e Biznesit Tënd" },
+      {
+        name: "description",
+        content:
+          "Zbulo brenda 2 minutash cilat shërbime dixhitale i mungojnë biznesit tënd. Diagnozë e personalizuar nga Muslimi Digital.",
+      },
+      { property: "og:title", content: "Muslimi Digital — Diagnoza Falas" },
+      {
+        property: "og:description",
+        content: "Nëse dikush kërkon shërbimin tënd sot, a përfundon tek ti apo tek konkurrenti?",
+      },
+      { property: "og:type", content: "website" },
+    ],
+  }),
+  component: Landing,
 });
-
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
-}
