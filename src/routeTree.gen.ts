@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as DiagnozeRouteImport } from './routes/diagnoze'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RezultatiSessionIdRouteImport } from './routes/rezultati.$sessionId'
+import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
+import { Route as ApiPublicExitSurveyRouteImport } from './routes/api/public/exit-survey'
 
 const DiagnozeRoute = DiagnozeRouteImport.update({
   id: '/diagnoze',
@@ -28,35 +30,69 @@ const RezultatiSessionIdRoute = RezultatiSessionIdRouteImport.update({
   path: '/rezultati/$sessionId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
+  id: '/api/public/track',
+  path: '/api/public/track',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicExitSurveyRoute = ApiPublicExitSurveyRouteImport.update({
+  id: '/api/public/exit-survey',
+  path: '/api/public/exit-survey',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/diagnoze': typeof DiagnozeRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
+  '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
+  '/api/public/track': typeof ApiPublicTrackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/diagnoze': typeof DiagnozeRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
+  '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
+  '/api/public/track': typeof ApiPublicTrackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/diagnoze': typeof DiagnozeRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
+  '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
+  '/api/public/track': typeof ApiPublicTrackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/diagnoze' | '/rezultati/$sessionId'
+  fullPaths:
+    | '/'
+    | '/diagnoze'
+    | '/rezultati/$sessionId'
+    | '/api/public/exit-survey'
+    | '/api/public/track'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/diagnoze' | '/rezultati/$sessionId'
-  id: '__root__' | '/' | '/diagnoze' | '/rezultati/$sessionId'
+  to:
+    | '/'
+    | '/diagnoze'
+    | '/rezultati/$sessionId'
+    | '/api/public/exit-survey'
+    | '/api/public/track'
+  id:
+    | '__root__'
+    | '/'
+    | '/diagnoze'
+    | '/rezultati/$sessionId'
+    | '/api/public/exit-survey'
+    | '/api/public/track'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DiagnozeRoute: typeof DiagnozeRoute
   RezultatiSessionIdRoute: typeof RezultatiSessionIdRoute
+  ApiPublicExitSurveyRoute: typeof ApiPublicExitSurveyRoute
+  ApiPublicTrackRoute: typeof ApiPublicTrackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +118,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RezultatiSessionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/track': {
+      id: '/api/public/track'
+      path: '/api/public/track'
+      fullPath: '/api/public/track'
+      preLoaderRoute: typeof ApiPublicTrackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/exit-survey': {
+      id: '/api/public/exit-survey'
+      path: '/api/public/exit-survey'
+      fullPath: '/api/public/exit-survey'
+      preLoaderRoute: typeof ApiPublicExitSurveyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +139,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DiagnozeRoute: DiagnozeRoute,
   RezultatiSessionIdRoute: RezultatiSessionIdRoute,
+  ApiPublicExitSurveyRoute: ApiPublicExitSurveyRoute,
+  ApiPublicTrackRoute: ApiPublicTrackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
