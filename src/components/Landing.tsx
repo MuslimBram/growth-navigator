@@ -100,7 +100,7 @@ export function Landing() {
           <Link
             to="/analizo-biznesin"
             onClick={() => track({ event: "ai_analyze_start", metadata: { source: "hero_cta" } })}
-            className="group mt-4 inline-flex items-center gap-3 rounded-full border-2 border-primary px-8 py-4 text-base font-semibold text-primary shadow-glow-soft transition-all hover:scale-[1.03] hover:bg-primary hover:text-primary-foreground"
+            className="group inline-flex items-center gap-3 rounded-full border-2 border-primary px-6 py-3.5 text-sm font-semibold text-primary shadow-glow-soft transition-all hover:scale-[1.03] hover:bg-primary hover:text-primary-foreground sm:px-8 sm:py-4 sm:text-base"
           >
             Analizo me AI
             <Sparkles className="h-5 w-5 transition-transform group-hover:scale-110" />
