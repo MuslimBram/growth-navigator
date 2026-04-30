@@ -1,16 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Upload,
   Sparkles,
-  AlertTriangle,
   CheckCircle2,
   ArrowRight,
   Loader2,
   X,
-  Image as ImageIcon,
   Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,12 +16,8 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { getVisitorId } from "@/lib/visitor-id";
 import { analyzeBusinessReport } from "@/server/business-analysis.functions";
-import {
-  SERVICE_LABEL,
-  SERVICE_DESCRIPTION,
-  type BusinessAnalysisResult,
-  type ServiceKey,
-} from "@/lib/business-analysis-types";
+import { type BusinessAnalysisResult } from "@/lib/business-analysis-types";
+import { toast } from "sonner";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/analizo-biznesin")({
