@@ -11,6 +11,7 @@ import {
   insertLead,
   type StoredSession,
 } from "./diagnostic.server";
+import { aiDiagnose } from "./diagnostic-ai.server";
 
 /**
  * Submit answers, run diagnosis, persist a new session, return its id.
