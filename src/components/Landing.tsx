@@ -62,7 +62,7 @@ export function Landing() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1 }}
-            className="max-w-3xl text-balance text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl md:text-6xl"
+            className="max-w-3xl text-balance text-3xl font-bold leading-[1.05] tracking-tight sm:text-4xl md:text-5xl lg:text-6xl"
           >
             Nëse dikush kërkon shërbimin tënd sot…{" "}
             <span className="text-gradient-primary">
