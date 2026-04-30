@@ -71,14 +71,11 @@ function ResultPage() {
               className="mt-6 text-lg leading-relaxed text-muted-foreground"
             >
               Bazuar në përgjigjet e tua, kemi identifikuar{" "}
-              <span className="font-semibold text-foreground">
-                shërbimin kryesor
-              </span>{" "}
-              që të mungon dhe një vlerësim konkret të{" "}
-              <span className="font-semibold text-warning">
-                klientëve dhe të ardhurave që po humbet çdo muaj
-              </span>
-              . Lër kontaktin më poshtë dhe merr raportin e plotë + planin
+74:               <span className="font-semibold text-foreground">
+75:                 shërbimin kryesor
+76:               </span>{" "}
+              që të mungon dhe një analizë konkrete të mundësive që po humbet.
+              Lër kontaktin më poshtë dhe merr raportin e plotë + planin
               personal — pa pagesë.
             </motion.p>
 
