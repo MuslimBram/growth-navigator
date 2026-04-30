@@ -140,7 +140,7 @@ export function LandingSections() {
           </p>
           <Link
             to="/diagnoze"
-            className="group mt-8 inline-flex items-center gap-3 rounded-full bg-gradient-primary px-8 py-4 text-base font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.03]"
+            className="group mt-6 inline-flex items-center gap-3 rounded-full bg-gradient-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.03] sm:mt-8 sm:px-8 sm:py-4 sm:text-base"
           >
             Nis Diagnozën Falas
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
