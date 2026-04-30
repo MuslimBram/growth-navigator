@@ -276,7 +276,24 @@ Ngarko screenshot-e ose shkruaj shifrat me tekst.`,
               <MessageBubble key={i} msg={msg} />
             ))}
 
-            {result && <ResultPanel result={result} />}
+            {result && !result.unreadable && !leadSubmitted && (
+              <AnalysisLeadCapture onSuccess={() => setLeadSubmitted(true)} />
+            )}
+
+            {leadSubmitted && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-xl border border-primary/30 bg-primary/5 p-6 text-center"
+              >
+                <CheckCircle2 className="mx-auto h-10 w-10 text-primary" />
+                <h3 className="mt-3 font-display text-xl font-bold">Faleminderit! 🎯</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Muslimi Digital do ta dërgojë diagnozën e plotë brenda 24 orëve
+                  në kontaktin që ke lënë.
+                </p>
+              </motion.div>
+            )}
           </div>
 
           {/* Composer */}
