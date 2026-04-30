@@ -73,7 +73,7 @@ export function LeadCapture({ sessionId, primaryServiceLabel, onSuccess }: Props
           </div>
           <h3 className="font-display text-xl font-bold">Të dhënat u dërguan</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            Ekipi ynë do të kontaktojë brenda 24 orësh me një plan personal.
+            Ekipi ynë do të kontaktojë sa më shpejtë me një plan personal.
           </p>
         </motion.div>
         <WhatsAppCTA
@@ -93,7 +93,7 @@ export function LeadCapture({ sessionId, primaryServiceLabel, onSuccess }: Props
         Merr planin tënd personal falas
       </h3>
       <p className="mt-1.5 text-sm text-muted-foreground">
-        Lëre Email-in ose WhatsApp — do të kontaktojmë brenda 24 orësh.
+        Lëre Email-in ose WhatsApp — do të kontaktojmë sa më shpejtë.
       </p>
 
       <div className="mt-5 space-y-3">
