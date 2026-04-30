@@ -375,39 +375,24 @@ Ngarko screenshot-e ose shkruaj shifrat me tekst.`,
           )}
         </Card>
 
-        {/* CTA after result */}
-        {result && !result.unreadable && (
+        {/* Thank you CTA after lead submitted */}
+        {leadSubmitted && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="mt-6 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center"
+            transition={{ delay: 0.3 }}
+            className="mt-6 flex justify-center"
           >
-            <Button
-              size="lg"
-              asChild
-              className="bg-gradient-to-r from-primary to-primary/80 shadow-glow"
-            >
+            <Button size="lg" asChild className="bg-gradient-to-r from-primary to-primary/80 shadow-glow">
               <a
                 href={`https://wa.me/355697221224?text=${encodeURIComponent(
-                  `Përshëndetje! AI më gjeti që ngërçi im është: ${result.main_bottleneck}. Dua ta rregulloj këtë problem.`,
+                  "Përshëndetje! Sapo dërgova raportet për analizë. Dua ta di rezultatin sa më shpejt.",
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Dua ta rregulloj këtë problem
+                Na shkruaj në WhatsApp për përgjigje më të shpejtë
                 <ArrowRight className="h-4 w-4" />
-              </a>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <a
-                href={`https://wa.me/355697221224?text=${encodeURIComponent(
-                  "Përshëndetje! Dua një analizë më të thellë të biznesit tim.",
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Më kontakto për analizë më të thellë
               </a>
             </Button>
           </motion.div>
