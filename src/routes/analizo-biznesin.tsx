@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { WhatsAppCTA } from "@/components/WhatsAppCTA";
+import { SERVICE_LABEL } from "@/lib/business-analysis-types";
 import { getVisitorId } from "@/lib/visitor-id";
 import { analyzeBusinessReport } from "@/server/business-analysis.functions";
 import { type BusinessAnalysisResult } from "@/lib/business-analysis-types";
