@@ -199,7 +199,7 @@ Ngarko screenshot-e ose shkruaj shifrat me tekst.`,
           role: "bot",
           text: res.analysis.unreadable
             ? "Nuk arrita ta lexoj qartë raportin. Provo përsëri me screenshot më të pastër."
-            : "AI e analizoi biznesin tënd! 🎯\n\nLër kontaktin tënd dhe ne do ta dërgojmë diagnozën e plotë brenda 24 orëve.",
+            : "AI e analizoi biznesin tënd! 🎯\n\nLër kontaktin tënd dhe ne do ta dërgojmë diagnozën e plotë sa më shpejtë.",
         };
         return copy;
       });
@@ -284,7 +284,7 @@ Ngarko screenshot-e ose shkruaj shifrat me tekst.`,
                 <CheckCircle2 className="mx-auto h-10 w-10 text-primary" />
                 <h3 className="mt-3 font-display text-xl font-bold">Faleminderit! 🎯</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Muslimi Digital do ta dërgojë diagnozën e plotë brenda 24 orëve
+                  Muslimi Digital do ta dërgojë diagnozën e plotë sa më shpejtë
                   në kontaktin që ke lënë.
                 </p>
               </motion.div>
@@ -437,7 +437,7 @@ function AnalysisLeadCapture({ onSuccess }: { onSuccess: () => void }) {
           Diagnoza jote është gati! 🎯
         </h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Lër kontaktin tënd dhe Muslimi Digital do ta dërgojë diagnozën e plotë brenda 24 orëve.
+          Lër kontaktin tënd dhe Muslimi Digital do ta dërgojë diagnozën e plotë sa më shpejtë.
         </p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-3">
