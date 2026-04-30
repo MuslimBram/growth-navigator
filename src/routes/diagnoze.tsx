@@ -295,7 +295,7 @@ function DiagnozePage() {
               exit={{ opacity: 0, y: -16 }}
               transition={{ duration: 0.4 }}
             >
-              <h1 className="text-balance font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+              <h1 className="text-balance font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl md:text-4xl">
                 {current.question}
               </h1>
               {current.subtitle && (
