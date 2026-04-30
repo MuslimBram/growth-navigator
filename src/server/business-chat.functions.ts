@@ -12,6 +12,7 @@ const chatInputSchema = z.object({
   messages: z.array(chatMessageSchema).max(60),
   userText: z.string().max(4000),
   imagePaths: z.array(z.string().max(512)).max(5).optional().default([]),
+  deviceInfo: z.string().max(500).optional().default(""),
 });
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
