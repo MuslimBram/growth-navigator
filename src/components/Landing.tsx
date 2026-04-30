@@ -116,7 +116,7 @@ export function Landing() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.7 }}
-          className="mt-20 grid w-full max-w-2xl grid-cols-3 gap-4 border-t border-border pt-10"
+          className="mt-14 grid w-full max-w-2xl grid-cols-3 gap-3 border-t border-border pt-8 sm:mt-20 sm:gap-4 sm:pt-10"
         >
           {[
             { n: "6", l: "pyetje" },
