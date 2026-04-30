@@ -24,7 +24,7 @@ const ORDER: ServiceKey[] = [
 
 export function LandingSections() {
   return (
-    <section className="relative z-10 mx-auto max-w-6xl px-6 pb-24">
+    <section className="relative z-10 mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24">
       {/* How it works */}
       <div className="mb-24">
         <motion.div
