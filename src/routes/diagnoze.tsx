@@ -1,7 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, AlertCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, AlertCircle, Home } from "lucide-react";
 import {
   QUESTIONS,
   type AnswersMap,
