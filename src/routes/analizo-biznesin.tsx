@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
@@ -7,6 +7,8 @@ import {
   Sparkles,
   CheckCircle2,
   ArrowRight,
+  ArrowLeft,
+  Home,
   Loader2,
   X,
   Send,
@@ -212,16 +214,30 @@ function AnalyzePage() {
       <div className="pointer-events-none absolute inset-0 bg-radial-glow opacity-60" />
       <div className="pointer-events-none absolute left-1/2 top-[-30%] h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-primary/15 blur-[120px]" />
 
-      <header className="relative z-10 mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
-        <a href="/" className="flex items-center gap-2">
+      <header className="relative z-10 mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface/60 text-muted-foreground transition hover:bg-accent hover:text-foreground"
+            aria-label="Kthehu mbrapa"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <Link
+            to="/"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface/60 text-muted-foreground transition hover:bg-accent hover:text-foreground"
+            aria-label="Faqja kryesore"
+          >
+            <Home className="h-4 w-4" />
+          </Link>
+        </div>
+        <Link to="/" className="flex items-center gap-2">
           <div className="h-2 w-2 rounded-full bg-primary shadow-glow" />
           <span className="font-display text-sm font-semibold tracking-wide">
             MUSLIMI <span className="text-primary">DIGITAL</span>
           </span>
-        </a>
-        <span className="hidden text-xs text-muted-foreground sm:inline">
-          AI Konsulent Strategjik
-        </span>
+        </Link>
       </header>
 
       <main className="relative z-10 mx-auto max-w-3xl px-4 pb-32 pt-4 sm:px-6">
