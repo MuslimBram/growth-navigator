@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as KrahasoRouteImport } from './routes/krahaso'
+import { Route as HistorikuRouteImport } from './routes/historiku'
 import { Route as DiagnozeRouteImport } from './routes/diagnoze'
 import { Route as CaseStudiesRouteImport } from './routes/case-studies'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -19,6 +21,16 @@ import { Route as RezultatiSessionIdRouteImport } from './routes/rezultati.$sess
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 import { Route as ApiPublicExitSurveyRouteImport } from './routes/api/public/exit-survey'
 
+const KrahasoRoute = KrahasoRouteImport.update({
+  id: '/krahaso',
+  path: '/krahaso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistorikuRoute = HistorikuRouteImport.update({
+  id: '/historiku',
+  path: '/historiku',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DiagnozeRoute = DiagnozeRouteImport.update({
   id: '/diagnoze',
   path: '/diagnoze',
@@ -72,6 +84,8 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/case-studies': typeof CaseStudiesRoute
   '/diagnoze': typeof DiagnozeRoute
+  '/historiku': typeof HistorikuRoute
+  '/krahaso': typeof KrahasoRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
   '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
   '/api/public/track': typeof ApiPublicTrackRoute
@@ -83,6 +97,8 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/case-studies': typeof CaseStudiesRoute
   '/diagnoze': typeof DiagnozeRoute
+  '/historiku': typeof HistorikuRoute
+  '/krahaso': typeof KrahasoRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
   '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
   '/api/public/track': typeof ApiPublicTrackRoute
@@ -95,6 +111,8 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/case-studies': typeof CaseStudiesRoute
   '/diagnoze': typeof DiagnozeRoute
+  '/historiku': typeof HistorikuRoute
+  '/krahaso': typeof KrahasoRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
   '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
   '/api/public/track': typeof ApiPublicTrackRoute
@@ -108,6 +126,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/case-studies'
     | '/diagnoze'
+    | '/historiku'
+    | '/krahaso'
     | '/rezultati/$sessionId'
     | '/api/public/exit-survey'
     | '/api/public/track'
@@ -119,6 +139,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/case-studies'
     | '/diagnoze'
+    | '/historiku'
+    | '/krahaso'
     | '/rezultati/$sessionId'
     | '/api/public/exit-survey'
     | '/api/public/track'
@@ -130,6 +152,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/case-studies'
     | '/diagnoze'
+    | '/historiku'
+    | '/krahaso'
     | '/rezultati/$sessionId'
     | '/api/public/exit-survey'
     | '/api/public/track'
@@ -142,6 +166,8 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CaseStudiesRoute: typeof CaseStudiesRoute
   DiagnozeRoute: typeof DiagnozeRoute
+  HistorikuRoute: typeof HistorikuRoute
+  KrahasoRoute: typeof KrahasoRoute
   RezultatiSessionIdRoute: typeof RezultatiSessionIdRoute
   ApiPublicExitSurveyRoute: typeof ApiPublicExitSurveyRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
@@ -149,6 +175,20 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/krahaso': {
+      id: '/krahaso'
+      path: '/krahaso'
+      fullPath: '/krahaso'
+      preLoaderRoute: typeof KrahasoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/historiku': {
+      id: '/historiku'
+      path: '/historiku'
+      fullPath: '/historiku'
+      preLoaderRoute: typeof HistorikuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/diagnoze': {
       id: '/diagnoze'
       path: '/diagnoze'
@@ -222,6 +262,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CaseStudiesRoute: CaseStudiesRoute,
   DiagnozeRoute: DiagnozeRoute,
+  HistorikuRoute: HistorikuRoute,
+  KrahasoRoute: KrahasoRoute,
   RezultatiSessionIdRoute: RezultatiSessionIdRoute,
   ApiPublicExitSurveyRoute: ApiPublicExitSurveyRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
