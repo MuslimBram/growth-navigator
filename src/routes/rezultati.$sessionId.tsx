@@ -7,6 +7,7 @@ import type { ServiceKey } from "@/lib/diagnostic-types";
 import { getResult } from "@/server/diagnostic.functions";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { LeadCapture } from "@/components/LeadCapture";
+import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 
 export const Route = createFileRoute("/rezultati/$sessionId")({
   head: () => ({
@@ -227,30 +228,11 @@ function ResultPage() {
               </div>
             )}
 
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
-              className="mt-12 rounded-2xl border border-primary/30 bg-primary/5 p-6 text-center"
-            >
-              <h3 className="font-display text-lg font-bold">
-                Të kontaktojmë brenda 24 orësh
-              </h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Ekipi ynë do të të dërgojë një plan personal. Mund të na shkruash
-                edhe direkt në WhatsApp.
-              </p>
-              <a
-                href={`https://wa.me/355697221224?text=${encodeURIComponent(
-                  `Përshëndetje! Sapo plotësova diagnozën. Më rekomandohet: ${SERVICE_LABELS[primary]}.`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow"
-              >
-                💬 Shkruaj në WhatsApp
-              </a>
-            </motion.div>
+            <WhatsAppCTA
+              mainBottleneck={data.diagnosis || "Mungon prania online"}
+              recommendedService={SERVICE_LABELS[primary]}
+              className="mt-12"
+            />
           </>
         )}
 

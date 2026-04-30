@@ -14,6 +14,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { WhatsAppCTA } from "@/components/WhatsAppCTA";
+import { SERVICE_LABEL } from "@/lib/business-analysis-types";
 import { getVisitorId } from "@/lib/visitor-id";
 import { analyzeBusinessReport } from "@/server/business-analysis.functions";
 import { type BusinessAnalysisResult } from "@/lib/business-analysis-types";
@@ -368,27 +370,17 @@ Ngarko screenshot-e ose shkruaj shifrat me tekst.`,
           )}
         </Card>
 
-        {/* Thank you CTA after lead submitted */}
-        {leadSubmitted && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-6 flex justify-center"
-          >
-            <Button size="lg" asChild className="bg-gradient-to-r from-primary to-primary/80 shadow-glow">
-              <a
-                href={`https://wa.me/355697221224?text=${encodeURIComponent(
-                  "Përshëndetje! Sapo dërgova raportet për analizë. Dua ta di rezultatin sa më shpejt.",
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Na shkruaj në WhatsApp për përgjigje më të shpejtë
-                <ArrowRight className="h-4 w-4" />
-              </a>
-            </Button>
-          </motion.div>
+        {leadSubmitted && result && !result.unreadable && (
+          <WhatsAppCTA
+            mainBottleneck={result.main_bottleneck}
+            recommendedService={
+              result.recommended_primary_service
+                ? SERVICE_LABEL[result.recommended_primary_service as keyof typeof SERVICE_LABEL] ||
+                  result.recommended_primary_service
+                : "Analizë e thellë"
+            }
+            className="mt-6"
+          />
         )}
 
         {result?.unreadable && (
