@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Landing } from "@/components/Landing";
+import { LandingSections } from "@/components/LandingSections";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -18,5 +19,15 @@ export const Route = createFileRoute("/")({
       { property: "og:type", content: "website" },
     ],
   }),
-  component: Landing,
+  component: HomePage,
 });
+
+function HomePage() {
+  return (
+    <>
+      <Landing />
+      <LandingSections />
+    </>
+  );
+}
+
