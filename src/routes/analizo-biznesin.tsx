@@ -296,6 +296,15 @@ function AnalyzePage() {
                   Muslimi Digital do ta dërgojë diagnozën e plotë sa më shpejtë
                   në kontaktin që ke lënë.
                 </p>
+                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-4 py-2 text-xs font-semibold text-primary hover:bg-primary/10"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Nis analizë të re
+                  </button>
+                </div>
               </motion.div>
             )}
           </div>
