@@ -10,6 +10,7 @@ import {
 import { answersSchema } from "@/lib/diagnostic-schemas";
 import { getVisitorId, setLastSessionId } from "@/lib/visitor-id";
 import { submitDiagnosis } from "@/server/diagnostic.functions";
+import { track } from "@/lib/analytics";
 
 export const Route = createFileRoute("/diagnoze")({
   head: () => ({
@@ -71,12 +72,18 @@ function DiagnozePage() {
   const submitOnceRef = useRef(false);
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [resumed, setResumed] = useState(false);
+
   // Restore progress on mount
   useEffect(() => {
     const saved = loadProgress();
-    if (saved) {
+    if (saved && Object.keys(saved.answers).length > 0) {
       setStep(Math.min(saved.step, QUESTIONS.length - 1));
       setAnswers(saved.answers);
+      setResumed(true);
+      track({ event: "resume_prompt_shown", step: saved.step });
+    } else {
+      track({ event: "diagnosis_start" });
     }
   }, []);
 
@@ -87,12 +94,19 @@ function DiagnozePage() {
     }
   }, [step, answers]);
 
-  // Cleanup pending feedback timer on unmount
+  // Cleanup pending feedback timer on unmount + log exit if mid-flow
   useEffect(() => {
+    const onLeave = () => {
+      if (!submitOnceRef.current && Object.keys(answers).length > 0 && Object.keys(answers).length < QUESTIONS.length) {
+        track({ event: "exit_diagnosis", step, metadata: { answered: Object.keys(answers).length } });
+      }
+    };
+    window.addEventListener("beforeunload", onLeave);
     return () => {
+      window.removeEventListener("beforeunload", onLeave);
       if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
     };
-  }, []);
+  }, [step, answers]);
 
   const total = QUESTIONS.length;
   const current = QUESTIONS[step];
@@ -103,6 +117,7 @@ function DiagnozePage() {
     setError(null);
     const next: AnswersMap = { ...answers, [current.key]: value };
     setAnswers(next);
+    track({ event: "question_answered", step, metadata: { key: current.key, value, weak } });
 
     if (weak) {
       setFeedback(current.weakFeedback);
@@ -151,6 +166,7 @@ function DiagnozePage() {
       });
       setLastSessionId(sessionId);
       clearProgress();
+      track({ event: "diagnosis_complete", sessionId });
       navigate({ to: "/rezultati/$sessionId", params: { sessionId } });
     } catch (e) {
       console.error(e);

@@ -14,6 +14,101 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          created_at: string
+          event: string
+          id: string
+          metadata: Json | null
+          session_id: string | null
+          step: number | null
+          visitor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: string
+          metadata?: Json | null
+          session_id?: string | null
+          step?: number | null
+          visitor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: string
+          metadata?: Json | null
+          session_id?: string | null
+          step?: number | null
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "diagnostic_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      case_studies: {
+        Row: {
+          client_name: string | null
+          created_at: string
+          display_order: number
+          id: string
+          image_url: string | null
+          industry: string | null
+          metrics: Json | null
+          problem: string
+          published: boolean
+          result_summary: string
+          services: Json
+          slug: string
+          testimonial: string | null
+          testimonial_author: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_name?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          industry?: string | null
+          metrics?: Json | null
+          problem: string
+          published?: boolean
+          result_summary: string
+          services?: Json
+          slug: string
+          testimonial?: string | null
+          testimonial_author?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_name?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          industry?: string | null
+          metrics?: Json | null
+          problem?: string
+          published?: boolean
+          result_summary?: string
+          services?: Json
+          slug?: string
+          testimonial?: string | null
+          testimonial_author?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       diagnostic_leads: {
         Row: {
           business_name: string | null
@@ -91,15 +186,70 @@ export type Database = {
         }
         Relationships: []
       }
+      exit_surveys: {
+        Row: {
+          created_at: string
+          details: string | null
+          email: string | null
+          id: string
+          reason: string
+          visitor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          email?: string | null
+          id?: string
+          reason: string
+          visitor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          email?: string | null
+          id?: string
+          reason?: string
+          visitor_id?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_funnel_summary: { Args: { _days?: number }; Returns: Json }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -226,6 +376,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
