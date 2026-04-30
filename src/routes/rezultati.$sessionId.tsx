@@ -5,7 +5,7 @@ import { Lock, Sparkles } from "lucide-react";
 import { SERVICE_LABELS, SERVICE_TAGLINES } from "@/lib/diagnostic-types";
 import type { ServiceKey } from "@/lib/diagnostic-types";
 import { getResult } from "@/server/diagnostic.functions";
-import { AnimatedCounter } from "@/components/AnimatedCounter";
+// AnimatedCounter removed — no longer showing revenue estimates
 import { LeadCapture } from "@/components/LeadCapture";
 import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 
@@ -71,14 +71,11 @@ function ResultPage() {
               className="mt-6 text-lg leading-relaxed text-muted-foreground"
             >
               Bazuar në përgjigjet e tua, kemi identifikuar{" "}
-              <span className="font-semibold text-foreground">
-                shërbimin kryesor
-              </span>{" "}
-              që të mungon dhe një vlerësim konkret të{" "}
-              <span className="font-semibold text-warning">
-                klientëve dhe të ardhurave që po humbet çdo muaj
-              </span>
-              . Lër kontaktin më poshtë dhe merr raportin e plotë + planin
+74:               <span className="font-semibold text-foreground">
+75:                 shërbimin kryesor
+76:               </span>{" "}
+              që të mungon dhe një analizë konkrete të mundësive që po humbet.
+              Lër kontaktin më poshtë dhe merr raportin e plotë + planin
               personal — pa pagesë.
             </motion.p>
 
@@ -90,24 +87,6 @@ function ResultPage() {
               className="relative mt-10"
             >
               <div className="pointer-events-none select-none blur-md grayscale">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-2xl border border-warning/30 bg-warning/5 p-5">
-                    <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                      Klientë të humbur / muaj
-                    </div>
-                    <div className="mt-2 font-display text-3xl font-bold text-warning sm:text-4xl">
-                      ~●●
-                    </div>
-                  </div>
-                  <div className="rounded-2xl border border-warning/30 bg-warning/5 p-5">
-                    <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                      Të ardhura / muaj
-                    </div>
-                    <div className="mt-2 font-display text-3xl font-bold text-warning sm:text-4xl">
-                      ~€●●●●
-                    </div>
-                  </div>
-                </div>
                 <div className="mt-4 rounded-2xl border border-primary/40 bg-primary/5 p-6 shadow-glow">
                   <div className="text-xs uppercase tracking-wider text-primary">
                     Zgjidhja kryesore për ty
@@ -164,32 +143,7 @@ function ResultPage() {
               {data.diagnosis}
             </motion.p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-              className="mt-10 grid grid-cols-2 gap-4"
-            >
-              <div className="rounded-2xl border border-warning/30 bg-warning/5 p-5">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                  Klientë të humbur / muaj
-                </div>
-                <div className="mt-2 font-display text-3xl font-bold text-warning sm:text-4xl">
-                  <AnimatedCounter value={data.estimated_lost_clients} prefix="~" />
-                </div>
-              </div>
-              <div className="rounded-2xl border border-warning/30 bg-warning/5 p-5">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                  Të ardhura / muaj
-                </div>
-                <div className="mt-2 font-display text-3xl font-bold text-warning sm:text-4xl">
-                  <AnimatedCounter value={data.estimated_lost_eur} prefix="~€" />
-                </div>
-              </div>
-            </motion.div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Vlerësim konservativ bazuar në përgjigjet e tua. Realiteti shpesh është më i lartë.
-            </p>
+
 
             <motion.div
               initial={{ opacity: 0, scale: 0.97 }}
