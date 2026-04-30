@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getLastSessionId } from "@/lib/visitor-id";
 import { track } from "@/lib/analytics";
@@ -96,18 +96,19 @@ export function Landing() {
             Nis Diagnozën Falas
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </Link>
+
+          <Link
+            to="/analizo-biznesin"
+            onClick={() => track({ event: "ai_analyze_start", metadata: { source: "hero_cta" } })}
+            className="group mt-4 inline-flex items-center gap-3 rounded-full border-2 border-primary px-8 py-4 text-base font-semibold text-primary shadow-glow-soft transition-all hover:scale-[1.03] hover:bg-primary hover:text-primary-foreground"
+          >
+            Analizo me AI
+            <Sparkles className="h-5 w-5 transition-transform group-hover:scale-110" />
+          </Link>
+
           <p className="mt-4 text-xs text-muted-foreground">
             Pa email · pa regjistrim · 6 pyetje
           </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-sm">
-            <span className="text-muted-foreground">Ke raporte konkrete?</span>
-            <Link
-              to="/analizo-biznesin"
-              className="font-medium text-primary underline-offset-4 hover:underline"
-            >
-              Analizo me AI →
-            </Link>
-          </div>
         </motion.div>
 
         {/* Trust strip */}

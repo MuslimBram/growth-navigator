@@ -14,7 +14,8 @@ export type FunnelEvent =
   | "exit_survey_shown"
   | "exit_survey_answered"
   | "resume_prompt_shown"
-  | "resume_accepted";
+  | "resume_accepted"
+  | "ai_analyze_start";
 
 interface TrackPayload {
   event: FunnelEvent;
