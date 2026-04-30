@@ -10,6 +10,7 @@ import {
 import { answersSchema } from "@/lib/diagnostic-schemas";
 import { getVisitorId, setLastSessionId } from "@/lib/visitor-id";
 import { submitDiagnosis } from "@/server/diagnostic.functions";
+import { track } from "@/lib/analytics";
 
 export const Route = createFileRoute("/diagnoze")({
   head: () => ({
