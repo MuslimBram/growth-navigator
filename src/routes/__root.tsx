@@ -39,6 +39,13 @@ export const Route = createRootRoute({
       { name: "author", content: "Muslimi Digital" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:title", content: "Muslimi Digital — Diagnoza Falas e Biznesit Tënd" },
+      { name: "twitter:title", content: "Muslimi Digital — Diagnoza Falas e Biznesit Tënd" },
+      { name: "description", content: "Pyetesore per te pare se ku eshte Biznesi yne on-line" },
+      { property: "og:description", content: "Pyetesore per te pare se ku eshte Biznesi yne on-line" },
+      { name: "twitter:description", content: "Pyetesore per te pare se ku eshte Biznesi yne on-line" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/ce2df2a3-6d6f-4088-b3ee-4b2c101b5252" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/ce2df2a3-6d6f-4088-b3ee-4b2c101b5252" },
     ],
     links: [
       {
