@@ -162,6 +162,7 @@ export type Database = {
       diagnostic_leads: {
         Row: {
           business_name: string | null
+          contacted: boolean
           created_at: string
           diagnosis_notes: string | null
           email: string | null
@@ -171,6 +172,7 @@ export type Database = {
         }
         Insert: {
           business_name?: string | null
+          contacted?: boolean
           created_at?: string
           diagnosis_notes?: string | null
           email?: string | null
@@ -180,6 +182,7 @@ export type Database = {
         }
         Update: {
           business_name?: string | null
+          contacted?: boolean
           created_at?: string
           diagnosis_notes?: string | null
           email?: string | null
