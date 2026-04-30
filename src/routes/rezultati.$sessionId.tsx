@@ -1,7 +1,10 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { motion } from "framer-motion";
 import { SERVICE_LABELS, SERVICE_TAGLINES } from "@/lib/diagnostic-types";
 import type { ServiceKey } from "@/lib/diagnostic-types";
 import { getResult } from "@/server/diagnostic.functions";
+import { AnimatedCounter } from "@/components/AnimatedCounter";
+import { LeadCapture } from "@/components/LeadCapture";
 
 export const Route = createFileRoute("/rezultati/$sessionId")({
   head: () => ({
@@ -26,78 +29,128 @@ function ResultPage() {
   const primary = data.primary_service as ServiceKey;
   const secondaries = data.secondary_services as ServiceKey[];
 
-  // The full polished UI (counters animation, contact capture, final CTA)
-  // lands in Phase 5–7. This intermediate version proves the data flow works.
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
       <div className="pointer-events-none absolute inset-0 bg-radial-glow opacity-50" />
       <main className="relative z-10 mx-auto max-w-2xl px-6 py-16">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-warning/30 bg-warning/5 px-4 py-1.5 text-xs text-warning">
+        {/* Badge */}
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 inline-flex items-center gap-2 rounded-full border border-warning/30 bg-warning/5 px-4 py-1.5 text-xs text-warning"
+        >
           <span className="h-1.5 w-1.5 rounded-full bg-warning animate-pulse" />
-          Rezultati yt
-        </div>
-        <h1 className="font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-          Diagnoza është gati
-        </h1>
-        <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
-          {data.diagnosis}
-        </p>
+          Diagnoza personale
+        </motion.div>
 
-        <div className="mt-10 grid grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-border bg-surface p-5">
+        {/* Headline */}
+        <motion.h1
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl"
+        >
+          Ja çfarë po ndodh me biznesin tënd
+        </motion.h1>
+
+        {/* Diagnosis text */}
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mt-6 text-lg leading-relaxed text-muted-foreground"
+        >
+          {data.diagnosis}
+        </motion.p>
+
+        {/* Loss counters */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="mt-10 grid grid-cols-2 gap-4"
+        >
+          <div className="rounded-2xl border border-warning/30 bg-warning/5 p-5">
             <div className="text-xs uppercase tracking-wider text-muted-foreground">
               Klientë të humbur / muaj
             </div>
-            <div className="mt-2 font-display text-3xl font-bold text-warning">
-              ~{data.estimated_lost_clients}
+            <div className="mt-2 font-display text-3xl font-bold text-warning sm:text-4xl">
+              <AnimatedCounter value={data.estimated_lost_clients} prefix="~" />
             </div>
           </div>
-          <div className="rounded-2xl border border-border bg-surface p-5">
+          <div className="rounded-2xl border border-warning/30 bg-warning/5 p-5">
             <div className="text-xs uppercase tracking-wider text-muted-foreground">
-              Të ardhura të humbura
+              Të ardhura / muaj
             </div>
-            <div className="mt-2 font-display text-3xl font-bold text-warning">
-              ~€{data.estimated_lost_eur}
+            <div className="mt-2 font-display text-3xl font-bold text-warning sm:text-4xl">
+              <AnimatedCounter value={data.estimated_lost_eur} prefix="~€" />
             </div>
           </div>
-        </div>
+        </motion.div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Vlerësim konservativ bazuar në përgjigjet e tua. Realiteti shpesh është më i lartë.
+        </p>
 
-        <div className="mt-10 rounded-2xl border border-primary/40 bg-primary/5 p-6 shadow-glow">
+        {/* Primary solution */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4 }}
+          className="mt-10 rounded-2xl border border-primary/40 bg-primary/5 p-6 shadow-glow sm:p-8"
+        >
           <div className="text-xs uppercase tracking-wider text-primary">
-            Zgjidhja kryesore
+            Zgjidhja kryesore për ty
           </div>
-          <h2 className="mt-2 font-display text-2xl font-bold">
+          <h2 className="mt-2 font-display text-2xl font-bold sm:text-3xl">
             {SERVICE_LABELS[primary]}
           </h2>
-          <p className="mt-2 text-muted-foreground">{SERVICE_TAGLINES[primary]}</p>
-        </div>
+          <p className="mt-3 text-muted-foreground">{SERVICE_TAGLINES[primary]}</p>
+        </motion.div>
 
+        {/* Secondary services */}
         {secondaries.length > 0 && (
           <div className="mt-4 space-y-3">
-            {secondaries.map((s) => (
-              <div
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">
+              Plus këto e plotësojnë:
+            </div>
+            {secondaries.map((s, i) => (
+              <motion.div
                 key={s}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5 + i * 0.08 }}
                 className="rounded-xl border border-border bg-surface p-4"
               >
                 <div className="font-semibold">{SERVICE_LABELS[s]}</div>
                 <div className="mt-1 text-sm text-muted-foreground">
                   {SERVICE_TAGLINES[s]}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
 
-        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+        {/* Lead capture */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="mt-12"
+        >
+          <LeadCapture
+            sessionId={data.id}
+            primaryServiceLabel={SERVICE_LABELS[primary]}
+          />
+        </motion.div>
+
+        {/* Back link */}
+        <div className="mt-10 text-center">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-full border border-border bg-surface px-6 py-3 text-sm font-medium hover:border-primary/40"
+            className="text-xs text-muted-foreground hover:text-foreground"
           >
-            ← Kthehu
+            ← Kthehu në fillim
           </Link>
-          <span className="text-xs text-muted-foreground sm:self-center">
-            Faza tjetër: counters të animuar, kapja e kontaktit, CTA përfundimtare.
-          </span>
         </div>
       </main>
     </div>
@@ -127,9 +180,7 @@ function ResultNotFound() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-6">
       <div className="max-w-md text-center">
-        <h1 className="font-display text-2xl font-bold">
-          Sesioni nuk u gjet
-        </h1>
+        <h1 className="font-display text-2xl font-bold">Sesioni nuk u gjet</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Mund të ketë skaduar ose linku është i pasaktë.
         </p>
