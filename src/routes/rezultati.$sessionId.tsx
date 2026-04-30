@@ -102,8 +102,8 @@ function ResultPage() {
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="flex items-center gap-2 rounded-full border border-primary/40 bg-background/80 px-5 py-2.5 backdrop-blur">
                   <Lock className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">
-                    Lër kontaktin për të zhbllokuar
+                  <span className="text-sm font-medium whitespace-pre-line">
+                    Lër kontaktin për t'ju dërguar {"\n"} rrezultatin dhe zgjidhjen!
                   </span>
                 </div>
               </div>
