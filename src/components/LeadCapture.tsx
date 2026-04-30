@@ -9,17 +9,18 @@ import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 interface Props {
   sessionId: string;
   primaryServiceLabel: string;
+  diagnosis?: string;
+  mainBottleneck?: string;
+  answers?: Record<string, string>;
   onSuccess?: () => void;
 }
 
-export function LeadCapture({ sessionId, primaryServiceLabel, onSuccess }: Props) {
+export function LeadCapture({ sessionId, primaryServiceLabel, diagnosis, mainBottleneck, answers, onSuccess }: Props) {
   const submit = useServerFn(submitLead);
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [businessName, setBusinessName] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
-    "idle",
-  );
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,12 +47,16 @@ export function LeadCapture({ sessionId, primaryServiceLabel, onSuccess }: Props
       await submit({ data: { sessionId, ...parsed.data } });
       setStatus("success");
 
-      // Fire-and-forget admin notification
+      // Fire-and-forget admin notification with full analysis data
       notifyNewLead({
         data: {
           businessName: businessName.trim() || undefined,
           email: email.trim() || undefined,
           whatsapp: whatsapp.trim() || undefined,
+          diagnosisNotes: diagnosis || undefined,
+          mainBottleneck: mainBottleneck || undefined,
+          recommendedService: primaryServiceLabel,
+          answers: answers || undefined,
           source: "diagnostic" as const,
         },
       }).catch(() => {});
