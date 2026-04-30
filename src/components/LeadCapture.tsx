@@ -45,6 +45,17 @@ export function LeadCapture({ sessionId, primaryServiceLabel, onSuccess }: Props
     try {
       await submit({ data: { sessionId, ...parsed.data } });
       setStatus("success");
+
+      // Fire-and-forget admin notification
+      notifyNewLead({
+        data: {
+          businessName: businessName.trim() || undefined,
+          email: email.trim() || undefined,
+          whatsapp: whatsapp.trim() || undefined,
+          source: "diagnostic" as const,
+        },
+      }).catch(() => {});
+
       onSuccess?.();
     } catch (err) {
       console.error(err);
