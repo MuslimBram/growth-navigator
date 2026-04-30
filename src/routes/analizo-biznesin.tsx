@@ -410,7 +410,93 @@ Ngarko screenshot-e ose shkruaj shifrat me tekst.`,
   );
 }
 
-function MessageBubble({ msg }: { msg: ChatMsg }) {
+function AnalysisLeadCapture({ onSuccess }: { onSuccess: () => void }) {
+  const [email, setEmail] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [sending, setSending] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim() && !whatsapp.trim()) {
+      toast.error("Shkruaj email ose numrin e WhatsApp.");
+      return;
+    }
+    setSending(true);
+    try {
+      const { error } = await supabase.from("diagnostic_leads").insert({
+        session_id: null,
+        email: email.trim() || null,
+        whatsapp: whatsapp.trim() || null,
+        business_name: businessName.trim() || null,
+        source: "ai_analysis",
+      });
+      if (error) throw error;
+      onSuccess();
+    } catch (err) {
+      console.error(err);
+      toast.error("Diçka shkoi keq. Provo përsëri.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-xl border border-primary/30 bg-primary/5 p-5"
+    >
+      <div className="mb-4 text-center">
+        <Sparkles className="mx-auto h-8 w-8 text-primary" />
+        <h3 className="mt-2 font-display text-lg font-bold">
+          Diagnoza jote është gati! 🎯
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Lër kontaktin tënd dhe Muslimi Digital do ta dërgojë diagnozën e plotë brenda 24 orëve.
+        </p>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <input
+          type="text"
+          placeholder="Emri i biznesit"
+          value={businessName}
+          onChange={(e) => setBusinessName(e.target.value)}
+          className="w-full rounded-lg border border-border bg-background/60 px-4 py-2.5 text-sm outline-none focus:border-primary"
+        />
+        <input
+          type="email"
+          placeholder="Email *"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full rounded-lg border border-border bg-background/60 px-4 py-2.5 text-sm outline-none focus:border-primary"
+        />
+        <input
+          type="tel"
+          placeholder="WhatsApp (opsionale)"
+          value={whatsapp}
+          onChange={(e) => setWhatsapp(e.target.value)}
+          className="w-full rounded-lg border border-border bg-background/60 px-4 py-2.5 text-sm outline-none focus:border-primary"
+        />
+        <Button
+          type="submit"
+          disabled={sending}
+          className="w-full bg-gradient-to-r from-primary to-primary/80 shadow-glow"
+        >
+          {sending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              Dërgoma diagnozën
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          )}
+        </Button>
+      </form>
+    </motion.div>
+  );
+}
+
   if (msg.role === "bot") {
     return (
       <div className="flex gap-3">
