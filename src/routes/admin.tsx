@@ -1,10 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Loader2, LogOut, Users, TrendingUp, Mail, Phone, FileText,
   AlertCircle, BarChart3, ArrowUpRight, ExternalLink, ChevronDown,
-  ChevronUp, MessageSquare, Check, Filter, Calendar,
+  ChevronUp, MessageSquare, Check, Filter, Calendar, RefreshCw, Bell,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useIsAdmin } from "@/hooks/useAuth";
@@ -98,45 +98,69 @@ function AdminPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("leads");
   const [filterService, setFilterService] = useState<FilterService>("all");
   const [filterContacted, setFilterContacted] = useState<"all" | "yes" | "no">("all");
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const prevLeadCount = useRef<number>(0);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
   }, [authLoading, user, navigate]);
 
+  const fetchData = useCallback(async (showLoader = true) => {
+    if (showLoader) setLoading(true);
+    const [funnelRes, leadsRes, sessionsRes, surveysRes] = await Promise.all([
+      supabase.rpc("get_funnel_summary", { _days: 30 }),
+      supabase
+        .from("diagnostic_leads")
+        .select("id,business_name,email,whatsapp,created_at,session_id,diagnosis_notes,contacted")
+        .order("created_at", { ascending: false })
+        .limit(100),
+      supabase
+        .from("diagnostic_sessions")
+        .select("id,ai_diagnosis,primary_service,secondary_services,answers,created_at,visitor_id")
+        .order("created_at", { ascending: false })
+        .limit(100),
+      supabase
+        .from("exit_surveys")
+        .select("id,reason,details,email,created_at")
+        .order("created_at", { ascending: false })
+        .limit(20),
+    ]);
+    if (funnelRes.data) setFunnel(funnelRes.data as unknown as FunnelSummary);
+    if (leadsRes.data) {
+      const newLeads = leadsRes.data as LeadRow[];
+      // Play sound if new leads appeared
+      if (prevLeadCount.current > 0 && newLeads.length > prevLeadCount.current) {
+        try {
+          const audio = new Audio("data:audio/wav;base64,UklGRlgAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YTQAAAB/f39/f39/f4B+gH+Af4B/gH+Af4B+gH+Af4B/gH+Af39/f39/f39/f39/f39/fw==");
+          audio.play().catch(() => {});
+        } catch {}
+      }
+      prevLeadCount.current = newLeads.length;
+      setLeads(newLeads);
+    }
+    if (sessionsRes.data) {
+      const map = new Map<string, SessionRow>();
+      for (const s of sessionsRes.data) map.set(s.id, s as SessionRow);
+      setSessions(map);
+      setAllSessions(sessionsRes.data as SessionRow[]);
+    }
+    if (surveysRes.data) setSurveys(surveysRes.data);
+    setLoading(false);
+    setLastRefresh(new Date());
+  }, []);
+
   useEffect(() => {
     if (!isAdmin) return;
-    (async () => {
-      setLoading(true);
-      const [funnelRes, leadsRes, sessionsRes, surveysRes] = await Promise.all([
-        supabase.rpc("get_funnel_summary", { _days: 30 }),
-        supabase
-          .from("diagnostic_leads")
-          .select("id,business_name,email,whatsapp,created_at,session_id,diagnosis_notes,contacted")
-          .order("created_at", { ascending: false })
-          .limit(100),
-        supabase
-          .from("diagnostic_sessions")
-          .select("id,ai_diagnosis,primary_service,secondary_services,answers,created_at,visitor_id")
-          .order("created_at", { ascending: false })
-          .limit(100),
-        supabase
-          .from("exit_surveys")
-          .select("id,reason,details,email,created_at")
-          .order("created_at", { ascending: false })
-          .limit(20),
-      ]);
-      if (funnelRes.data) setFunnel(funnelRes.data as unknown as FunnelSummary);
-      if (leadsRes.data) setLeads(leadsRes.data as LeadRow[]);
-      if (sessionsRes.data) {
-        const map = new Map<string, SessionRow>();
-        for (const s of sessionsRes.data) map.set(s.id, s as SessionRow);
-        setSessions(map);
-        setAllSessions(sessionsRes.data as SessionRow[]);
-      }
-      if (surveysRes.data) setSurveys(surveysRes.data);
-      setLoading(false);
-    })();
-  }, [isAdmin]);
+    fetchData(true);
+  }, [isAdmin, fetchData]);
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    if (!isAdmin || !autoRefresh) return;
+    const interval = setInterval(() => fetchData(false), 30000);
+    return () => clearInterval(interval);
+  }, [isAdmin, autoRefresh, fetchData]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -229,6 +253,26 @@ function AdminPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] sm:text-xs transition-colors ${autoRefresh ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}
+              title={autoRefresh ? "Auto-refresh aktiv" : "Auto-refresh joaktiv"}
+            >
+              <Bell className="h-3 w-3" />
+              {autoRefresh ? "Live" : "Off"}
+            </button>
+            <button
+              onClick={() => fetchData(false)}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              title="Rifresko tani"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+            </button>
+            {lastRefresh && (
+              <span className="hidden text-[10px] text-muted-foreground md:inline">
+                {lastRefresh.toLocaleTimeString("sq-AL")}
+              </span>
+            )}
             <Link
               to="/case-studies"
               className="hidden text-sm text-muted-foreground hover:text-foreground sm:inline"

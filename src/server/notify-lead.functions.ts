@@ -2,8 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const TELEGRAM_GATEWAY = "https://connector-gateway.lovable.dev/telegram";
-// Your Telegram chat ID — update after running /start on the bot
-const ADMIN_CHAT_ID = "";
 
 const notifyLeadSchema = z.object({
   businessName: z.string().optional(),
@@ -45,7 +43,7 @@ export const notifyNewLead = createServerFn({ method: "POST" })
     try {
       const lovableKey = process.env.LOVABLE_API_KEY;
       const telegramKey = process.env.TELEGRAM_API_KEY;
-      const chatId = ADMIN_CHAT_ID;
+      const chatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
 
       if (lovableKey && telegramKey && chatId) {
         const res = await fetch(`${TELEGRAM_GATEWAY}/sendMessage`, {
