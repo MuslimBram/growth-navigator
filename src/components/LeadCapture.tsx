@@ -52,42 +52,35 @@ export function LeadCapture({ sessionId, primaryServiceLabel, onSuccess }: Props
     }
   };
 
-  const waMessage = encodeURIComponent(
-    `Përshëndetje! Sapo plotësova diagnozën në faqen tuaj. Më rekomandohet: ${primaryServiceLabel}. Dua të diskutoj më shumë.`,
-  );
-  const waLink = `https://wa.me/${WHATSAPP_NUMBER.replace(/\D/g, "")}?text=${waMessage}`;
-
   if (status === "success") {
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="rounded-2xl border border-primary/40 bg-primary/5 p-8 text-center shadow-glow"
-      >
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/20">
-          <svg
-            className="h-6 w-6 text-primary"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <h3 className="font-display text-xl font-bold">Të dhënat u dërguan</h3>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Ekipi ynë do të kontaktojë brenda 24 orësh me një plan personal.
-        </p>
-        <a
-          href={waLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.02]"
+      <div className="space-y-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="rounded-2xl border border-primary/40 bg-primary/5 p-8 text-center shadow-glow"
         >
-          💬 Ose shkruaj direkt në WhatsApp
-        </a>
-      </motion.div>
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/20">
+            <svg
+              className="h-6 w-6 text-primary"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 className="font-display text-xl font-bold">Të dhënat u dërguan</h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Ekipi ynë do të kontaktojë brenda 24 orësh me një plan personal.
+          </p>
+        </motion.div>
+        <WhatsAppCTA
+          mainBottleneck="Diagnoza e biznesit"
+          recommendedService={primaryServiceLabel}
+        />
+      </div>
     );
   }
 
