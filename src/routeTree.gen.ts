@@ -10,6 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as DiagnozeRouteImport } from './routes/diagnoze'
+import { Route as CaseStudiesRouteImport } from './routes/case-studies'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RezultatiSessionIdRouteImport } from './routes/rezultati.$sessionId'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
@@ -18,6 +21,21 @@ import { Route as ApiPublicExitSurveyRouteImport } from './routes/api/public/exi
 const DiagnozeRoute = DiagnozeRouteImport.update({
   id: '/diagnoze',
   path: '/diagnoze',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CaseStudiesRoute = CaseStudiesRouteImport.update({
+  id: '/case-studies',
+  path: '/case-studies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,6 +61,9 @@ const ApiPublicExitSurveyRoute = ApiPublicExitSurveyRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
+  '/case-studies': typeof CaseStudiesRoute
   '/diagnoze': typeof DiagnozeRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
   '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
@@ -50,6 +71,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
+  '/case-studies': typeof CaseStudiesRoute
   '/diagnoze': typeof DiagnozeRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
   '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
@@ -58,6 +82,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
+  '/case-studies': typeof CaseStudiesRoute
   '/diagnoze': typeof DiagnozeRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
   '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
@@ -67,6 +94,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/auth'
+    | '/case-studies'
     | '/diagnoze'
     | '/rezultati/$sessionId'
     | '/api/public/exit-survey'
@@ -74,6 +104,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
+    | '/auth'
+    | '/case-studies'
     | '/diagnoze'
     | '/rezultati/$sessionId'
     | '/api/public/exit-survey'
@@ -81,6 +114,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
+    | '/auth'
+    | '/case-studies'
     | '/diagnoze'
     | '/rezultati/$sessionId'
     | '/api/public/exit-survey'
@@ -89,6 +125,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  AuthRoute: typeof AuthRoute
+  CaseStudiesRoute: typeof CaseStudiesRoute
   DiagnozeRoute: typeof DiagnozeRoute
   RezultatiSessionIdRoute: typeof RezultatiSessionIdRoute
   ApiPublicExitSurveyRoute: typeof ApiPublicExitSurveyRoute
@@ -102,6 +141,27 @@ declare module '@tanstack/react-router' {
       path: '/diagnoze'
       fullPath: '/diagnoze'
       preLoaderRoute: typeof DiagnozeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/case-studies': {
+      id: '/case-studies'
+      path: '/case-studies'
+      fullPath: '/case-studies'
+      preLoaderRoute: typeof CaseStudiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -137,6 +197,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  AuthRoute: AuthRoute,
+  CaseStudiesRoute: CaseStudiesRoute,
   DiagnozeRoute: DiagnozeRoute,
   RezultatiSessionIdRoute: RezultatiSessionIdRoute,
   ApiPublicExitSurveyRoute: ApiPublicExitSurveyRoute,
