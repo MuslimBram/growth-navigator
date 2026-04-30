@@ -5,7 +5,7 @@ import { Lock, Sparkles } from "lucide-react";
 import { SERVICE_LABELS, SERVICE_TAGLINES } from "@/lib/diagnostic-types";
 import type { ServiceKey } from "@/lib/diagnostic-types";
 import { getResult } from "@/server/diagnostic.functions";
-import { AnimatedCounter } from "@/components/AnimatedCounter";
+// AnimatedCounter removed — no longer showing revenue estimates
 import { LeadCapture } from "@/components/LeadCapture";
 import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 
