@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Search, Globe, Camera, Share2, MapPin, Sparkles } from "lucide-react";
+import { ArrowRight, Search, Globe, Camera, Share2, MapPin, Sparkles, Bot, BarChart3, Megaphone } from "lucide-react";
 import { SERVICE_LABELS, SERVICE_TAGLINES } from "@/lib/diagnostic-types";
 import type { ServiceKey } from "@/lib/diagnostic-types";
 
@@ -11,6 +11,9 @@ const ICONS: Record<ServiceKey, typeof Search> = {
   social_media: Share2,
   google_maps: MapPin,
   combined_package: Sparkles,
+  automation: Bot,
+  ads: Megaphone,
+  analytics_measurement: BarChart3,
 };
 
 const ORDER: ServiceKey[] = [
