@@ -98,45 +98,69 @@ function AdminPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("leads");
   const [filterService, setFilterService] = useState<FilterService>("all");
   const [filterContacted, setFilterContacted] = useState<"all" | "yes" | "no">("all");
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const prevLeadCount = useRef<number>(0);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
   }, [authLoading, user, navigate]);
 
+  const fetchData = useCallback(async (showLoader = true) => {
+    if (showLoader) setLoading(true);
+    const [funnelRes, leadsRes, sessionsRes, surveysRes] = await Promise.all([
+      supabase.rpc("get_funnel_summary", { _days: 30 }),
+      supabase
+        .from("diagnostic_leads")
+        .select("id,business_name,email,whatsapp,created_at,session_id,diagnosis_notes,contacted")
+        .order("created_at", { ascending: false })
+        .limit(100),
+      supabase
+        .from("diagnostic_sessions")
+        .select("id,ai_diagnosis,primary_service,secondary_services,answers,created_at,visitor_id")
+        .order("created_at", { ascending: false })
+        .limit(100),
+      supabase
+        .from("exit_surveys")
+        .select("id,reason,details,email,created_at")
+        .order("created_at", { ascending: false })
+        .limit(20),
+    ]);
+    if (funnelRes.data) setFunnel(funnelRes.data as unknown as FunnelSummary);
+    if (leadsRes.data) {
+      const newLeads = leadsRes.data as LeadRow[];
+      // Play sound if new leads appeared
+      if (prevLeadCount.current > 0 && newLeads.length > prevLeadCount.current) {
+        try {
+          const audio = new Audio("data:audio/wav;base64,UklGRlgAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YTQAAAB/f39/f39/f4B+gH+Af4B/gH+Af4B+gH+Af4B/gH+Af39/f39/f39/f39/f39/fw==");
+          audio.play().catch(() => {});
+        } catch {}
+      }
+      prevLeadCount.current = newLeads.length;
+      setLeads(newLeads);
+    }
+    if (sessionsRes.data) {
+      const map = new Map<string, SessionRow>();
+      for (const s of sessionsRes.data) map.set(s.id, s as SessionRow);
+      setSessions(map);
+      setAllSessions(sessionsRes.data as SessionRow[]);
+    }
+    if (surveysRes.data) setSurveys(surveysRes.data);
+    setLoading(false);
+    setLastRefresh(new Date());
+  }, []);
+
   useEffect(() => {
     if (!isAdmin) return;
-    (async () => {
-      setLoading(true);
-      const [funnelRes, leadsRes, sessionsRes, surveysRes] = await Promise.all([
-        supabase.rpc("get_funnel_summary", { _days: 30 }),
-        supabase
-          .from("diagnostic_leads")
-          .select("id,business_name,email,whatsapp,created_at,session_id,diagnosis_notes,contacted")
-          .order("created_at", { ascending: false })
-          .limit(100),
-        supabase
-          .from("diagnostic_sessions")
-          .select("id,ai_diagnosis,primary_service,secondary_services,answers,created_at,visitor_id")
-          .order("created_at", { ascending: false })
-          .limit(100),
-        supabase
-          .from("exit_surveys")
-          .select("id,reason,details,email,created_at")
-          .order("created_at", { ascending: false })
-          .limit(20),
-      ]);
-      if (funnelRes.data) setFunnel(funnelRes.data as unknown as FunnelSummary);
-      if (leadsRes.data) setLeads(leadsRes.data as LeadRow[]);
-      if (sessionsRes.data) {
-        const map = new Map<string, SessionRow>();
-        for (const s of sessionsRes.data) map.set(s.id, s as SessionRow);
-        setSessions(map);
-        setAllSessions(sessionsRes.data as SessionRow[]);
-      }
-      if (surveysRes.data) setSurveys(surveysRes.data);
-      setLoading(false);
-    })();
-  }, [isAdmin]);
+    fetchData(true);
+  }, [isAdmin, fetchData]);
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    if (!isAdmin || !autoRefresh) return;
+    const interval = setInterval(() => fetchData(false), 30000);
+    return () => clearInterval(interval);
+  }, [isAdmin, autoRefresh, fetchData]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
