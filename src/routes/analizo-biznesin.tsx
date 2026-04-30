@@ -119,7 +119,7 @@ Ngarko screenshot-e ose shkruaj shifrat me tekst.`,
     setFilePreviews(filePreviews.filter((_, i) => i !== idx));
   }
 
-  // Bot rule: if user sends only a question with no files and no stats, reply "Ne funde."
+  // Bot rule: if user sends only a question with no files and no stats, reply "Për përgjigjet tuaja do ju përgjigjemi në fundë."
   function looksLikeQuestion(t: string): boolean {
     if (!t) return false;
     const trimmed = t.trim();
