@@ -152,12 +152,10 @@ export function LandingSections() {
       <footer className="mt-16 flex flex-col items-center justify-between gap-3 border-t border-border pt-8 text-xs text-muted-foreground sm:flex-row">
         <span>© {new Date().getFullYear()} Muslimi Digital</span>
         <a
-          href="https://wa.me/355697221224"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="mailto:muslim.brami@gmail.com"
           className="hover:text-foreground"
         >
-          WhatsApp: +355 69 722 1224
+          muslim.brami@gmail.com
         </a>
       </footer>
     </section>

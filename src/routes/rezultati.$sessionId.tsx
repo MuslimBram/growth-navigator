@@ -1,12 +1,13 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { useState } from "react";
-import { Lock, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Lock, Sparkles, Plus, History } from "lucide-react";
 import { SERVICE_LABELS, SERVICE_TAGLINES } from "@/lib/diagnostic-types";
 import type { ServiceKey } from "@/lib/diagnostic-types";
 import { getResult } from "@/server/diagnostic.functions";
 import { LeadCapture } from "@/components/LeadCapture";
 import { WhatsAppCTA } from "@/components/WhatsAppCTA";
+import { saveAnalysis } from "@/routes/historiku";
 
 export const Route = createFileRoute("/rezultati/$sessionId")({
   head: () => ({
@@ -32,6 +33,20 @@ function ResultPage() {
   const secondaries = data.secondary_services as ServiceKey[];
 
   const [unlocked, setUnlocked] = useState(false);
+
+  // Save analysis to localStorage for history
+  useEffect(() => {
+    saveAnalysis({
+      sessionId: data.id,
+      businessName: "",
+      diagnosis: data.diagnosis,
+      primaryService: data.primary_service,
+      secondaryServices: data.secondary_services as string[],
+      answers: data.answers as Record<string, string>,
+      createdAt: new Date().toISOString(),
+      source: "diagnostic",
+    });
+  }, [data]);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
@@ -181,7 +196,24 @@ function ResultPage() {
           </>
         )}
 
-        <div className="mt-8 text-center sm:mt-10">
+        {/* Action buttons */}
+        <div className="mt-8 flex flex-col items-center gap-3 sm:mt-10">
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link
+              to="/diagnoze"
+              className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary/10"
+            >
+              <Plus className="h-4 w-4" />
+              Nis analizë të re
+            </Link>
+            <Link
+              to="/historiku"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface-elevated"
+            >
+              <History className="h-4 w-4" />
+              Historiku
+            </Link>
+          </div>
           <Link
             to="/"
             className="text-xs text-muted-foreground hover:text-foreground"

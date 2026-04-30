@@ -12,6 +12,7 @@ const chatInputSchema = z.object({
   messages: z.array(chatMessageSchema).max(60),
   userText: z.string().max(4000),
   imagePaths: z.array(z.string().max(512)).max(5).optional().default([]),
+  deviceInfo: z.string().max(500).optional().default(""),
 });
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
@@ -107,11 +108,17 @@ export const chatWithBot = createServerFn({ method: "POST" })
       aiMessages.push({ role: msg.role === "user" ? "user" : "assistant", content: msg.content });
     }
 
-    // Build current user message with optional images
+    // Build current user message with optional images and device context
     const userContent: Array<{ type: string; text?: string; image_url?: { url: string } }> = [];
 
-    if (data.userText.trim()) {
-      userContent.push({ type: "text", text: data.userText.trim() });
+    let userTextWithContext = data.userText.trim();
+    if (data.deviceInfo && data.messages.length <= 1) {
+      // Add device context only on first message
+      userTextWithContext += `\n\n[Konteksti i pajisjes: ${data.deviceInfo}]`;
+    }
+
+    if (userTextWithContext) {
+      userContent.push({ type: "text", text: userTextWithContext });
     }
 
     // Download and encode images
