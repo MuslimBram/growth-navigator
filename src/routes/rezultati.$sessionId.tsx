@@ -143,13 +143,7 @@ function ResultPage() {
               {data.diagnosis}
             </motion.p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-              className="mt-10"
-            >
-            </motion.div>
+
 
             <motion.div
               initial={{ opacity: 0, scale: 0.97 }}
