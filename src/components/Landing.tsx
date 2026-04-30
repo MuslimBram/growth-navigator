@@ -109,6 +109,12 @@ export function Landing() {
           <p className="mt-4 text-xs text-muted-foreground">
             Pa email · pa regjistrim · 6 pyetje
           </p>
+          <Link
+            to="/historiku"
+            className="mt-2 text-xs text-primary/60 hover:text-primary transition"
+          >
+            Shiko analizat e mëparshme →
+          </Link>
         </motion.div>
 
         {/* Trust strip */}
