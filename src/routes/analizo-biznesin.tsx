@@ -76,6 +76,7 @@ Ngarko screenshot-e ose shkruaj shifrat me tekst.`,
   const [filePreviews, setFilePreviews] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<BusinessAnalysisResult | null>(null);
+  const [leadSubmitted, setLeadSubmitted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
