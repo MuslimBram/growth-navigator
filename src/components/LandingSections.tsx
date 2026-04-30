@@ -127,7 +127,7 @@ export function LandingSections() {
         initial={{ opacity: 0, scale: 0.96 }}
         whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true, margin: "-100px" }}
-        className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/10 via-surface to-surface p-10 text-center shadow-glow sm:p-14"
+        className="relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-surface to-surface p-6 text-center shadow-glow sm:rounded-3xl sm:p-10 md:p-14"
       >
         <div className="pointer-events-none absolute inset-0 bg-radial-glow opacity-40" />
         <div className="relative">
