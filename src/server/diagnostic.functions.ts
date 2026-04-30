@@ -11,6 +11,7 @@ import {
   insertLead,
   type StoredSession,
 } from "./diagnostic.server";
+import { aiDiagnose } from "./diagnostic-ai.server";
 
 /**
  * Submit answers, run diagnosis, persist a new session, return its id.
@@ -20,15 +21,16 @@ export const submitDiagnosis = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => submitDiagnosisSchema.parse(input))
   .handler(async ({ data }) => {
     try {
-      // Phase 4 will replace this block with an AI call wrapped in try/catch
-      // that falls back to fallbackDiagnose on failure.
-      const diagnosis = fallbackDiagnose(data.answers);
+      // Try AI first; fall back to rule-based engine on any failure.
+      const aiResult = await aiDiagnose(data.answers);
+      const diagnosis = aiResult ?? fallbackDiagnose(data.answers);
+      const source: "ai" | "fallback" = aiResult ? "ai" : "fallback";
 
       const { id } = await insertSession({
         visitorId: data.visitorId,
         answers: data.answers,
         diagnosis,
-        source: "fallback",
+        source,
       });
 
       return { sessionId: id };
