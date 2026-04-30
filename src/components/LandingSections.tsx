@@ -149,14 +149,8 @@ export function LandingSections() {
       </motion.div>
 
       {/* Footer */}
-      <footer className="mt-16 flex flex-col items-center justify-between gap-3 border-t border-border pt-8 text-xs text-muted-foreground sm:flex-row">
+      <footer className="mt-16 flex items-center justify-center border-t border-border pt-8 text-xs text-muted-foreground">
         <span>© {new Date().getFullYear()} Muslimi Digital</span>
-        <a
-          href="mailto:muslim.brami@gmail.com"
-          className="hover:text-foreground"
-        >
-          muslim.brami@gmail.com
-        </a>
       </footer>
     </section>
   );
