@@ -18,7 +18,6 @@ import { getVisitorId } from "@/lib/visitor-id";
 import { analyzeBusinessReport } from "@/server/business-analysis.functions";
 import { type BusinessAnalysisResult } from "@/lib/business-analysis-types";
 import { toast } from "sonner";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/analizo-biznesin")({
   head: () => ({
