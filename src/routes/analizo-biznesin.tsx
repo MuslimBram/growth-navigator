@@ -153,6 +153,11 @@ function AnalyzePage() {
       const visitorId = getVisitorId();
       const uploadedPaths: string[] = [];
 
+      // Capture device info
+      const deviceInfo = typeof navigator !== "undefined"
+        ? `${/Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop"}, ${navigator.language || "sq"}, ${navigator.userAgent.split(" ").slice(-2).join(" ")}`
+        : "";
+
       // Upload images if any
       for (const file of files) {
         const ext = file.name.split(".").pop()?.toLowerCase() || "png";
@@ -174,6 +179,7 @@ function AnalyzePage() {
           messages: buildHistory(),
           userText: text.trim(),
           imagePaths: uploadedPaths,
+          deviceInfo,
         },
       });
 
