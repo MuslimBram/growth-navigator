@@ -99,6 +99,15 @@ export function Landing() {
           <p className="mt-4 text-xs text-muted-foreground">
             Pa email · pa regjistrim · 6 pyetje
           </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-sm">
+            <span className="text-muted-foreground">Ke raporte konkrete?</span>
+            <Link
+              to="/analizo-biznesin"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Analizo me AI →
+            </Link>
+          </div>
         </motion.div>
 
         {/* Trust strip */}
