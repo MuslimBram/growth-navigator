@@ -232,7 +232,7 @@ function DiagnozePage() {
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto flex min-h-[calc(100vh-6rem)] max-w-2xl flex-col justify-center px-6 py-12">
+      <main className="relative z-10 mx-auto flex min-h-[calc(100vh-6rem)] max-w-2xl flex-col justify-center px-4 py-8 sm:px-6 sm:py-12">
         <AnimatePresence mode="wait">
           {error ? (
             <motion.div
