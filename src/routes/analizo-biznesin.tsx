@@ -70,6 +70,7 @@ function AnalyzePage() {
   const [filePreviews, setFilePreviews] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [isDiagnosis, setIsDiagnosis] = useState(false);
+  const [diagnosisText, setDiagnosisText] = useState<string | null>(null);
   const [leadSubmitted, setLeadSubmitted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
