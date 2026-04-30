@@ -402,6 +402,17 @@ function AnalysisLeadCapture({ diagnosisText, onSuccess }: { diagnosisText: stri
       } as any);
       if (error) throw error;
 
+      // Fire-and-forget admin notification
+      notifyNewLead({
+        data: {
+          businessName: businessName.trim() || undefined,
+          email: email.trim() || undefined,
+          whatsapp: whatsapp.trim() || undefined,
+          diagnosisNotes: diagnosisText || undefined,
+          source: "chatbot" as const,
+        },
+      }).catch(() => {});
+
       onSuccess();
     } catch (err) {
       console.error(err);
