@@ -429,7 +429,6 @@ function AnalysisLeadCapture({ onSuccess }: { onSuccess: () => void }) {
         email: email.trim() || null,
         whatsapp: whatsapp.trim() || null,
         business_name: businessName.trim() || null,
-        source: "ai_analysis",
       });
       if (error) throw error;
       onSuccess();
