@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Loader2, LogOut, Users, TrendingUp, Mail, Phone, FileText,
   AlertCircle, BarChart3, ArrowUpRight, ExternalLink, ChevronDown,
-  ChevronUp, MessageSquare, Check, Filter, Calendar,
+  ChevronUp, MessageSquare, Check, Filter, Calendar, RefreshCw, Bell,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useIsAdmin } from "@/hooks/useAuth";
