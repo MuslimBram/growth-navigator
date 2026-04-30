@@ -253,6 +253,26 @@ function AdminPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] sm:text-xs transition-colors ${autoRefresh ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}
+              title={autoRefresh ? "Auto-refresh aktiv" : "Auto-refresh joaktiv"}
+            >
+              <Bell className="h-3 w-3" />
+              {autoRefresh ? "Live" : "Off"}
+            </button>
+            <button
+              onClick={() => fetchData(false)}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              title="Rifresko tani"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+            </button>
+            {lastRefresh && (
+              <span className="hidden text-[10px] text-muted-foreground md:inline">
+                {lastRefresh.toLocaleTimeString("sq-AL")}
+              </span>
+            )}
             <Link
               to="/case-studies"
               className="hidden text-sm text-muted-foreground hover:text-foreground sm:inline"
