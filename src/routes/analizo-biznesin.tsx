@@ -402,7 +402,7 @@ function AnalysisLeadCapture({ diagnosisText, onSuccess }: { diagnosisText: stri
       } as any);
       if (error) throw error;
 
-      // Fire-and-forget admin notification
+      // Fire-and-forget admin notification with full data
       notifyNewLead({
         data: {
           businessName: businessName.trim() || undefined,
