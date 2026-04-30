@@ -1,5 +1,4 @@
 // Server-only Lovable AI integration for diagnostic engine.
-// Falls back gracefully — caller decides what to do on null.
 
 import type { AnswersInput } from "@/lib/diagnostic-schemas";
 import type { DiagnosisResult } from "@/lib/diagnostic-engine";
@@ -10,21 +9,21 @@ const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3-flash-preview";
 
 const SERVICE_ENUM: ServiceKey[] = [
-  "seo",
-  "web_3d",
-  "photo_video_360",
-  "social_media",
-  "google_maps",
-  "combined_package",
+  "seo", "web_3d", "photo_video_360", "social_media",
+  "google_maps", "combined_package", "automation", "ads",
+  "analytics_measurement",
 ];
 
-const SYSTEM_PROMPT = `Ti je një konsulent strategjik dixhital për "Muslimi Digital", një agjenci që ofron 6 shërbime:
+const SYSTEM_PROMPT = `Ti je një konsulent strategjik dixhital për "Muslimi Digital", një agjenci që ofron këto shërbime:
 - seo: SEO (optimizim Google)
 - web_3d: Faqe interneti 3D / moderne
 - photo_video_360: Foto & Video 360°
 - social_media: Menaxhim rrjetesh sociale me fokus konvertimin
 - google_maps: Optimizim Google Maps për biznes
-- combined_package: Paketë e kombinuar premium (kur biznesit i mungon pozicionimi i qartë në shumë drejtime)
+- combined_package: Paketë e kombinuar premium
+- automation: Automatizim & AI (chatbot, auto-reply, sisteme)
+- ads: Reklama Dixhitale (Facebook/Google Ads)
+- analytics_measurement: Matje & Analitikë
 
 Detyra: Bazuar në përgjigjet e biznesit, identifiko shërbimin PRIMAR që i nevojitet dhe deri në 2 shërbime sekondare.
 Diagnoza duhet:
@@ -37,11 +36,15 @@ Diagnoza duhet:
 Llogarit gjithashtu humbjen e vlerësuar mujore (klientë + EUR), bazuar në vlerë mesatare ~80 EUR/klient. Konservativ: 0-60 klientë.`;
 
 function buildUserPrompt(answers: AnswersInput): string {
-  const lines = QUESTIONS.map((q) => {
-    const val = (answers as Record<string, string>)[q.key];
-    const opt = q.options.find((o) => o.value === val);
-    return `- ${q.question}\n  Përgjigja: ${opt?.label ?? val} ${opt?.weak ? "[DOBËSI]" : "[OK]"}`;
-  }).join("\n");
+  const answeredKeys = Object.keys(answers);
+  const lines = QUESTIONS
+    .filter((q) => answeredKeys.includes(q.key))
+    .map((q) => {
+      const val = (answers as Record<string, string>)[q.key];
+      const opt = q.options.find((o) => o.value === val);
+      return `- ${q.question}\n  Përgjigja: ${opt?.label ?? val} ${opt?.weak ? "[DOBËSI]" : "[OK]"}`;
+    })
+    .join("\n");
   return `Përgjigjet e biznesit:\n${lines}\n\nKthe diagnozën strukturuar.`;
 }
 
@@ -76,11 +79,8 @@ export async function aiDiagnose(
           estimated_lost_eur: { type: "number", minimum: 0, maximum: 6000 },
         },
         required: [
-          "diagnosis",
-          "primary_service",
-          "secondary_services",
-          "estimated_lost_clients",
-          "estimated_lost_eur",
+          "diagnosis", "primary_service", "secondary_services",
+          "estimated_lost_clients", "estimated_lost_eur",
         ],
         additionalProperties: false,
       },
@@ -127,7 +127,6 @@ export async function aiDiagnose(
 
     const parsed = JSON.parse(argsStr);
 
-    // Validate enum values
     if (!SERVICE_ENUM.includes(parsed.primary_service)) return null;
     const secondary: ServiceKey[] = Array.isArray(parsed.secondary_services)
       ? parsed.secondary_services.filter((s: string): s is ServiceKey =>
@@ -142,14 +141,8 @@ export async function aiDiagnose(
       diagnosis,
       primary_service: parsed.primary_service as ServiceKey,
       secondary_services: secondary.slice(0, 2),
-      estimated_lost_clients: Math.max(
-        0,
-        Math.min(60, Math.round(Number(parsed.estimated_lost_clients) || 0)),
-      ),
-      estimated_lost_eur: Math.max(
-        0,
-        Math.min(6000, Math.round(Number(parsed.estimated_lost_eur) || 0)),
-      ),
+      estimated_lost_clients: Math.max(0, Math.min(60, Math.round(Number(parsed.estimated_lost_clients) || 0))),
+      estimated_lost_eur: Math.max(0, Math.min(6000, Math.round(Number(parsed.estimated_lost_eur) || 0))),
     };
   } catch (err) {
     console.error("[aiDiagnose] failed:", err);
