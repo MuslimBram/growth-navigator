@@ -56,9 +56,8 @@ export const getResultSchema = z.object({
   sessionId: z.string().uuid(),
 });
 
-export const submitLeadSchema = z
+export const leadSchema = z
   .object({
-    sessionId: z.string().uuid(),
     email: z
       .string()
       .trim()
@@ -87,4 +86,9 @@ export const submitLeadSchema = z
     path: ["email"],
   });
 
+export const submitLeadSchema = z.object({ sessionId: z.string().uuid() }).and(
+  leadSchema,
+);
+
 export type SubmitLeadInput = z.infer<typeof submitLeadSchema>;
+
