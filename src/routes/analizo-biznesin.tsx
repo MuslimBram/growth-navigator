@@ -280,7 +280,7 @@ function AnalyzePage() {
             ))}
 
             {isDiagnosis && !leadSubmitted && (
-              <AnalysisLeadCapture onSuccess={() => setLeadSubmitted(true)} />
+              <AnalysisLeadCapture diagnosisText={diagnosisText} onSuccess={() => setLeadSubmitted(true)} />
             )}
 
             {leadSubmitted && (
