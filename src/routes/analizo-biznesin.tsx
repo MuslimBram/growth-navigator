@@ -497,6 +497,7 @@ function AnalysisLeadCapture({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
+function MessageBubble({ msg }: { msg: ChatMsg }) {
   if (msg.role === "bot") {
     return (
       <div className="flex gap-3">
