@@ -375,9 +375,7 @@ Ngarko screenshot-e ose shkruaj shifrat me tekst.`,
             mainBottleneck={result.main_bottleneck}
             recommendedService={
               result.recommended_primary_service
-                ? (
-                    await import("@/lib/business-analysis-types")
-                  ).SERVICE_LABEL[result.recommended_primary_service] ||
+                ? SERVICE_LABEL[result.recommended_primary_service as keyof typeof SERVICE_LABEL] ||
                   result.recommended_primary_service
                 : "Analizë e thellë"
             }
