@@ -378,7 +378,7 @@ function AnalyzePage() {
   );
 }
 
-function AnalysisLeadCapture({ onSuccess }: { onSuccess: () => void }) {
+function AnalysisLeadCapture({ diagnosisText, onSuccess }: { diagnosisText: string | null; onSuccess: () => void }) {
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [businessName, setBusinessName] = useState("");
@@ -399,6 +399,18 @@ function AnalysisLeadCapture({ onSuccess }: { onSuccess: () => void }) {
         business_name: businessName.trim() || null,
       });
       if (error) throw error;
+
+      // Also store the diagnosis with the lead's contact for admin
+      if (diagnosisText) {
+        await supabase.from("ai_analysis_results").insert({
+          visitor_id: getVisitorId(),
+          diagnosis_text: diagnosisText,
+          contact_email: email.trim() || null,
+          contact_whatsapp: whatsapp.trim() || null,
+          business_name: businessName.trim() || null,
+        });
+      }
+
       onSuccess();
     } catch (err) {
       console.error(err);
