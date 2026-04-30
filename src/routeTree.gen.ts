@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as DiagnozeRouteImport } from './routes/diagnoze'
 import { Route as CaseStudiesRouteImport } from './routes/case-studies'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AnalizoBiznesinRouteImport } from './routes/analizo-biznesin'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RezultatiSessionIdRouteImport } from './routes/rezultati.$sessionId'
@@ -31,6 +32,11 @@ const CaseStudiesRoute = CaseStudiesRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalizoBiznesinRoute = AnalizoBiznesinRouteImport.update({
+  id: '/analizo-biznesin',
+  path: '/analizo-biznesin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -62,6 +68,7 @@ const ApiPublicExitSurveyRoute = ApiPublicExitSurveyRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/analizo-biznesin': typeof AnalizoBiznesinRoute
   '/auth': typeof AuthRoute
   '/case-studies': typeof CaseStudiesRoute
   '/diagnoze': typeof DiagnozeRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/analizo-biznesin': typeof AnalizoBiznesinRoute
   '/auth': typeof AuthRoute
   '/case-studies': typeof CaseStudiesRoute
   '/diagnoze': typeof DiagnozeRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/analizo-biznesin': typeof AnalizoBiznesinRoute
   '/auth': typeof AuthRoute
   '/case-studies': typeof CaseStudiesRoute
   '/diagnoze': typeof DiagnozeRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/analizo-biznesin'
     | '/auth'
     | '/case-studies'
     | '/diagnoze'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/analizo-biznesin'
     | '/auth'
     | '/case-studies'
     | '/diagnoze'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/analizo-biznesin'
     | '/auth'
     | '/case-studies'
     | '/diagnoze'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  AnalizoBiznesinRoute: typeof AnalizoBiznesinRoute
   AuthRoute: typeof AuthRoute
   CaseStudiesRoute: typeof CaseStudiesRoute
   DiagnozeRoute: typeof DiagnozeRoute
@@ -155,6 +168,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analizo-biznesin': {
+      id: '/analizo-biznesin'
+      path: '/analizo-biznesin'
+      fullPath: '/analizo-biznesin'
+      preLoaderRoute: typeof AnalizoBiznesinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -198,6 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  AnalizoBiznesinRoute: AnalizoBiznesinRoute,
   AuthRoute: AuthRoute,
   CaseStudiesRoute: CaseStudiesRoute,
   DiagnozeRoute: DiagnozeRoute,
@@ -208,3 +229,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
