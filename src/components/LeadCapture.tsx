@@ -9,9 +9,10 @@ const WHATSAPP_NUMBER = "+355697221224";
 interface Props {
   sessionId: string;
   primaryServiceLabel: string;
+  onSuccess?: () => void;
 }
 
-export function LeadCapture({ sessionId, primaryServiceLabel }: Props) {
+export function LeadCapture({ sessionId, primaryServiceLabel, onSuccess }: Props) {
   const submit = useServerFn(submitLead);
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
@@ -44,6 +45,7 @@ export function LeadCapture({ sessionId, primaryServiceLabel }: Props) {
     try {
       await submit({ data: { sessionId, ...parsed.data } });
       setStatus("success");
+      onSuccess?.();
     } catch (err) {
       console.error(err);
       setStatus("error");
