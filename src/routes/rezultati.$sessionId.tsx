@@ -7,6 +7,7 @@ import type { ServiceKey } from "@/lib/diagnostic-types";
 import { getResult } from "@/server/diagnostic.functions";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { LeadCapture } from "@/components/LeadCapture";
+import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 
 export const Route = createFileRoute("/rezultati/$sessionId")({
   head: () => ({
