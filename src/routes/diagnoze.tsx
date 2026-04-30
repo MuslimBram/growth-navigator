@@ -188,6 +188,21 @@ function DiagnozePage() {
 
       {/* Header with progress */}
       <header className="relative z-10 mx-auto max-w-2xl px-6 pt-8">
+        <div className="mb-4 flex items-center gap-2">
+          <Link
+            to="/"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface/60 text-muted-foreground transition hover:bg-accent hover:text-foreground"
+            aria-label="Faqja kryesore"
+          >
+            <Home className="h-4 w-4" />
+          </Link>
+          <Link to="/" className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-primary shadow-glow" />
+            <span className="font-display text-xs font-semibold tracking-wide">
+              MUSLIMI <span className="text-primary">DIGITAL</span>
+            </span>
+          </Link>
+        </div>
         <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
           <button
             type="button"
