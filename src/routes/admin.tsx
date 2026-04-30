@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Loader2, LogOut, Users, TrendingUp, Mail, Phone, FileText,
-  AlertCircle, BarChart3, ArrowUpRight,
+  AlertCircle, BarChart3, ArrowUpRight, ExternalLink, ChevronDown,
+  ChevronUp, MessageSquare,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useIsAdmin } from "@/hooks/useAuth";
@@ -37,6 +38,16 @@ interface LeadRow {
   whatsapp: string | null;
   created_at: string;
   session_id: string | null;
+  diagnosis_notes: string | null;
+}
+
+interface SessionRow {
+  id: string;
+  ai_diagnosis: string | null;
+  primary_service: string | null;
+  secondary_services: any;
+  answers: any;
+  created_at: string;
 }
 
 interface ExitSurveyRow {
@@ -47,14 +58,36 @@ interface ExitSurveyRow {
   created_at: string;
 }
 
+const WA_NUMBER = "355697221224";
+
+function buildAdminWaMessage(lead: LeadRow, session: SessionRow | null) {
+  const lines = [
+    `Përshëndetje${lead.business_name ? ` ${lead.business_name}` : ""}!`,
+    "",
+    "Jam nga Muslimi Digital. Sapo përfundova analizën e biznesit tuaj.",
+    "",
+  ];
+  if (session?.primary_service) {
+    lines.push(`Shërbimi i rekomanduar: ${session.primary_service}`);
+  }
+  if (session?.ai_diagnosis) {
+    const short = session.ai_diagnosis.slice(0, 200);
+    lines.push(`Diagnoza: ${short}${session.ai_diagnosis.length > 200 ? "…" : ""}`);
+  }
+  lines.push("", "A do ta diskutojmë planin e veprimit?");
+  return lines.join("\n");
+}
+
 function AdminPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, checking } = useIsAdmin(user?.id);
   const [funnel, setFunnel] = useState<FunnelSummary | null>(null);
   const [leads, setLeads] = useState<LeadRow[]>([]);
+  const [sessions, setSessions] = useState<Map<string, SessionRow>>(new Map());
   const [surveys, setSurveys] = useState<ExitSurveyRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedLead, setExpandedLead] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
@@ -64,11 +97,16 @@ function AdminPage() {
     if (!isAdmin) return;
     (async () => {
       setLoading(true);
-      const [funnelRes, leadsRes, surveysRes] = await Promise.all([
+      const [funnelRes, leadsRes, sessionsRes, surveysRes] = await Promise.all([
         supabase.rpc("get_funnel_summary", { _days: 30 }),
         supabase
           .from("diagnostic_leads")
-          .select("id,business_name,email,whatsapp,created_at,session_id")
+          .select("id,business_name,email,whatsapp,created_at,session_id,diagnosis_notes")
+          .order("created_at", { ascending: false })
+          .limit(50),
+        supabase
+          .from("diagnostic_sessions")
+          .select("id,ai_diagnosis,primary_service,secondary_services,answers,created_at")
           .order("created_at", { ascending: false })
           .limit(50),
         supabase
@@ -79,6 +117,11 @@ function AdminPage() {
       ]);
       if (funnelRes.data) setFunnel(funnelRes.data as unknown as FunnelSummary);
       if (leadsRes.data) setLeads(leadsRes.data);
+      if (sessionsRes.data) {
+        const map = new Map<string, SessionRow>();
+        for (const s of sessionsRes.data) map.set(s.id, s);
+        setSessions(map);
+      }
       if (surveysRes.data) setSurveys(surveysRes.data);
       setLoading(false);
     })();
@@ -132,25 +175,25 @@ function AdminPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/40 backdrop-blur sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between sm:px-6 sm:py-4">
           <div className="flex items-center gap-3">
-            <BarChart3 className="h-6 w-6 text-primary" />
+            <BarChart3 className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
             <div>
-              <h1 className="text-lg font-bold text-foreground">Admin Panel</h1>
-              <p className="text-xs text-muted-foreground">Muslimi Digital — 30 ditët e fundit</p>
+              <h1 className="text-base font-bold text-foreground sm:text-lg">Admin Panel</h1>
+              <p className="text-[10px] text-muted-foreground sm:text-xs">Muslimi Digital — 30 ditët e fundit</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               to="/case-studies"
-              className="text-sm text-muted-foreground hover:text-foreground"
+              className="hidden text-sm text-muted-foreground hover:text-foreground sm:inline"
             >
               Case Studies
             </Link>
-            <span className="text-sm text-muted-foreground hidden md:inline">{user.email}</span>
+            <span className="hidden text-sm text-muted-foreground md:inline">{user.email}</span>
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground sm:text-sm"
             >
               <LogOut className="h-4 w-4" /> Dil
             </button>
@@ -158,7 +201,7 @@ function AdminPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 sm:py-8">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -166,7 +209,7 @@ function AdminPage() {
         ) : (
           <>
             {/* Funnel KPIs */}
-            <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <section className="grid grid-cols-2 gap-3 mb-6 sm:grid-cols-4 sm:gap-4 sm:mb-8">
               <KPI label="Vizitorë unikë" value={funnel?.unique_visitors ?? 0} icon={Users} />
               <KPI label="Filluan diagnozën" value={funnel?.started ?? 0} icon={ArrowUpRight} />
               <KPI label="Përfunduan" value={funnel?.completed ?? 0} icon={TrendingUp} />
@@ -174,92 +217,186 @@ function AdminPage() {
             </section>
 
             {/* Conversion rates */}
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+            <section className="grid grid-cols-1 gap-3 mb-8 sm:grid-cols-3 sm:gap-4 sm:mb-10">
               <RateCard label="Konvertim total" value={`${conversionRate}%`} sub="vizitor → lead" />
               <RateCard label="Mbarim diagnoze" value={`${completionRate}%`} sub="filloi → përfundoi" />
               <RateCard label="Lead capture" value={`${leadCaptureRate}%`} sub="përfundoi → lead" />
             </section>
 
-            {/* Recent leads */}
-            <section className="mb-10">
-              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                <FileText className="h-5 w-5" /> Leads të fundit ({leads.length})
+            {/* Recent leads — card layout for mobile */}
+            <section className="mb-8 sm:mb-10">
+              <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2 sm:text-lg">
+                <FileText className="h-5 w-5" /> Leads ({leads.length})
               </h2>
-              <div className="rounded-xl border border-border bg-card overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-muted/30 text-muted-foreground">
-                      <tr>
-                        <th className="text-left px-4 py-3 font-medium">Biznes</th>
-                        <th className="text-left px-4 py-3 font-medium">Email</th>
-                        <th className="text-left px-4 py-3 font-medium">WhatsApp</th>
-                        <th className="text-left px-4 py-3 font-medium">Data</th>
-                        <th className="text-left px-4 py-3 font-medium">Sesion</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {leads.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
-                            Asnjë lead ende
-                          </td>
-                        </tr>
-                      ) : (
-                        leads.map((lead) => (
-                          <motion.tr
-                            key={lead.id}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="border-t border-border hover:bg-muted/20"
-                          >
-                            <td className="px-4 py-3 text-foreground font-medium">
-                              {lead.business_name ?? "—"}
-                            </td>
-                            <td className="px-4 py-3 text-muted-foreground">
-                              {lead.email ? (
-                                <a href={`mailto:${lead.email}`} className="hover:text-primary inline-flex items-center gap-1">
-                                  <Mail className="h-3 w-3" /> {lead.email}
-                                </a>
-                              ) : "—"}
-                            </td>
-                            <td className="px-4 py-3 text-muted-foreground">
-                              {lead.whatsapp ? (
-                                <a
-                                  href={`https://wa.me/${lead.whatsapp.replace(/\D/g, "")}`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="hover:text-primary inline-flex items-center gap-1"
-                                >
-                                  <Phone className="h-3 w-3" /> {lead.whatsapp}
-                                </a>
-                              ) : "—"}
-                            </td>
-                            <td className="px-4 py-3 text-muted-foreground">
-                              {new Date(lead.created_at).toLocaleString("sq-AL")}
-                            </td>
-                            <td className="px-4 py-3 text-muted-foreground">
-                              {lead.session_id ? (
-                                <Link
-                                  to="/rezultati/$sessionId"
-                                  params={{ sessionId: lead.session_id }}
-                                  className="text-primary hover:underline"
-                                >
-                                  Hap
-                                </Link>
-                              ) : "—"}
-                            </td>
-                          </motion.tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+
+              {leads.length === 0 ? (
+                <div className="rounded-xl border border-border bg-card p-8 text-center text-muted-foreground">
+                  Asnjë lead ende
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-3">
+                  {leads.map((lead) => {
+                    const session = lead.session_id ? sessions.get(lead.session_id) ?? null : null;
+                    const isOpen = expandedLead === lead.id;
+
+                    return (
+                      <div
+                        key={lead.id}
+                        className="rounded-xl border border-border bg-card overflow-hidden"
+                      >
+                        {/* Summary row */}
+                        <button
+                          type="button"
+                          onClick={() => setExpandedLead(isOpen ? null : lead.id)}
+                          className="w-full flex items-center justify-between gap-3 p-4 text-left hover:bg-muted/20 transition-colors"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-medium text-foreground text-sm truncate">
+                                {lead.business_name || "Pa emër"}
+                              </span>
+                              {session?.primary_service && (
+                                <span className="inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                                  {session.primary_service}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                              {lead.email && (
+                                <span className="flex items-center gap-1 truncate">
+                                  <Mail className="h-3 w-3 shrink-0" /> {lead.email}
+                                </span>
+                              )}
+                              {lead.whatsapp && (
+                                <span className="flex items-center gap-1">
+                                  <Phone className="h-3 w-3 shrink-0" /> {lead.whatsapp}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-[10px] text-muted-foreground whitespace-nowrap hidden sm:inline">
+                              {new Date(lead.created_at).toLocaleString("sq-AL")}
+                            </span>
+                            {isOpen ? (
+                              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </div>
+                        </button>
+
+                        {/* Expanded details */}
+                        <AnimatePresence>
+                          {isOpen && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="border-t border-border p-4 space-y-4">
+                                {/* Meta info */}
+                                <div className="grid grid-cols-2 gap-3 text-xs">
+                                  <div>
+                                    <span className="text-muted-foreground">Data:</span>
+                                    <p className="font-medium text-foreground">
+                                      {new Date(lead.created_at).toLocaleString("sq-AL")}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Biznes:</span>
+                                    <p className="font-medium text-foreground">{lead.business_name || "—"}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Email:</span>
+                                    <p className="font-medium text-foreground">
+                                      {lead.email ? (
+                                        <a href={`mailto:${lead.email}`} className="text-primary hover:underline">{lead.email}</a>
+                                      ) : "—"}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">WhatsApp:</span>
+                                    <p className="font-medium text-foreground">{lead.whatsapp || "—"}</p>
+                                  </div>
+                                  {session?.primary_service && (
+                                    <div>
+                                      <span className="text-muted-foreground">Shërbimi kryesor:</span>
+                                      <p className="font-medium text-primary">{session.primary_service}</p>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* AI Diagnosis from session */}
+                                {session?.ai_diagnosis && (
+                                  <div>
+                                    <span className="text-xs text-muted-foreground">Diagnoza AI (sesion):</span>
+                                    <p className="mt-1 text-sm text-foreground leading-relaxed whitespace-pre-line rounded-lg bg-muted/20 p-3">
+                                      {session.ai_diagnosis}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* Diagnosis notes from chatbot */}
+                                {lead.diagnosis_notes && (
+                                  <div>
+                                    <span className="text-xs text-muted-foreground">Diagnoza AI (chatbot):</span>
+                                    <p className="mt-1 text-sm text-foreground leading-relaxed whitespace-pre-line rounded-lg bg-primary/5 border border-primary/20 p-3">
+                                      {lead.diagnosis_notes}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* Actions */}
+                                <div className="flex flex-wrap gap-2 pt-2">
+                                  {(lead.whatsapp || lead.email) && (
+                                    <a
+                                      href={`https://wa.me/${(lead.whatsapp || "").replace(/\D/g, "") || WA_NUMBER}?text=${encodeURIComponent(buildAdminWaMessage(lead, session))}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1.5 rounded-lg bg-[#25D366] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#20BD5A]"
+                                    >
+                                      <MessageSquare className="h-3.5 w-3.5" />
+                                      Open WhatsApp
+                                      <ExternalLink className="h-3 w-3" />
+                                    </a>
+                                  )}
+                                  {lead.email && (
+                                    <a
+                                      href={`mailto:${lead.email}?subject=${encodeURIComponent("Diagnoza e biznesit — Muslimi Digital")}`}
+                                      className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted/40"
+                                    >
+                                      <Mail className="h-3.5 w-3.5" />
+                                      Send Email
+                                    </a>
+                                  )}
+                                  {lead.session_id && (
+                                    <Link
+                                      to="/rezultati/$sessionId"
+                                      params={{ sessionId: lead.session_id }}
+                                      className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted/40"
+                                    >
+                                      <FileText className="h-3.5 w-3.5" />
+                                      Hap rezultatin
+                                    </Link>
+                                  )}
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </section>
 
             {/* Exit surveys */}
             <section>
-              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2 sm:text-lg">
                 <AlertCircle className="h-5 w-5" /> Pse largohen ({surveys.length})
               </h2>
               <div className="grid gap-3">
@@ -316,27 +453,27 @@ function KPI({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-xl border p-5 ${
+      className={`rounded-xl border p-4 sm:p-5 ${
         highlight
           ? "border-primary/40 bg-primary/5"
           : "border-border bg-card"
       }`}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-muted-foreground uppercase tracking-wide">{label}</span>
+        <span className="text-[10px] text-muted-foreground uppercase tracking-wide sm:text-xs">{label}</span>
         <Icon className={`h-4 w-4 ${highlight ? "text-primary" : "text-muted-foreground"}`} />
       </div>
-      <div className="text-3xl font-bold text-foreground">{value.toLocaleString()}</div>
+      <div className="text-2xl font-bold text-foreground sm:text-3xl">{value.toLocaleString()}</div>
     </motion.div>
   );
 }
 
 function RateCard({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
-    <div className="rounded-xl border border-border bg-gradient-to-br from-card to-muted/10 p-5">
-      <div className="text-xs text-muted-foreground uppercase tracking-wide">{label}</div>
-      <div className="text-3xl font-bold text-foreground mt-1">{value}</div>
-      <div className="text-xs text-muted-foreground mt-1">{sub}</div>
+    <div className="rounded-xl border border-border bg-gradient-to-br from-card to-muted/10 p-4 sm:p-5">
+      <div className="text-[10px] text-muted-foreground uppercase tracking-wide sm:text-xs">{label}</div>
+      <div className="text-2xl font-bold text-foreground mt-1 sm:text-3xl">{value}</div>
+      <div className="text-[10px] text-muted-foreground mt-1 sm:text-xs">{sub}</div>
     </div>
   );
 }

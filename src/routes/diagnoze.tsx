@@ -187,7 +187,7 @@ function DiagnozePage() {
       <div className="pointer-events-none absolute inset-0 bg-radial-glow opacity-50" />
 
       {/* Header with progress */}
-      <header className="relative z-10 mx-auto max-w-2xl px-6 pt-8">
+      <header className="relative z-10 mx-auto max-w-2xl px-4 pt-6 sm:px-6 sm:pt-8">
         <div className="mb-4 flex items-center gap-2">
           <Link
             to="/"
@@ -232,7 +232,7 @@ function DiagnozePage() {
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto flex min-h-[calc(100vh-6rem)] max-w-2xl flex-col justify-center px-6 py-12">
+      <main className="relative z-10 mx-auto flex min-h-[calc(100vh-6rem)] max-w-2xl flex-col justify-center px-4 py-8 sm:px-6 sm:py-12">
         <AnimatePresence mode="wait">
           {error ? (
             <motion.div
@@ -295,7 +295,7 @@ function DiagnozePage() {
               exit={{ opacity: 0, y: -16 }}
               transition={{ duration: 0.4 }}
             >
-              <h1 className="text-balance font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+              <h1 className="text-balance font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl md:text-4xl">
                 {current.question}
               </h1>
               {current.subtitle && (

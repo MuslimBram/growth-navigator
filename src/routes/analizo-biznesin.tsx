@@ -20,6 +20,7 @@ import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 import { getVisitorId } from "@/lib/visitor-id";
 import { chatWithBot } from "@/server/business-chat.functions";
 import { toast } from "sonner";
+import { notifyNewLead } from "@/server/notify-lead.functions";
 
 export const Route = createFileRoute("/analizo-biznesin")({
   head: () => ({
@@ -254,14 +255,14 @@ function AnalyzePage() {
 
       <main className="relative z-10 mx-auto max-w-3xl px-4 pb-32 pt-4 sm:px-6">
         {/* Hero */}
-        <div className="mb-8 text-center">
+        <div className="mb-6 text-center sm:mb-8">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-surface/60 px-4 py-1.5 backdrop-blur">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
             <span className="text-xs font-medium text-muted-foreground">
               AI Konsulent Strategjik
             </span>
           </div>
-          <h1 className="text-balance text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+          <h1 className="text-balance text-2xl font-bold leading-tight tracking-tight sm:text-3xl md:text-4xl">
             Ku po <span className="text-gradient-primary">ngec</span> biznesi yt online?
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
@@ -400,6 +401,17 @@ function AnalysisLeadCapture({ diagnosisText, onSuccess }: { diagnosisText: stri
         diagnosis_notes: diagnosisText || null,
       } as any);
       if (error) throw error;
+
+      // Fire-and-forget admin notification
+      notifyNewLead({
+        data: {
+          businessName: businessName.trim() || undefined,
+          email: email.trim() || undefined,
+          whatsapp: whatsapp.trim() || undefined,
+          diagnosisNotes: diagnosisText || undefined,
+          source: "chatbot" as const,
+        },
+      }).catch(() => {});
 
       onSuccess();
     } catch (err) {

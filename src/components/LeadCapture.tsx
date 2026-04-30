@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useServerFn } from "@tanstack/react-start";
 import { submitLead } from "@/server/diagnostic.functions";
+import { notifyNewLead } from "@/server/notify-lead.functions";
 import { leadSchema } from "@/lib/diagnostic-schemas";
 import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 
@@ -44,6 +45,17 @@ export function LeadCapture({ sessionId, primaryServiceLabel, onSuccess }: Props
     try {
       await submit({ data: { sessionId, ...parsed.data } });
       setStatus("success");
+
+      // Fire-and-forget admin notification
+      notifyNewLead({
+        data: {
+          businessName: businessName.trim() || undefined,
+          email: email.trim() || undefined,
+          whatsapp: whatsapp.trim() || undefined,
+          source: "diagnostic" as const,
+        },
+      }).catch(() => {});
+
       onSuccess?.();
     } catch (err) {
       console.error(err);

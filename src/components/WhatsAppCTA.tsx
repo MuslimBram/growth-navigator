@@ -64,7 +64,7 @@ export function WhatsAppCTA({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
-      className={`rounded-2xl border border-primary/30 bg-primary/5 p-6 text-center ${className}`}
+      className={`rounded-2xl border border-primary/30 bg-primary/5 p-4 text-center sm:p-6 ${className}`}
     >
       <h3 className="font-display text-lg font-bold">Vazhdo në WhatsApp</h3>
       <p className="mt-2 text-sm text-muted-foreground">

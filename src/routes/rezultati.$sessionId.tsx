@@ -5,7 +5,6 @@ import { Lock, Sparkles } from "lucide-react";
 import { SERVICE_LABELS, SERVICE_TAGLINES } from "@/lib/diagnostic-types";
 import type { ServiceKey } from "@/lib/diagnostic-types";
 import { getResult } from "@/server/diagnostic.functions";
-// AnimatedCounter removed — no longer showing revenue estimates
 import { LeadCapture } from "@/components/LeadCapture";
 import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 
@@ -32,13 +31,12 @@ function ResultPage() {
   const primary = data.primary_service as ServiceKey;
   const secondaries = data.secondary_services as ServiceKey[];
 
-  // Gate the result behind lead capture
   const [unlocked, setUnlocked] = useState(false);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
       <div className="pointer-events-none absolute inset-0 bg-radial-glow opacity-50" />
-      <main className="relative z-10 mx-auto max-w-2xl px-6 py-16">
+      <main className="relative z-10 mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-16">
         {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: -8 }}
@@ -49,12 +47,11 @@ function ResultPage() {
           {unlocked ? "Diagnoza personale" : "Diagnoza është gati"}
         </motion.div>
 
-        {/* Headline — always visible */}
         <motion.h1
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl"
+          className="font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl md:text-5xl"
         >
           {unlocked
             ? "Ja çfarë po ndodh me biznesin tënd"
@@ -63,58 +60,55 @@ function ResultPage() {
 
         {!unlocked ? (
           <>
-            {/* Locked teaser */}
             <motion.p
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="mt-6 text-lg leading-relaxed text-muted-foreground"
+              className="mt-4 text-base leading-relaxed text-muted-foreground sm:mt-6 sm:text-lg"
             >
               Bazuar në përgjigjet e tua, kemi identifikuar{" "}
-74:               <span className="font-semibold text-foreground">
-75:                 shërbimin kryesor
-76:               </span>{" "}
+              <span className="font-semibold text-foreground">
+                shërbimin kryesor
+              </span>{" "}
               që të mungon dhe një analizë konkrete të mundësive që po humbet.
               Lër kontaktin më poshtë dhe merr raportin e plotë + planin
               personal — pa pagesë.
             </motion.p>
 
-            {/* Blurred preview to build curiosity */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
-              className="relative mt-10"
+              className="relative mt-8 sm:mt-10"
             >
               <div className="pointer-events-none select-none blur-md grayscale">
-                <div className="mt-4 rounded-2xl border border-primary/40 bg-primary/5 p-6 shadow-glow">
+                <div className="mt-4 rounded-2xl border border-primary/40 bg-primary/5 p-5 shadow-glow sm:p-6">
                   <div className="text-xs uppercase tracking-wider text-primary">
                     Zgjidhja kryesore për ty
                   </div>
-                  <h2 className="mt-2 font-display text-2xl font-bold">
+                  <h2 className="mt-2 font-display text-xl font-bold sm:text-2xl">
                     ●●●●●●●●●●●●●●
                   </h2>
-                  <p className="mt-3 text-muted-foreground">
+                  <p className="mt-3 text-sm text-muted-foreground sm:text-base">
                     ●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●
                   </p>
                 </div>
               </div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="flex items-center gap-2 rounded-full border border-primary/40 bg-background/80 px-5 py-2.5 backdrop-blur">
+                <div className="flex items-center gap-2 rounded-full border border-primary/40 bg-background/80 px-4 py-2 backdrop-blur sm:px-5 sm:py-2.5">
                   <Lock className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium whitespace-pre-line">
-                    Lër kontaktin për t'ju dërguar {"\n"} rrezultatin dhe zgjidhjen!
+                  <span className="text-xs font-medium whitespace-pre-line sm:text-sm">
+                    Lër kontaktin për t'ju dërguar{"\n"}rrezultatin dhe zgjidhjen!
                   </span>
                 </div>
               </div>
             </motion.div>
 
-            {/* Lead capture — gate */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35 }}
-              className="mt-10"
+              className="mt-8 sm:mt-10"
             >
               <LeadCapture
                 sessionId={data.id}
@@ -125,7 +119,6 @@ function ResultPage() {
           </>
         ) : (
           <>
-            {/* Unlocked: full diagnosis */}
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -138,26 +131,24 @@ function ResultPage() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="mt-4 text-lg leading-relaxed text-muted-foreground"
+              className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg"
             >
               {data.diagnosis}
             </motion.p>
-
-
 
             <motion.div
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4 }}
-              className="mt-10 rounded-2xl border border-primary/40 bg-primary/5 p-6 shadow-glow sm:p-8"
+              className="mt-8 rounded-2xl border border-primary/40 bg-primary/5 p-5 shadow-glow sm:mt-10 sm:p-8"
             >
               <div className="text-xs uppercase tracking-wider text-primary">
                 Zgjidhja kryesore për ty
               </div>
-              <h2 className="mt-2 font-display text-2xl font-bold sm:text-3xl">
+              <h2 className="mt-2 font-display text-xl font-bold sm:text-2xl md:text-3xl">
                 {SERVICE_LABELS[primary]}
               </h2>
-              <p className="mt-3 text-muted-foreground">{SERVICE_TAGLINES[primary]}</p>
+              <p className="mt-3 text-sm text-muted-foreground sm:text-base">{SERVICE_TAGLINES[primary]}</p>
             </motion.div>
 
             {secondaries.length > 0 && (
@@ -173,8 +164,8 @@ function ResultPage() {
                     transition={{ delay: 0.5 + i * 0.08 }}
                     className="rounded-xl border border-border bg-surface p-4"
                   >
-                    <div className="font-semibold">{SERVICE_LABELS[s]}</div>
-                    <div className="mt-1 text-sm text-muted-foreground">
+                    <div className="font-semibold text-sm sm:text-base">{SERVICE_LABELS[s]}</div>
+                    <div className="mt-1 text-xs text-muted-foreground sm:text-sm">
                       {SERVICE_TAGLINES[s]}
                     </div>
                   </motion.div>
@@ -185,12 +176,12 @@ function ResultPage() {
             <WhatsAppCTA
               mainBottleneck={data.diagnosis || "Mungon prania online"}
               recommendedService={SERVICE_LABELS[primary]}
-              className="mt-12"
+              className="mt-10 sm:mt-12"
             />
           </>
         )}
 
-        <div className="mt-10 text-center">
+        <div className="mt-8 text-center sm:mt-10">
           <Link
             to="/"
             className="text-xs text-muted-foreground hover:text-foreground"
@@ -205,9 +196,9 @@ function ResultPage() {
 
 function ResultError({ error, reset }: { error: Error; reset: () => void }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 sm:px-6">
       <div className="max-w-md text-center">
-        <h1 className="font-display text-2xl font-bold">Diçka shkoi keq</h1>
+        <h1 className="font-display text-xl font-bold sm:text-2xl">Diçka shkoi keq</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {error.message || "Nuk arritëm të ngarkojmë rezultatin."}
         </p>
@@ -224,9 +215,9 @@ function ResultError({ error, reset }: { error: Error; reset: () => void }) {
 
 function ResultNotFound() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 sm:px-6">
       <div className="max-w-md text-center">
-        <h1 className="font-display text-2xl font-bold">Sesioni nuk u gjet</h1>
+        <h1 className="font-display text-xl font-bold sm:text-2xl">Sesioni nuk u gjet</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Mund të ketë skaduar ose linku është i pasaktë.
         </p>

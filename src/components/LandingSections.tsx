@@ -24,7 +24,7 @@ const ORDER: ServiceKey[] = [
 
 export function LandingSections() {
   return (
-    <section className="relative z-10 mx-auto max-w-6xl px-6 pb-24">
+    <section className="relative z-10 mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24">
       {/* How it works */}
       <div className="mb-24">
         <motion.div
@@ -127,7 +127,7 @@ export function LandingSections() {
         initial={{ opacity: 0, scale: 0.96 }}
         whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true, margin: "-100px" }}
-        className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/10 via-surface to-surface p-10 text-center shadow-glow sm:p-14"
+        className="relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-surface to-surface p-6 text-center shadow-glow sm:rounded-3xl sm:p-10 md:p-14"
       >
         <div className="pointer-events-none absolute inset-0 bg-radial-glow opacity-40" />
         <div className="relative">
@@ -140,7 +140,7 @@ export function LandingSections() {
           </p>
           <Link
             to="/diagnoze"
-            className="group mt-8 inline-flex items-center gap-3 rounded-full bg-gradient-primary px-8 py-4 text-base font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.03]"
+            className="group mt-6 inline-flex items-center gap-3 rounded-full bg-gradient-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.03] sm:mt-8 sm:px-8 sm:py-4 sm:text-base"
           >
             Nis Diagnozën Falas
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />

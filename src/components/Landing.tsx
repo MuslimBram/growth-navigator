@@ -34,7 +34,7 @@ export function Landing() {
       </header>
 
       {/* Hero */}
-      <main className="relative z-10 mx-auto flex min-h-[calc(100vh-6rem)] max-w-4xl flex-col items-center justify-center px-6 pb-16 pt-12 text-center">
+      <main className="relative z-10 mx-auto flex min-h-[calc(100vh-6rem)] max-w-4xl flex-col items-center justify-center px-4 pb-12 pt-8 text-center sm:px-6 sm:pb-16 sm:pt-12">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -52,7 +52,7 @@ export function Landing() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1 }}
-            className="max-w-3xl text-balance text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl md:text-6xl"
+            className="max-w-3xl text-balance text-3xl font-bold leading-[1.05] tracking-tight sm:text-4xl md:text-5xl lg:text-6xl"
           >
             Ende nuk e ke{" "}
             <span className="text-gradient-primary">rregulluar</span> këtë problem?
@@ -62,7 +62,7 @@ export function Landing() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1 }}
-            className="max-w-3xl text-balance text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl md:text-6xl"
+            className="max-w-3xl text-balance text-3xl font-bold leading-[1.05] tracking-tight sm:text-4xl md:text-5xl lg:text-6xl"
           >
             Nëse dikush kërkon shërbimin tënd sot…{" "}
             <span className="text-gradient-primary">
@@ -86,12 +86,12 @@ export function Landing() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.4 }}
-          className="mt-10"
+          className="mt-8 flex flex-col items-center gap-3 sm:mt-10"
         >
           <Link
             to="/diagnoze"
             onClick={() => track({ event: "diagnosis_start", metadata: { source: "hero_cta" } })}
-            className="group inline-flex items-center gap-3 rounded-full bg-gradient-primary px-8 py-4 text-base font-semibold text-primary-foreground shadow-glow transition-all hover:scale-[1.03] hover:shadow-glow-soft"
+            className="group inline-flex items-center gap-3 rounded-full bg-gradient-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-all hover:scale-[1.03] hover:shadow-glow-soft sm:px-8 sm:py-4 sm:text-base"
           >
             Nis Diagnozën Falas
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -100,7 +100,7 @@ export function Landing() {
           <Link
             to="/analizo-biznesin"
             onClick={() => track({ event: "ai_analyze_start", metadata: { source: "hero_cta" } })}
-            className="group mt-4 inline-flex items-center gap-3 rounded-full border-2 border-primary px-8 py-4 text-base font-semibold text-primary shadow-glow-soft transition-all hover:scale-[1.03] hover:bg-primary hover:text-primary-foreground"
+            className="group inline-flex items-center gap-3 rounded-full border-2 border-primary px-6 py-3.5 text-sm font-semibold text-primary shadow-glow-soft transition-all hover:scale-[1.03] hover:bg-primary hover:text-primary-foreground sm:px-8 sm:py-4 sm:text-base"
           >
             Analizo me AI
             <Sparkles className="h-5 w-5 transition-transform group-hover:scale-110" />
@@ -116,7 +116,7 @@ export function Landing() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.7 }}
-          className="mt-20 grid w-full max-w-2xl grid-cols-3 gap-4 border-t border-border pt-10"
+          className="mt-14 grid w-full max-w-2xl grid-cols-3 gap-3 border-t border-border pt-8 sm:mt-20 sm:gap-4 sm:pt-10"
         >
           {[
             { n: "6", l: "pyetje" },
