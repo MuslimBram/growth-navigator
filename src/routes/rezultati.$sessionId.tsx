@@ -87,24 +87,6 @@ function ResultPage() {
               className="relative mt-10"
             >
               <div className="pointer-events-none select-none blur-md grayscale">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-2xl border border-warning/30 bg-warning/5 p-5">
-                    <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                      Klientë të humbur / muaj
-                    </div>
-                    <div className="mt-2 font-display text-3xl font-bold text-warning sm:text-4xl">
-                      ~●●
-                    </div>
-                  </div>
-                  <div className="rounded-2xl border border-warning/30 bg-warning/5 p-5">
-                    <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                      Të ardhura / muaj
-                    </div>
-                    <div className="mt-2 font-display text-3xl font-bold text-warning sm:text-4xl">
-                      ~€●●●●
-                    </div>
-                  </div>
-                </div>
                 <div className="mt-4 rounded-2xl border border-primary/40 bg-primary/5 p-6 shadow-glow">
                   <div className="text-xs uppercase tracking-wider text-primary">
                     Zgjidhja kryesore për ty
