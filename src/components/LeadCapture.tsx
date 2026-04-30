@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useServerFn } from "@tanstack/react-start";
 import { submitLead } from "@/server/diagnostic.functions";
+import { notifyNewLead } from "@/server/notify-lead.functions";
 import { leadSchema } from "@/lib/diagnostic-schemas";
 import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 
