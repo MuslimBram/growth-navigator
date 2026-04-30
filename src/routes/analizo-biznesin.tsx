@@ -20,6 +20,7 @@ import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 import { getVisitorId } from "@/lib/visitor-id";
 import { chatWithBot } from "@/server/business-chat.functions";
 import { toast } from "sonner";
+import { notifyNewLead } from "@/server/notify-lead.functions";
 
 export const Route = createFileRoute("/analizo-biznesin")({
   head: () => ({
