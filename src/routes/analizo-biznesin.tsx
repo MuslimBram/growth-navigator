@@ -140,7 +140,7 @@ Ngarko screenshot-e ose shkruaj shifrat me tekst.`,
       setMessages((m) => [
         ...m,
         { role: "user", text: text.trim() },
-        { role: "bot", text: "Ne funde." },
+        { role: "bot", text: "Për përgjigjet tuaja do ju përgjigjemi në fundë." },
       ]);
       setText("");
       return;
