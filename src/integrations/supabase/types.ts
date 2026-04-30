@@ -52,6 +52,56 @@ export type Database = {
           },
         ]
       }
+      business_report_analyses: {
+        Row: {
+          ai_analysis: Json
+          ai_source: string
+          created_at: string
+          extracted_metrics: Json
+          id: string
+          main_bottleneck: string | null
+          recommended_service: string | null
+          session_id: string | null
+          uploaded_images: Json
+          user_text: string | null
+          visitor_id: string | null
+        }
+        Insert: {
+          ai_analysis?: Json
+          ai_source?: string
+          created_at?: string
+          extracted_metrics?: Json
+          id?: string
+          main_bottleneck?: string | null
+          recommended_service?: string | null
+          session_id?: string | null
+          uploaded_images?: Json
+          user_text?: string | null
+          visitor_id?: string | null
+        }
+        Update: {
+          ai_analysis?: Json
+          ai_source?: string
+          created_at?: string
+          extracted_metrics?: Json
+          id?: string
+          main_bottleneck?: string | null
+          recommended_service?: string | null
+          session_id?: string | null
+          uploaded_images?: Json
+          user_text?: string | null
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_report_analyses_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "diagnostic_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_studies: {
         Row: {
           client_name: string | null
