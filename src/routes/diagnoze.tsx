@@ -166,6 +166,7 @@ function DiagnozePage() {
       });
       setLastSessionId(sessionId);
       clearProgress();
+      track({ event: "diagnosis_complete", sessionId });
       navigate({ to: "/rezultati/$sessionId", params: { sessionId } });
     } catch (e) {
       console.error(e);
