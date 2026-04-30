@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useServerFn } from "@tanstack/react-start";
 import { submitLead } from "@/server/diagnostic.functions";
 import { leadSchema } from "@/lib/diagnostic-schemas";
-
-const WHATSAPP_NUMBER = "+355697221224";
+import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 
 interface Props {
   sessionId: string;
