@@ -14,7 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      diagnostic_leads: {
+        Row: {
+          business_name: string | null
+          created_at: string
+          email: string | null
+          id: string
+          session_id: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          business_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          session_id?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          business_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          session_id?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnostic_leads_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "diagnostic_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diagnostic_sessions: {
+        Row: {
+          ai_diagnosis: string | null
+          ai_source: string | null
+          answers: Json
+          created_at: string
+          estimated_lost_clients: number | null
+          estimated_lost_eur: number | null
+          id: string
+          primary_service: string | null
+          secondary_services: Json | null
+          updated_at: string
+          visitor_id: string | null
+        }
+        Insert: {
+          ai_diagnosis?: string | null
+          ai_source?: string | null
+          answers?: Json
+          created_at?: string
+          estimated_lost_clients?: number | null
+          estimated_lost_eur?: number | null
+          id?: string
+          primary_service?: string | null
+          secondary_services?: Json | null
+          updated_at?: string
+          visitor_id?: string | null
+        }
+        Update: {
+          ai_diagnosis?: string | null
+          ai_source?: string | null
+          answers?: Json
+          created_at?: string
+          estimated_lost_clients?: number | null
+          estimated_lost_eur?: number | null
+          id?: string
+          primary_service?: string | null
+          secondary_services?: Json | null
+          updated_at?: string
+          visitor_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
