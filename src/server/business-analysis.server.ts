@@ -244,19 +244,25 @@ export async function runBusinessAnalysis(input: AnalyzeInput): Promise<{
     source = "fallback";
   }
 
+  const insertPayload = {
+    visitor_id: input.visitorId,
+    session_id: input.sessionId,
+    uploaded_images: input.imagePaths as unknown as string[],
+    user_text: input.userText || null,
+    extracted_metrics: analysis.detected_metrics as unknown as Record<
+      string,
+      unknown
+    >,
+    ai_analysis: analysis as unknown as Record<string, unknown>,
+    main_bottleneck: analysis.main_bottleneck,
+    recommended_service: analysis.recommended_primary_service,
+    ai_source: source,
+  };
+
   const { data, error } = await supabaseAdmin
     .from("business_report_analyses")
-    .insert({
-      visitor_id: input.visitorId,
-      session_id: input.sessionId,
-      uploaded_images: input.imagePaths,
-      user_text: input.userText || null,
-      extracted_metrics: analysis.detected_metrics,
-      ai_analysis: analysis as unknown as Record<string, unknown>,
-      main_bottleneck: analysis.main_bottleneck,
-      recommended_service: analysis.recommended_primary_service,
-      ai_source: source,
-    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .insert(insertPayload as any)
     .select("id")
     .single();
 
