@@ -101,11 +101,31 @@ function DiagnozePage() {
     setSubmitting(true);
     setError(null);
 
-    const parsed = answersSchema.safeParse(collected);
+    // Cast to plain string record for schema
+    const plain: Record<string, string> = {};
+    for (const [k, v] of Object.entries(collected)) {
+      if (v) plain[k] = v;
+    }
+
+    const parsed = answersSchema.safeParse(plain);
     if (!parsed.success) {
+      console.error("[diagnoze] validation failed:", parsed.error.issues, "answers:", plain);
       setSubmitting(false);
-      setError("Disa përgjigje mungojnë. Të lutem provo përsëri nga fillimi.");
-      return;
+      // Instead of dead-end, try to submit anyway with raw data
+      try {
+        const visitorId = getVisitorId();
+        const { sessionId } = await submitDiagnosis({
+          data: { answers: plain, visitorId, businessName: businessName || undefined },
+        });
+        setLastSessionId(sessionId);
+        track({ event: "diagnosis_complete", sessionId });
+        navigate({ to: "/rezultati/$sessionId", params: { sessionId } });
+        return;
+      } catch (e2) {
+        console.error("[diagnoze] fallback submit also failed:", e2);
+        setError("Diçka shkoi keq. Provo përsëri ose rifillo diagnozën.");
+        return;
+      }
     }
 
     try {
