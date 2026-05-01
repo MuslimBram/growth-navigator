@@ -25,13 +25,13 @@ export const SERVICE_KEYS = [
 
 const answerValueSchema = z.enum(ANSWER_VALUES);
 
-// Dynamic: answers object has at least 6 keys (core questions), up to 8
+// Accept any number of answers >= 1 (dynamic questions mean count varies)
 export const answersSchema = z.record(
   z.enum(ANSWER_KEYS),
   answerValueSchema,
 ).refine(
-  (obj) => Object.keys(obj).length >= 6,
-  { message: "Duhen të paktën 6 përgjigje." },
+  (obj) => Object.keys(obj).length >= 1,
+  { message: "Duhet të paktën 1 përgjigje." },
 );
 
 export type AnswersInput = Record<string, string>;
@@ -39,6 +39,7 @@ export type AnswersInput = Record<string, string>;
 export const submitDiagnosisSchema = z.object({
   answers: answersSchema,
   visitorId: z.string().min(1).max(128),
+  businessName: z.string().trim().max(120).optional().or(z.literal("").transform(() => undefined)),
 });
 
 export type SubmitDiagnosisInput = z.infer<typeof submitDiagnosisSchema>;

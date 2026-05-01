@@ -15,14 +15,13 @@ import { aiDiagnose } from "./diagnostic-ai.server";
 
 /**
  * Submit answers, run diagnosis, persist a new session, return its id.
- * AI integration is added in Phase 4 — this currently uses the fallback engine.
+ * Every call creates an independent session — no restrictions per user/device/IP.
  */
 export const submitDiagnosis = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => submitDiagnosisSchema.parse(input))
   .handler(async ({ data }) => {
     try {
-      // Try AI first; fall back to rule-based engine on any failure.
-      const aiResult = await aiDiagnose(data.answers);
+      const aiResult = await aiDiagnose(data.answers, data.businessName);
       const diagnosis = aiResult ?? fallbackDiagnose(data.answers);
       const source: "ai" | "fallback" = aiResult ? "ai" : "fallback";
 
@@ -31,6 +30,7 @@ export const submitDiagnosis = createServerFn({ method: "POST" })
         answers: data.answers,
         diagnosis,
         source,
+        businessName: data.businessName,
       });
 
       return { sessionId: id };
@@ -49,6 +49,7 @@ export interface ResultPayload {
   estimated_lost_eur: number;
   answers: StoredSession["answers"];
   ai_source: string;
+  business_name?: string;
 }
 
 export const getResult = createServerFn({ method: "GET" })
@@ -68,6 +69,7 @@ export const getResult = createServerFn({ method: "GET" })
       estimated_lost_eur: session.estimated_lost_eur ?? 0,
       answers: session.answers,
       ai_source: session.ai_source,
+      business_name: session.business_name ?? undefined,
     };
   });
 
