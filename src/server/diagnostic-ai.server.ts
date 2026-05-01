@@ -29,13 +29,15 @@ Detyra: Bazuar në përgjigjet e biznesit, identifiko shërbimin PRIMAR që i ne
 Diagnoza duhet:
 - Të jetë në shqip, e ngrohtë por e drejtpërdrejtë
 - Ta bëjë pronarin të ndihet i kuptuar dhe pak i pakënaqur me situatën aktuale
+- Nëse jepet emri i biznesit, DUHET ta përdorësh: "Biznesi [emri] po humbet..." ose "[emri] ka mundësi të..."
 - Të mbyllet me siguri që ekziston një zgjidhje (pa e përmendur drejtpërdrejt emrin e shërbimit)
 - 2-4 fjali, MAX 400 karaktere
 - Pa emoji, pa lista, pa tituj
+- Çdo diagnozë duhet të jetë UNIKE — mos përsërit të njëjtat fjali
 
 Llogarit gjithashtu humbjen e vlerësuar mujore (klientë + EUR), bazuar në vlerë mesatare ~80 EUR/klient. Konservativ: 0-60 klientë.`;
 
-function buildUserPrompt(answers: AnswersInput): string {
+function buildUserPrompt(answers: AnswersInput, businessName?: string): string {
   const answeredKeys = Object.keys(answers);
   const lines = QUESTIONS
     .filter((q) => answeredKeys.includes(q.key))
@@ -45,11 +47,13 @@ function buildUserPrompt(answers: AnswersInput): string {
       return `- ${q.question}\n  Përgjigja: ${opt?.label ?? val} ${opt?.weak ? "[DOBËSI]" : "[OK]"}`;
     })
     .join("\n");
-  return `Përgjigjet e biznesit:\n${lines}\n\nKthe diagnozën strukturuar.`;
+  const nameLine = businessName ? `\nEmri i biznesit: ${businessName}` : "\nEmri i biznesit: (nuk u dha)";
+  return `Përgjigjet e biznesit:${nameLine}\n${lines}\n\nKthe diagnozën strukturuar. SIGUROHU që diagnoza është personale dhe unike.`;
 }
 
 export async function aiDiagnose(
   answers: AnswersInput,
+  businessName?: string,
 ): Promise<DiagnosisResult | null> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) {
@@ -67,7 +71,7 @@ export async function aiDiagnose(
         properties: {
           diagnosis: {
             type: "string",
-            description: "Diagnoza në shqip, 2-4 fjali, max 400 karaktere.",
+            description: "Diagnoza në shqip, 2-4 fjali, max 400 karaktere. Personale dhe unike.",
           },
           primary_service: { type: "string", enum: SERVICE_ENUM },
           secondary_services: {
@@ -102,7 +106,7 @@ export async function aiDiagnose(
         model: MODEL,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: buildUserPrompt(answers) },
+          { role: "user", content: buildUserPrompt(answers, businessName) },
         ],
         tools: [tool],
         tool_choice: { type: "function", function: { name: "submit_diagnosis" } },
