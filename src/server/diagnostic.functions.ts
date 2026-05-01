@@ -12,6 +12,7 @@ import {
   type StoredSession,
 } from "./diagnostic.server";
 import { aiDiagnose } from "./diagnostic-ai.server";
+import { notifyNewLead } from "./notify-lead.functions";
 
 /**
  * Submit answers, run diagnosis, persist a new session, return its id.
@@ -32,6 +33,17 @@ export const submitDiagnosis = createServerFn({ method: "POST" })
         source,
         businessName: data.businessName,
       });
+
+      // Fire-and-forget notification for every completed diagnosis
+      notifyNewLead({
+        data: {
+          businessName: data.businessName,
+          diagnosisNotes: diagnosis.diagnosis?.slice(0, 500),
+          recommendedService: diagnosis.primary_service,
+          answers: data.answers,
+          source: "diagnostic",
+        },
+      }).catch((err) => console.error("[submitDiagnosis] notify error:", err));
 
       return { sessionId: id };
     } catch (error) {
