@@ -210,17 +210,33 @@ function ResultPage() {
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
               to="/diagnoze"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow hover:scale-[1.02] transition-all"
+            >
+              <Building2 className="h-4 w-4" />
+              Analizo një biznes tjetër
+            </Link>
+            <Link
+              to="/diagnoze"
               className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary/10"
             >
-              <Plus className="h-4 w-4" />
-              Nis analizë të re
+              <RefreshCw className="h-4 w-4" />
+              Rifillo diagnozën
             </Link>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
               to="/historiku"
               className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface-elevated"
             >
               <History className="h-4 w-4" />
               Historiku
+            </Link>
+            <Link
+              to="/krahaso"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface-elevated"
+            >
+              <Plus className="h-4 w-4" />
+              Krahaso rezultate
             </Link>
           </div>
           <Link
