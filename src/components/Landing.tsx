@@ -42,6 +42,7 @@ export function Landing() {
             <Lock className="h-3.5 w-3.5" />
           </Link>
         </div>
+      </header>
 
       {/* Hero */}
       <main className="relative z-10 mx-auto flex min-h-[calc(100vh-6rem)] max-w-4xl flex-col items-center justify-center px-4 pb-12 pt-8 text-center sm:px-6 sm:pb-16 sm:pt-12">
