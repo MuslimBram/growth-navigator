@@ -40,7 +40,7 @@ function ResultPage() {
   useEffect(() => {
     saveAnalysis({
       sessionId: data.id,
-      businessName: "",
+      businessName: businessName,
       diagnosis: data.diagnosis,
       primaryService: data.primary_service,
       secondaryServices: data.secondary_services as string[],
