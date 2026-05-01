@@ -26,12 +26,9 @@ export const SERVICE_KEYS = [
 const answerValueSchema = z.enum(ANSWER_VALUES);
 const answerKeySchema = z.enum(ANSWER_KEYS);
 
-// Permissive: accept any object with string keys/values, then validate each pair.
-// This avoids z.record(enum, enum) which can reject valid partial records in some Zod versions.
 export const answersSchema = z
   .record(z.string(), z.string())
   .transform((obj) => {
-    // Filter to only valid key-value pairs
     const cleaned: Record<string, string> = {};
     for (const [k, v] of Object.entries(obj)) {
       const keyResult = answerKeySchema.safeParse(k);
@@ -49,10 +46,47 @@ export const answersSchema = z
 
 export type AnswersInput = Record<string, string>;
 
+const screenshotsSchema = z
+  .array(z.string().url().max(1000))
+  .max(6)
+  .optional()
+  .default([]);
+
 export const submitDiagnosisSchema = z.object({
   answers: answersSchema,
   visitorId: z.string().min(1).max(128),
-  businessName: z.string().trim().max(120).optional().or(z.literal("").transform(() => undefined)),
+  businessName: z
+    .string()
+    .trim()
+    .max(120)
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  extraContext: z
+    .string()
+    .trim()
+    .max(4000)
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  screenshots: screenshotsSchema,
+  // Lead info — captured BEFORE diagnosis; required so the user receives a personal reply
+  email: z
+    .string()
+    .trim()
+    .email()
+    .max(255)
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  whatsapp: z
+    .string()
+    .trim()
+    .min(5)
+    .max(32)
+    .regex(/^[+\d\s\-()]+$/, "Numër i pavlefshëm")
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+}).refine((d) => d.email || d.whatsapp, {
+  message: "Duhet të lësh email ose WhatsApp për të marrë analizën.",
+  path: ["email"],
 });
 
 export type SubmitDiagnosisInput = z.infer<typeof submitDiagnosisSchema>;
@@ -61,38 +95,24 @@ export const getResultSchema = z.object({
   sessionId: z.string().uuid(),
 });
 
+// Kept for backward compatibility (chatbot lead form etc.)
 export const leadSchema = z
   .object({
     email: z
-      .string()
-      .trim()
-      .email()
-      .max(255)
-      .optional()
-      .or(z.literal("").transform(() => undefined)),
+      .string().trim().email().max(255)
+      .optional().or(z.literal("").transform(() => undefined)),
     whatsapp: z
-      .string()
-      .trim()
-      .min(5)
-      .max(32)
-      .regex(/^[+\d\s\-()]+$/, "Numër i pavlefshëm")
-      .optional()
-      .or(z.literal("").transform(() => undefined)),
+      .string().trim().min(5).max(32).regex(/^[+\d\s\-()]+$/, "Numër i pavlefshëm")
+      .optional().or(z.literal("").transform(() => undefined)),
     businessName: z
-      .string()
-      .trim()
-      .min(1)
-      .max(120)
-      .optional()
-      .or(z.literal("").transform(() => undefined)),
+      .string().trim().min(1).max(120)
+      .optional().or(z.literal("").transform(() => undefined)),
   })
   .refine((d) => d.email || d.whatsapp, {
     message: "Duhet të lësh të paktën email ose WhatsApp.",
     path: ["email"],
   });
 
-export const submitLeadSchema = z.object({ sessionId: z.string().uuid() }).and(
-  leadSchema,
-);
+export const submitLeadSchema = z.object({ sessionId: z.string().uuid() }).and(leadSchema);
 
 export type SubmitLeadInput = z.infer<typeof submitLeadSchema>;
