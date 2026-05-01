@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { Lock, Sparkles, Plus, History } from "lucide-react";
+import { Lock, Sparkles, Plus, History, RefreshCw, Building2 } from "lucide-react";
 import { CaseStudyPreview } from "@/components/CaseStudyPreview";
 import { SERVICE_LABELS, SERVICE_TAGLINES } from "@/lib/diagnostic-types";
 import type { ServiceKey } from "@/lib/diagnostic-types";
