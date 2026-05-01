@@ -24,15 +24,28 @@ export const SERVICE_KEYS = [
 ] as const;
 
 const answerValueSchema = z.enum(ANSWER_VALUES);
+const answerKeySchema = z.enum(ANSWER_KEYS);
 
-// Accept any number of answers >= 1 (dynamic questions mean count varies)
-export const answersSchema = z.record(
-  z.enum(ANSWER_KEYS),
-  answerValueSchema,
-).refine(
-  (obj) => Object.keys(obj).length >= 1,
-  { message: "Duhet të paktën 1 përgjigje." },
-);
+// Permissive: accept any object with string keys/values, then validate each pair.
+// This avoids z.record(enum, enum) which can reject valid partial records in some Zod versions.
+export const answersSchema = z
+  .record(z.string(), z.string())
+  .transform((obj) => {
+    // Filter to only valid key-value pairs
+    const cleaned: Record<string, string> = {};
+    for (const [k, v] of Object.entries(obj)) {
+      const keyResult = answerKeySchema.safeParse(k);
+      const valResult = answerValueSchema.safeParse(v);
+      if (keyResult.success && valResult.success) {
+        cleaned[k] = v;
+      }
+    }
+    return cleaned;
+  })
+  .refine(
+    (obj) => Object.keys(obj).length >= 1,
+    { message: "Duhet të paktën 1 përgjigje." },
+  );
 
 export type AnswersInput = Record<string, string>;
 
