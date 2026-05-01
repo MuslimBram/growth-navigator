@@ -32,6 +32,7 @@ function ResultPage() {
   const data = Route.useLoaderData();
   const primary = data.primary_service as ServiceKey;
   const secondaries = data.secondary_services as ServiceKey[];
+  const businessName = data.business_name || "";
 
   const [unlocked, setUnlocked] = useState(false);
 
