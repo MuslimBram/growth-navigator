@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { Lock, Sparkles, Plus, History } from "lucide-react";
+import { Lock, Sparkles, Plus, History, RefreshCw, Building2 } from "lucide-react";
 import { CaseStudyPreview } from "@/components/CaseStudyPreview";
 import { SERVICE_LABELS, SERVICE_TAGLINES } from "@/lib/diagnostic-types";
 import type { ServiceKey } from "@/lib/diagnostic-types";
@@ -32,6 +32,7 @@ function ResultPage() {
   const data = Route.useLoaderData();
   const primary = data.primary_service as ServiceKey;
   const secondaries = data.secondary_services as ServiceKey[];
+  const businessName = data.business_name || "";
 
   const [unlocked, setUnlocked] = useState(false);
 
@@ -39,7 +40,7 @@ function ResultPage() {
   useEffect(() => {
     saveAnalysis({
       sessionId: data.id,
-      businessName: "",
+      businessName: businessName,
       diagnosis: data.diagnosis,
       primaryService: data.primary_service,
       secondaryServices: data.secondary_services as string[],
@@ -70,7 +71,7 @@ function ResultPage() {
           className="font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl md:text-5xl"
         >
           {unlocked
-            ? "Ja çfarë po ndodh me biznesin tënd"
+            ? businessName ? `Ja çfarë po ndodh me "${businessName}"` : "Ja çfarë po ndodh me biznesin tënd"
             : "Diagnoza jote është gati 🔒"}
         </motion.h1>
 
@@ -209,17 +210,33 @@ function ResultPage() {
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
               to="/diagnoze"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow hover:scale-[1.02] transition-all"
+            >
+              <Building2 className="h-4 w-4" />
+              Analizo një biznes tjetër
+            </Link>
+            <Link
+              to="/diagnoze"
               className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary/10"
             >
-              <Plus className="h-4 w-4" />
-              Nis analizë të re
+              <RefreshCw className="h-4 w-4" />
+              Rifillo diagnozën
             </Link>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
               to="/historiku"
               className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface-elevated"
             >
               <History className="h-4 w-4" />
               Historiku
+            </Link>
+            <Link
+              to="/krahaso"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface-elevated"
+            >
+              <Plus className="h-4 w-4" />
+              Krahaso rezultate
             </Link>
           </div>
           <Link

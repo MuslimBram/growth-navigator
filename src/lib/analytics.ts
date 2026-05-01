@@ -7,6 +7,8 @@ import { getVisitorId } from "./visitor-id";
 export type FunnelEvent =
   | "landing_view"
   | "diagnosis_start"
+  | "diagnosis_restart"
+  | "business_name_entered"
   | "question_answered"
   | "diagnosis_complete"
   | "lead_captured"

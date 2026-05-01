@@ -26,6 +26,7 @@ export interface StoredSession {
   estimated_lost_eur: number | null;
   ai_source: string;
   created_at: string;
+  business_name: string | null;
 }
 
 export async function insertSession(params: {
@@ -33,6 +34,7 @@ export async function insertSession(params: {
   answers: AnswersInput;
   diagnosis: DiagnosisResult;
   source: "ai" | "fallback";
+  businessName?: string;
 }): Promise<{ id: string }> {
   const supabase = getAdminClient();
   const { data, error } = await supabase
@@ -46,6 +48,7 @@ export async function insertSession(params: {
       estimated_lost_clients: params.diagnosis.estimated_lost_clients,
       estimated_lost_eur: params.diagnosis.estimated_lost_eur,
       ai_source: params.source,
+      ...(params.businessName ? { business_name: params.businessName } : {}),
     })
     .select("id")
     .single();
@@ -62,7 +65,7 @@ export async function fetchSession(sessionId: string): Promise<StoredSession | n
   const { data, error } = await supabase
     .from("diagnostic_sessions")
     .select(
-      "id, answers, ai_diagnosis, primary_service, secondary_services, estimated_lost_clients, estimated_lost_eur, ai_source, created_at"
+      "id, answers, ai_diagnosis, primary_service, secondary_services, estimated_lost_clients, estimated_lost_eur, ai_source, created_at, business_name"
     )
     .eq("id", sessionId)
     .maybeSingle();
