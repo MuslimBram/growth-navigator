@@ -1,4 +1,6 @@
 // Server-only Lovable AI integration for diagnostic engine.
+// Now generates a DEEP analysis (sector, competition, weak spots, opportunities)
+// for the admin/Telegram — not for the user.
 
 import type { AnswersInput } from "@/lib/diagnostic-schemas";
 import type { DiagnosisResult } from "@/lib/diagnostic-engine";
@@ -6,7 +8,7 @@ import type { ServiceKey } from "@/lib/diagnostic-types";
 import { QUESTIONS } from "@/lib/diagnostic-types";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-3-flash-preview";
+const MODEL = "google/gemini-2.5-pro";
 
 const SERVICE_ENUM: ServiceKey[] = [
   "seo", "web_3d", "photo_video_360", "social_media",
@@ -14,30 +16,38 @@ const SERVICE_ENUM: ServiceKey[] = [
   "analytics_measurement",
 ];
 
-const SYSTEM_PROMPT = `Ti je një konsulent strategjik dixhital për "Muslimi Digital", një agjenci që ofron këto shërbime:
-- seo: SEO (optimizim Google)
-- web_3d: Faqe interneti 3D / moderne
-- photo_video_360: Foto & Video 360°
-- social_media: Menaxhim rrjetesh sociale me fokus konvertimin
-- google_maps: Optimizim Google Maps për biznes
-- combined_package: Paketë e kombinuar premium
-- automation: Automatizim & AI (chatbot, auto-reply, sisteme)
-- ads: Reklama Dixhitale (Facebook/Google Ads)
-- analytics_measurement: Matje & Analitikë
+export interface DeepAnalysis {
+  sector_guess: string;
+  business_stage: string;
+  main_strengths: string[];
+  critical_weaknesses: string[];
+  competitive_risks: string[];
+  opportunities: string[];
+  recommended_actions: string[]; // 3–5 concrete actions
+  internal_notes: string; // for the agency owner — what to say in the call
+  estimated_lost_clients_monthly: number;
+  estimated_lost_eur_monthly: number;
+}
 
-Detyra: Bazuar në përgjigjet e biznesit, identifiko shërbimin PRIMAR që i nevojitet dhe deri në 2 shërbime sekondare.
-Diagnoza duhet:
-- Të jetë në shqip, e ngrohtë por e drejtpërdrejtë
-- Ta bëjë pronarin të ndihet i kuptuar dhe pak i pakënaqur me situatën aktuale
-- Nëse jepet emri i biznesit, DUHET ta përdorësh: "Biznesi [emri] po humbet..." ose "[emri] ka mundësi të..."
-- Të mbyllet me siguri që ekziston një zgjidhje (pa e përmendur drejtpërdrejt emrin e shërbimit)
-- 2-4 fjali, MAX 400 karaktere
-- Pa emoji, pa lista, pa tituj
-- Çdo diagnozë duhet të jetë UNIKE — mos përsërit të njëjtat fjali
+const SYSTEM_PROMPT = `Ti je një konsulent strategjik dixhital senior për "Muslimi Digital", një agjenci shqiptare që ofron:
+- seo, web_3d, photo_video_360, social_media, google_maps, combined_package, automation, ads, analytics_measurement.
 
-Llogarit gjithashtu humbjen e vlerësuar mujore (klientë + EUR), bazuar në vlerë mesatare ~80 EUR/klient. Konservativ: 0-60 klientë.`;
+Detyra jote: Bëj një ANALIZË TË THELLË për pronarin e biznesit (analiza NUK i tregohet klientit — i shkon vetëm ekipit të agjencisë në Telegram dhe Admin Panel).
 
-function buildUserPrompt(answers: AnswersInput, businessName?: string): string {
+ANALIZA DUHET TË JETË:
+- Në shqip, profesionale, shumë specifike (jo gjenerike)
+- E thellë: të identifikosh sektorin e mundshëm, fazën e biznesit, konkurrencën, rreziqet, mundësitë
+- Të japësh 3–5 veprime KONKRETE që ekipi ynë mund t'i propozojë në kontaktin e parë
+- Të shkruash "internal_notes" si nota për pronarin e agjencisë: çfarë të theksojë në bisedë me klientin, cila është dhimbja e vërtetë, çfarë oferte t'i propozojë
+
+Përdor çdo grimcë informacioni — emrin e biznesit, kontekstin e lirë, screenshot-et (nëse ka).`;
+
+function buildUserContent(
+  answers: AnswersInput,
+  businessName?: string,
+  extraContext?: string,
+  screenshots?: string[],
+): Array<{ type: "text" | "image_url"; text?: string; image_url?: { url: string } }> {
   const answeredKeys = Object.keys(answers);
   const lines = QUESTIONS
     .filter((q) => answeredKeys.includes(q.key))
@@ -47,14 +57,36 @@ function buildUserPrompt(answers: AnswersInput, businessName?: string): string {
       return `- ${q.question}\n  Përgjigja: ${opt?.label ?? val} ${opt?.weak ? "[DOBËSI]" : "[OK]"}`;
     })
     .join("\n");
-  const nameLine = businessName ? `\nEmri i biznesit: ${businessName}` : "\nEmri i biznesit: (nuk u dha)";
-  return `Përgjigjet e biznesit:${nameLine}\n${lines}\n\nKthe diagnozën strukturuar. SIGUROHU që diagnoza është personale dhe unike.`;
+
+  const text = [
+    `Emri i biznesit: ${businessName || "(nuk u dha)"}`,
+    `Konteksti shtesë nga pronari: ${extraContext || "(nuk dha)"}`,
+    "",
+    "Përgjigjet e diagnozës:",
+    lines,
+    "",
+    "Kthe analizën e plotë strukturuar.",
+  ].join("\n");
+
+  const content: Array<{ type: "text" | "image_url"; text?: string; image_url?: { url: string } }> = [
+    { type: "text", text },
+  ];
+
+  if (screenshots && screenshots.length > 0) {
+    for (const url of screenshots.slice(0, 6)) {
+      content.push({ type: "image_url", image_url: { url } });
+    }
+  }
+
+  return content;
 }
 
 export async function aiDiagnose(
   answers: AnswersInput,
   businessName?: string,
-): Promise<DiagnosisResult | null> {
+  extraContext?: string,
+  screenshots?: string[],
+): Promise<{ result: DiagnosisResult; deep: DeepAnalysis } | null> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) {
     console.warn("[aiDiagnose] LOVABLE_API_KEY missing, skipping AI");
@@ -64,27 +96,47 @@ export async function aiDiagnose(
   const tool = {
     type: "function" as const,
     function: {
-      name: "submit_diagnosis",
-      description: "Strukturo diagnozën finale për biznesin.",
+      name: "submit_deep_analysis",
+      description: "Strukturo analizën e thellë të biznesit për ekipin e agjencisë.",
       parameters: {
         type: "object",
         properties: {
-          diagnosis: {
+          short_diagnosis: {
             type: "string",
-            description: "Diagnoza në shqip, 2-4 fjali, max 400 karaktere. Personale dhe unike.",
+            description: "Diagnozë e shkurtër (2–4 fjali, max 500 karaktere) — për referencë të brendshme.",
           },
           primary_service: { type: "string", enum: SERVICE_ENUM },
           secondary_services: {
             type: "array",
             items: { type: "string", enum: SERVICE_ENUM },
-            maxItems: 2,
+            maxItems: 3,
           },
-          estimated_lost_clients: { type: "number", minimum: 0, maximum: 60 },
-          estimated_lost_eur: { type: "number", minimum: 0, maximum: 6000 },
+          sector_guess: { type: "string", description: "Sektori më i mundshëm (p.sh. 'restorant lokal', 'studio bukurie')." },
+          business_stage: { type: "string", description: "Faza: start-up / e qëndrueshme / rritje / krizë." },
+          main_strengths: { type: "array", items: { type: "string" }, maxItems: 4 },
+          critical_weaknesses: { type: "array", items: { type: "string" }, maxItems: 5 },
+          competitive_risks: { type: "array", items: { type: "string" }, maxItems: 4 },
+          opportunities: { type: "array", items: { type: "string" }, maxItems: 5 },
+          recommended_actions: {
+            type: "array",
+            items: { type: "string" },
+            minItems: 3,
+            maxItems: 5,
+            description: "3–5 veprime KONKRETE që ekipi i agjencisë mund të propozojë në kontaktin e parë.",
+          },
+          internal_notes: {
+            type: "string",
+            description: "Notat strategjike për pronarin e agjencisë: çfarë të theksojë, cili është levëria emocionale, si ta mbyllë shitjen.",
+          },
+          estimated_lost_clients_monthly: { type: "number", minimum: 0, maximum: 100 },
+          estimated_lost_eur_monthly: { type: "number", minimum: 0, maximum: 10000 },
         },
         required: [
-          "diagnosis", "primary_service", "secondary_services",
-          "estimated_lost_clients", "estimated_lost_eur",
+          "short_diagnosis", "primary_service", "secondary_services",
+          "sector_guess", "business_stage", "main_strengths",
+          "critical_weaknesses", "competitive_risks", "opportunities",
+          "recommended_actions", "internal_notes",
+          "estimated_lost_clients_monthly", "estimated_lost_eur_monthly",
         ],
         additionalProperties: false,
       },
@@ -93,7 +145,7 @@ export async function aiDiagnose(
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    const timeout = setTimeout(() => controller.abort(), 30000);
 
     const res = await fetch(GATEWAY_URL, {
       method: "POST",
@@ -106,48 +158,55 @@ export async function aiDiagnose(
         model: MODEL,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: buildUserPrompt(answers, businessName) },
+          { role: "user", content: buildUserContent(answers, businessName, extraContext, screenshots) },
         ],
         tools: [tool],
-        tool_choice: { type: "function", function: { name: "submit_diagnosis" } },
+        tool_choice: { type: "function", function: { name: "submit_deep_analysis" } },
       }),
     });
     clearTimeout(timeout);
 
     if (!res.ok) {
-      if (res.status === 429) console.warn("[aiDiagnose] rate limited (429)");
-      else if (res.status === 402) console.warn("[aiDiagnose] credits exhausted (402)");
-      else console.warn("[aiDiagnose] gateway error", res.status, await res.text());
+      console.warn("[aiDiagnose] gateway error", res.status, await res.text().catch(() => ""));
       return null;
     }
 
     const json = await res.json();
     const call = json?.choices?.[0]?.message?.tool_calls?.[0];
     const argsStr = call?.function?.arguments;
-    if (!argsStr) {
-      console.warn("[aiDiagnose] no tool_call arguments in response");
-      return null;
-    }
+    if (!argsStr) return null;
 
     const parsed = JSON.parse(argsStr);
-
     if (!SERVICE_ENUM.includes(parsed.primary_service)) return null;
+
     const secondary: ServiceKey[] = Array.isArray(parsed.secondary_services)
-      ? parsed.secondary_services.filter((s: string): s is ServiceKey =>
-          SERVICE_ENUM.includes(s as ServiceKey),
-        )
+      ? parsed.secondary_services.filter((s: string): s is ServiceKey => SERVICE_ENUM.includes(s as ServiceKey))
       : [];
 
-    const diagnosis = String(parsed.diagnosis ?? "").trim().slice(0, 600);
-    if (!diagnosis) return null;
+    const diagnosis = String(parsed.short_diagnosis ?? "").trim().slice(0, 800);
 
-    return {
+    const result: DiagnosisResult = {
       diagnosis,
       primary_service: parsed.primary_service as ServiceKey,
-      secondary_services: secondary.slice(0, 2),
-      estimated_lost_clients: Math.max(0, Math.min(60, Math.round(Number(parsed.estimated_lost_clients) || 0))),
-      estimated_lost_eur: Math.max(0, Math.min(6000, Math.round(Number(parsed.estimated_lost_eur) || 0))),
+      secondary_services: secondary.slice(0, 3),
+      estimated_lost_clients: Math.max(0, Math.min(100, Math.round(Number(parsed.estimated_lost_clients_monthly) || 0))),
+      estimated_lost_eur: Math.max(0, Math.min(10000, Math.round(Number(parsed.estimated_lost_eur_monthly) || 0))),
     };
+
+    const deep: DeepAnalysis = {
+      sector_guess: String(parsed.sector_guess ?? "").slice(0, 200),
+      business_stage: String(parsed.business_stage ?? "").slice(0, 200),
+      main_strengths: (parsed.main_strengths ?? []).map((s: unknown) => String(s).slice(0, 200)).slice(0, 4),
+      critical_weaknesses: (parsed.critical_weaknesses ?? []).map((s: unknown) => String(s).slice(0, 200)).slice(0, 5),
+      competitive_risks: (parsed.competitive_risks ?? []).map((s: unknown) => String(s).slice(0, 200)).slice(0, 4),
+      opportunities: (parsed.opportunities ?? []).map((s: unknown) => String(s).slice(0, 200)).slice(0, 5),
+      recommended_actions: (parsed.recommended_actions ?? []).map((s: unknown) => String(s).slice(0, 300)).slice(0, 5),
+      internal_notes: String(parsed.internal_notes ?? "").slice(0, 1500),
+      estimated_lost_clients_monthly: result.estimated_lost_clients,
+      estimated_lost_eur_monthly: result.estimated_lost_eur,
+    };
+
+    return { result, deep };
   } catch (err) {
     console.error("[aiDiagnose] failed:", err);
     return null;

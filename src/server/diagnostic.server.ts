@@ -4,6 +4,7 @@
 import { createClient } from "@supabase/supabase-js";
 import type { DiagnosisResult } from "@/lib/diagnostic-engine";
 import type { AnswersInput } from "@/lib/diagnostic-schemas";
+import type { DeepAnalysis } from "./diagnostic-ai.server";
 
 function getAdminClient() {
   const url = process.env.SUPABASE_URL;
@@ -35,6 +36,9 @@ export async function insertSession(params: {
   diagnosis: DiagnosisResult;
   source: "ai" | "fallback";
   businessName?: string;
+  extraContext?: string;
+  screenshots?: string[];
+  deepAnalysis?: DeepAnalysis | null;
 }): Promise<{ id: string }> {
   const supabase = getAdminClient();
   const { data, error } = await supabase
@@ -49,6 +53,9 @@ export async function insertSession(params: {
       estimated_lost_eur: params.diagnosis.estimated_lost_eur,
       ai_source: params.source,
       ...(params.businessName ? { business_name: params.businessName } : {}),
+      ...(params.extraContext ? { extra_context: params.extraContext } : {}),
+      ...(params.screenshots && params.screenshots.length ? { screenshots: params.screenshots } : {}),
+      ...(params.deepAnalysis ? { deep_analysis: params.deepAnalysis } : {}),
     })
     .select("id")
     .single();

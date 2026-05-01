@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getLastSessionId } from "@/lib/visitor-id";
 import { track } from "@/lib/analytics";
@@ -29,9 +29,19 @@ export function Landing() {
             MUSLIMI <span className="text-primary">DIGITAL</span>
           </span>
         </div>
-        <span className="hidden text-xs text-muted-foreground sm:inline">
-          Diagnozë Falas · 2 minuta
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="hidden text-xs text-muted-foreground sm:inline">
+            Diagnozë Falas · 2 minuta
+          </span>
+          <Link
+            to="/auth"
+            aria-label="Admin"
+            title="Admin"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface/60 text-muted-foreground/60 transition hover:text-primary hover:border-primary/40"
+          >
+            <Lock className="h-3.5 w-3.5" />
+          </Link>
+        </div>
       </header>
 
       {/* Hero */}

@@ -11,20 +11,28 @@ import {
   insertLead,
   type StoredSession,
 } from "./diagnostic.server";
-import { aiDiagnose } from "./diagnostic-ai.server";
+import { aiDiagnose, type DeepAnalysis } from "./diagnostic-ai.server";
 import { notifyNewLead } from "./notify-lead.functions";
 
 /**
- * Submit answers, run diagnosis, persist a new session, return its id.
- * Every call creates an independent session — no restrictions per user/device/IP.
+ * NEW FLOW: Submit answers + extra context + screenshots + lead contact in ONE call.
+ * The diagnosis is generated server-side and NEVER returned to the client UI.
+ * The user only gets a confirmation; the agency receives full analysis via Telegram + Admin.
  */
 export const submitDiagnosis = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => submitDiagnosisSchema.parse(input))
   .handler(async ({ data }) => {
     try {
-      const aiResult = await aiDiagnose(data.answers, data.businessName);
-      const diagnosis = aiResult ?? fallbackDiagnose(data.answers);
-      const source: "ai" | "fallback" = aiResult ? "ai" : "fallback";
+      const aiOutput = await aiDiagnose(
+        data.answers,
+        data.businessName,
+        data.extraContext,
+        data.screenshots,
+      );
+
+      const diagnosis = aiOutput?.result ?? fallbackDiagnose(data.answers);
+      const deep: DeepAnalysis | null = aiOutput?.deep ?? null;
+      const source: "ai" | "fallback" = aiOutput ? "ai" : "fallback";
 
       const { id } = await insertSession({
         visitorId: data.visitorId,
@@ -32,23 +40,54 @@ export const submitDiagnosis = createServerFn({ method: "POST" })
         diagnosis,
         source,
         businessName: data.businessName,
+        extraContext: data.extraContext,
+        screenshots: data.screenshots,
+        deepAnalysis: deep,
       });
 
-      // Fire-and-forget notification for every completed diagnosis
+      // Persist the lead immediately (email/whatsapp captured before diagnosis)
+      try {
+        await insertLead({
+          sessionId: id,
+          email: data.email,
+          whatsapp: data.whatsapp,
+          businessName: data.businessName,
+        });
+      } catch (e) {
+        console.error("[submitDiagnosis] insertLead failed:", e);
+      }
+
+      // Build the rich Telegram message
+      const deepNotes = deep
+        ? [
+            `Sektori: ${deep.sector_guess}`,
+            `Faza: ${deep.business_stage}`,
+            "",
+            `Dobësi kritike: ${deep.critical_weaknesses.join(" • ") || "—"}`,
+            `Mundësi: ${deep.opportunities.join(" • ") || "—"}`,
+            `Veprime: ${deep.recommended_actions.join(" • ") || "—"}`,
+            "",
+            `Nota strategjike: ${deep.internal_notes}`,
+          ].join("\n")
+        : diagnosis.diagnosis;
+
+      // Fire-and-forget — never block the response
       notifyNewLead({
         data: {
           businessName: data.businessName,
-          diagnosisNotes: diagnosis.diagnosis?.slice(0, 500),
+          email: data.email,
+          whatsapp: data.whatsapp,
+          diagnosisNotes: deepNotes.slice(0, 3500),
           recommendedService: diagnosis.primary_service,
           answers: data.answers,
           source: "diagnostic",
         },
       }).catch((err) => console.error("[submitDiagnosis] notify error:", err));
 
-      return { sessionId: id };
+      return { sessionId: id, ok: true };
     } catch (error) {
       console.error("[submitDiagnosis] error:", error);
-      throw new Error("Diagnoza nuk u ruajt. Provo përsëri.");
+      throw new Error("Diagnoza nuk u dërgua. Provo përsëri.");
     }
   });
 
@@ -85,6 +124,7 @@ export const getResult = createServerFn({ method: "GET" })
     };
   });
 
+// Legacy lead capture (still used by other forms / chatbot)
 export const submitLead = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => submitLeadSchema.parse(input))
   .handler(async ({ data }) => {

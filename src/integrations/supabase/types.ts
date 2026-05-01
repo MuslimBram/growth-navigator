@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_invites: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          invited_by: string | null
+          used: boolean
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          invited_by?: string | null
+          used?: boolean
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          invited_by?: string | null
+          used?: boolean
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           created_at: string
@@ -207,10 +234,13 @@ export type Database = {
           answers: Json
           business_name: string | null
           created_at: string
+          deep_analysis: Json | null
           estimated_lost_clients: number | null
           estimated_lost_eur: number | null
+          extra_context: string | null
           id: string
           primary_service: string | null
+          screenshots: Json
           secondary_services: Json | null
           updated_at: string
           visitor_id: string | null
@@ -221,10 +251,13 @@ export type Database = {
           answers?: Json
           business_name?: string | null
           created_at?: string
+          deep_analysis?: Json | null
           estimated_lost_clients?: number | null
           estimated_lost_eur?: number | null
+          extra_context?: string | null
           id?: string
           primary_service?: string | null
+          screenshots?: Json
           secondary_services?: Json | null
           updated_at?: string
           visitor_id?: string | null
@@ -235,10 +268,13 @@ export type Database = {
           answers?: Json
           business_name?: string | null
           created_at?: string
+          deep_analysis?: Json | null
           estimated_lost_clients?: number | null
           estimated_lost_eur?: number | null
+          extra_context?: string | null
           id?: string
           primary_service?: string | null
+          screenshots?: Json
           secondary_services?: Json | null
           updated_at?: string
           visitor_id?: string | null
