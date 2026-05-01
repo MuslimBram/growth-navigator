@@ -23,6 +23,7 @@ import { Route as ServicesSeoRouteImport } from './routes/services/seo'
 import { Route as ServicesGoogleMapsRouteImport } from './routes/services/google-maps'
 import { Route as Services360MediaRouteImport } from './routes/services/360-media'
 import { Route as RezultatiSessionIdRouteImport } from './routes/rezultati.$sessionId'
+import { Route as ApiPublicUploadScreenshotRouteImport } from './routes/api/public/upload-screenshot'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 import { Route as ApiPublicExitSurveyRouteImport } from './routes/api/public/exit-survey'
 
@@ -96,6 +97,12 @@ const RezultatiSessionIdRoute = RezultatiSessionIdRouteImport.update({
   path: '/rezultati/$sessionId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicUploadScreenshotRoute =
+  ApiPublicUploadScreenshotRouteImport.update({
+    id: '/api/public/upload-screenshot',
+    path: '/api/public/upload-screenshot',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
   id: '/api/public/track',
   path: '/api/public/track',
@@ -124,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/services/web-3d': typeof ServicesWeb3dRoute
   '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/api/public/upload-screenshot': typeof ApiPublicUploadScreenshotRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -142,6 +150,7 @@ export interface FileRoutesByTo {
   '/services/web-3d': typeof ServicesWeb3dRoute
   '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/api/public/upload-screenshot': typeof ApiPublicUploadScreenshotRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -161,6 +170,7 @@ export interface FileRoutesById {
   '/services/web-3d': typeof ServicesWeb3dRoute
   '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/api/public/upload-screenshot': typeof ApiPublicUploadScreenshotRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/services/web-3d'
     | '/api/public/exit-survey'
     | '/api/public/track'
+    | '/api/public/upload-screenshot'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/services/web-3d'
     | '/api/public/exit-survey'
     | '/api/public/track'
+    | '/api/public/upload-screenshot'
   id:
     | '__root__'
     | '/'
@@ -217,6 +229,7 @@ export interface FileRouteTypes {
     | '/services/web-3d'
     | '/api/public/exit-survey'
     | '/api/public/track'
+    | '/api/public/upload-screenshot'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -236,6 +249,7 @@ export interface RootRouteChildren {
   ServicesWeb3dRoute: typeof ServicesWeb3dRoute
   ApiPublicExitSurveyRoute: typeof ApiPublicExitSurveyRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
+  ApiPublicUploadScreenshotRoute: typeof ApiPublicUploadScreenshotRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -338,6 +352,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RezultatiSessionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/upload-screenshot': {
+      id: '/api/public/upload-screenshot'
+      path: '/api/public/upload-screenshot'
+      fullPath: '/api/public/upload-screenshot'
+      preLoaderRoute: typeof ApiPublicUploadScreenshotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/track': {
       id: '/api/public/track'
       path: '/api/public/track'
@@ -372,6 +393,7 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesWeb3dRoute: ServicesWeb3dRoute,
   ApiPublicExitSurveyRoute: ApiPublicExitSurveyRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
+  ApiPublicUploadScreenshotRoute: ApiPublicUploadScreenshotRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

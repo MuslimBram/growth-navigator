@@ -1,7 +1,10 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState, useMemo } from "react";
-import { ArrowLeft, ArrowRight, Check, AlertCircle, Home, Building2 } from "lucide-react";
+import {
+  ArrowLeft, ArrowRight, Check, AlertCircle, Home, Building2,
+  ImagePlus, X as XIcon, Sparkles, Mail, Phone, Loader2,
+} from "lucide-react";
 import {
   getVisibleQuestions,
   type AnswersMap,
@@ -18,7 +21,7 @@ export const Route = createFileRoute("/diagnoze")({
       { title: "Diagnoza — Muslimi Digital" },
       {
         name: "description",
-        content: "Përgjigju pyetjeve të shkurtra për të zbuluar hendekun e biznesit tënd.",
+        content: "Përgjigju pyetjeve të shkurtra dhe ekipi ynë do të kthehet me një analizë të personalizuar.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -26,29 +29,36 @@ export const Route = createFileRoute("/diagnoze")({
   component: DiagnozePage,
 });
 
+type Phase = "name" | "questions" | "context" | "lead" | "submitting" | "done";
+
 function DiagnozePage() {
-  const navigate = useNavigate();
-  // phase: "name" = business name input, "questions" = diagnostic questions
-  const [phase, setPhase] = useState<"name" | "questions">("name");
+  const [phase, setPhase] = useState<Phase>("name");
   const [businessName, setBusinessName] = useState("");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<AnswersMap>({});
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Dynamic question list based on current answers
+  // Extra context
+  const [extraContext, setExtraContext] = useState("");
+  const [screenshots, setScreenshots] = useState<string[]>([]);
+  const [uploadingShot, setUploadingShot] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Lead
+  const [email, setEmail] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+
   const visibleQuestions = useMemo(() => getVisibleQuestions(answers), [answers]);
   const total = visibleQuestions.length;
   const current = visibleQuestions[step];
-  const progress = total > 0 ? ((step) / total) * 100 : 0;
+  const progress = total > 0 ? (step / total) * 100 : 0;
 
   useEffect(() => {
     track({ event: "diagnosis_start" });
   }, []);
 
-  // Cleanup feedback timer
   useEffect(() => {
     return () => {
       if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
@@ -61,7 +71,7 @@ function DiagnozePage() {
   };
 
   const handleAnswer = (value: AnswerValue, weak: boolean) => {
-    if (submitting || !current) return;
+    if (!current) return;
     setError(null);
     const next: AnswersMap = { ...answers, [current.key]: value };
     setAnswers(next);
@@ -80,14 +90,13 @@ function DiagnozePage() {
     setFeedback(null);
     const newVisible = getVisibleQuestions(collected);
     if (step + 1 >= newVisible.length) {
-      void submit(collected);
+      setPhase("context");
     } else {
       setStep(step + 1);
     }
   };
 
   const goBack = () => {
-    if (submitting) return;
     if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
     setFeedback(null);
     if (step === 0) {
@@ -97,73 +106,81 @@ function DiagnozePage() {
     }
   };
 
-  const submit = async (collected: AnswersMap) => {
-    setSubmitting(true);
+  const handleScreenshotUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    if (screenshots.length + files.length > 4) {
+      setError("Maksimumi 4 imazhe.");
+      return;
+    }
+    setUploadingShot(true);
+    setError(null);
+    try {
+      const newUrls: string[] = [];
+      for (const file of Array.from(files)) {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/public/upload-screenshot", { method: "POST", body: fd });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || "Ngarkimi dështoi");
+        newUrls.push(json.url);
+      }
+      setScreenshots((prev) => [...prev, ...newUrls]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ngarkimi i imazhit dështoi");
+    } finally {
+      setUploadingShot(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeScreenshot = (url: string) => {
+    setScreenshots((prev) => prev.filter((u) => u !== url));
+  };
+
+  const submitAll = async () => {
     setError(null);
 
-    // Cast to plain string record for schema
+    if (!email.trim() && !whatsapp.trim()) {
+      setError("Lër email ose WhatsApp për të marrë analizën.");
+      return;
+    }
+
     const plain: Record<string, string> = {};
-    for (const [k, v] of Object.entries(collected)) {
+    for (const [k, v] of Object.entries(answers)) {
       if (v) plain[k] = v;
     }
-
     const parsed = answersSchema.safeParse(plain);
-    if (!parsed.success) {
-      console.error("[diagnoze] validation failed:", parsed.error.issues, "answers:", plain);
-      setSubmitting(false);
-      // Instead of dead-end, try to submit anyway with raw data
-      try {
-        const visitorId = getVisitorId();
-        const { sessionId } = await submitDiagnosis({
-          data: { answers: plain, visitorId, businessName: businessName || undefined },
-        });
-        setLastSessionId(sessionId);
-        track({ event: "diagnosis_complete", sessionId });
-        navigate({ to: "/rezultati/$sessionId", params: { sessionId } });
-        return;
-      } catch (e2) {
-        console.error("[diagnoze] fallback submit also failed:", e2);
-        setError("Diçka shkoi keq. Provo përsëri ose rifillo diagnozën.");
-        return;
-      }
-    }
+    const safeAnswers = parsed.success ? parsed.data : plain;
 
+    setPhase("submitting");
     try {
       const visitorId = getVisitorId();
       const { sessionId } = await submitDiagnosis({
-        data: { answers: parsed.data, visitorId, businessName: businessName || undefined },
+        data: {
+          answers: safeAnswers,
+          visitorId,
+          businessName: businessName || undefined,
+          extraContext: extraContext || undefined,
+          screenshots,
+          email: email.trim() || undefined,
+          whatsapp: whatsapp.trim() || undefined,
+        },
       });
       setLastSessionId(sessionId);
       track({ event: "diagnosis_complete", sessionId });
-      navigate({ to: "/rezultati/$sessionId", params: { sessionId } });
+      track({ event: "lead_captured", sessionId });
+      setPhase("done");
     } catch (e) {
       console.error(e);
-      setSubmitting(false);
-      setError("Diçka shkoi keq gjatë analizës. Kontrollo lidhjen dhe provo përsëri.");
+      setError("Diçka shkoi keq. Provo përsëri.");
+      setPhase("lead");
     }
-  };
-
-  const retrySubmit = () => {
-    void submit(answers);
-  };
-
-  const restart = () => {
-    setPhase("name");
-    setBusinessName("");
-    setStep(0);
-    setAnswers({});
-    setFeedback(null);
-    setSubmitting(false);
-    setError(null);
-    if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
-    track({ event: "diagnosis_restart" });
   };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
       <div className="pointer-events-none absolute inset-0 bg-radial-glow opacity-50" />
 
-      {/* Header with progress */}
       <header className="relative z-10 mx-auto max-w-2xl px-4 pt-6 sm:px-6 sm:pt-8">
         <div className="mb-4 flex items-center gap-2">
           <Link
@@ -186,8 +203,7 @@ function DiagnozePage() {
               <button
                 type="button"
                 onClick={goBack}
-                disabled={submitting}
-                className="flex items-center gap-1.5 rounded-md px-2 py-1 transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
+                className="flex items-center gap-1.5 rounded-md px-2 py-1 transition-colors hover:text-foreground"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 Mbrapa
@@ -215,7 +231,8 @@ function DiagnozePage() {
 
       <main className="relative z-10 mx-auto flex min-h-[calc(100vh-6rem)] max-w-2xl flex-col justify-center px-4 py-8 sm:px-6 sm:py-12">
         <AnimatePresence mode="wait">
-          {phase === "name" ? (
+          {/* PHASE: business name */}
+          {phase === "name" && (
             <motion.div
               key="name-phase"
               initial={{ opacity: 0, y: 16 }}
@@ -260,38 +277,10 @@ function DiagnozePage() {
                 </p>
               </div>
             </motion.div>
-          ) : error ? (
-            <motion.div
-              key="error"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-              className="rounded-2xl border border-destructive/30 bg-destructive/5 p-8 text-center"
-            >
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/15">
-                <AlertCircle className="h-6 w-6 text-destructive" />
-              </div>
-              <p className="font-display text-lg font-semibold">{error}</p>
-              <div className="mt-6 flex flex-col items-center gap-3">
-                <button
-                  type="button"
-                  onClick={retrySubmit}
-                  className="inline-flex items-center gap-2 rounded-full bg-gradient-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow transition-all hover:scale-[1.02]"
-                >
-                  Provo Përsëri
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={restart}
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
-                  Rifillo diagnozën nga fillimi
-                </button>
-              </div>
-            </motion.div>
-          ) : feedback ? (
+          )}
+
+          {/* PHASE: questions */}
+          {phase === "questions" && feedback && (
             <motion.div
               key={`fb-${step}`}
               initial={{ opacity: 0, y: 10 }}
@@ -307,22 +296,9 @@ function DiagnozePage() {
                 {feedback}
               </p>
             </motion.div>
-          ) : submitting ? (
-            <motion.div
-              key="submitting"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center"
-            >
-              <div className="mx-auto mb-6 h-12 w-12 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              <p className="font-display text-xl font-semibold">
-                Po analizojmë{businessName ? ` "${businessName}"` : " biznesin tënd"}…
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Kjo zgjat disa sekonda.
-              </p>
-            </motion.div>
-          ) : current ? (
+          )}
+
+          {phase === "questions" && !feedback && current && (
             <motion.div
               key={`q-${current.key}`}
               initial={{ opacity: 0, y: 16 }}
@@ -377,7 +353,289 @@ function DiagnozePage() {
                 })}
               </div>
             </motion.div>
-          ) : null}
+          )}
+
+          {/* PHASE: extra context */}
+          {phase === "context" && (
+            <motion.div
+              key="context-phase"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.4 }}
+            >
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
+                <Sparkles className="h-3 w-3" />
+                Hap opsional — sa më shumë informacion, aq më precize analiza
+              </div>
+              <h1 className="font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl md:text-4xl">
+                Tregona pak më shumë (opsionale)
+              </h1>
+              <p className="mt-3 text-base text-muted-foreground">
+                Çdo detaj ndihmon ekipin tonë të të japë një analizë reale, jo gjenerike.
+              </p>
+
+              <div className="mt-6 space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-foreground">
+                    Çfarë do të donin t'i thoshe ekipit tonë?
+                  </label>
+                  <textarea
+                    value={extraContext}
+                    onChange={(e) => setExtraContext(e.target.value)}
+                    maxLength={4000}
+                    rows={5}
+                    placeholder="P.sh. sektori, qyteti, sa vjet ke që punon, çfarë ke provuar deri tani, ku ndihesh i bllokuar..."
+                    className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {extraContext.length}/4000
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground">
+                    Screenshot nga Instagram, website, Google Maps (max 4)
+                  </label>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    AI i shikon dhe i përfshin në analizë.
+                  </p>
+
+                  <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {screenshots.map((url) => (
+                      <div
+                        key={url}
+                        className="relative aspect-square overflow-hidden rounded-lg border border-border bg-surface"
+                      >
+                        <img src={url} alt="" className="h-full w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeScreenshot(url)}
+                          className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background/80 text-foreground hover:bg-destructive hover:text-destructive-foreground"
+                          aria-label="Hiq imazhin"
+                        >
+                          <XIcon className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+
+                    {screenshots.length < 4 && (
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingShot}
+                        className="flex aspect-square flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-surface text-xs text-muted-foreground transition hover:border-primary/50 hover:text-foreground disabled:opacity-50"
+                      >
+                        {uploadingShot ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <>
+                            <ImagePlus className="h-5 w-5" />
+                            Shto imazh
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => handleScreenshotUpload(e.target.files)}
+                  />
+                </div>
+
+                {error && (
+                  <p className="text-sm text-destructive">{error}</p>
+                )}
+
+                <div className="flex items-center justify-between gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setPhase("questions")}
+                    className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    <ArrowLeft className="h-4 w-4" /> Mbrapa
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setError(null); setPhase("lead"); }}
+                    className="inline-flex items-center gap-2 rounded-full bg-gradient-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow hover:scale-[1.02] transition-all"
+                  >
+                    Vazhdo
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* PHASE: lead capture */}
+          {phase === "lead" && (
+            <motion.div
+              key="lead-phase"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.4 }}
+            >
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-warning/30 bg-warning/5 px-3 py-1 text-xs text-warning">
+                <span className="h-1.5 w-1.5 rounded-full bg-warning animate-pulse" />
+                Hapi i fundit
+              </div>
+              <h1 className="font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl md:text-4xl">
+                Ku të të kontaktojmë me analizën?
+              </h1>
+              <p className="mt-3 text-base text-muted-foreground">
+                Ekipi ynë do të të dërgojë analizën personale brenda 24 orëve në Email ose WhatsApp. Pa pagesë, pa spam.
+              </p>
+
+              <div className="mt-6 space-y-3">
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email yt"
+                    maxLength={200}
+                    className="w-full rounded-xl border border-border bg-surface pl-11 pr-4 py-3.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="tel"
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                    placeholder="WhatsApp (p.sh. +355 69 ...)"
+                    maxLength={30}
+                    className="w-full rounded-xl border border-border bg-surface pl-11 pr-4 py-3.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Mjafton një nga të dyja. Të dyja = përgjigje më e shpejtë.
+                </p>
+              </div>
+
+              {error && (
+                <p className="mt-3 text-sm text-destructive">{error}</p>
+              )}
+
+              <div className="mt-6 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPhase("context")}
+                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                >
+                  <ArrowLeft className="h-4 w-4" /> Mbrapa
+                </button>
+                <button
+                  type="button"
+                  onClick={submitAll}
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow hover:scale-[1.02] transition-all"
+                >
+                  Dërgo & Prit Analizën
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* PHASE: submitting */}
+          {phase === "submitting" && (
+            <motion.div
+              key="submitting"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center"
+            >
+              <div className="mx-auto mb-6 h-12 w-12 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <p className="font-display text-xl font-semibold">
+                Po dërgojmë{businessName ? ` analizën për "${businessName}"` : " analizën"}…
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Disa sekonda.
+              </p>
+            </motion.div>
+          )}
+
+          {/* PHASE: done */}
+          {phase === "done" && (
+            <motion.div
+              key="done-phase"
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="text-center"
+            >
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-primary/40 bg-primary/10 shadow-glow">
+                <Check className="h-10 w-10 text-primary" strokeWidth={2.5} />
+              </div>
+              <h1 className="font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+                Faleminderit{businessName ? `, ${businessName}` : ""}!
+              </h1>
+              <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
+                Analiza jote po përgatitet personalisht nga ekipi ynë.
+                <br className="hidden sm:block" />
+                Do të të kontaktojmë brenda <span className="font-semibold text-foreground">24 orëve</span> në {email && whatsapp ? "Email dhe WhatsApp" : email ? "Email" : "WhatsApp"}.
+              </p>
+
+              <div className="mt-8 rounded-2xl border border-border bg-surface p-5 text-left text-sm">
+                <p className="font-semibold text-foreground">Çfarë po ndodh tani:</p>
+                <ul className="mt-3 space-y-2 text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    Përgjigjet e tua janë regjistruar
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    AI dhe ekipi po analizojnë rastin tënd
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    Do të marrësh planin personal pa pagesë
+                  </li>
+                </ul>
+              </div>
+
+              <div className="mt-8 flex flex-col items-center gap-3">
+                <a
+                  href={`https://wa.me/355697221224?text=${encodeURIComponent(
+                    `Përshëndetje! Sapo dërgova diagnozën${businessName ? ` për "${businessName}"` : ""}. Dua ta diskutoj sa më shpejt.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-6 py-3 text-sm font-semibold text-primary hover:bg-primary/10"
+                >
+                  💬 Dua ta diskutoj tani në WhatsApp
+                </a>
+                <Link
+                  to="/"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  ← Kthehu në fillim
+                </Link>
+              </div>
+            </motion.div>
+          )}
+
+          {/* error fallback */}
+          {error && phase !== "context" && phase !== "lead" && phase !== "questions" && (
+            <motion.div
+              key="error"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl border border-destructive/30 bg-destructive/5 p-8 text-center"
+            >
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/15">
+                <AlertCircle className="h-6 w-6 text-destructive" />
+              </div>
+              <p className="font-display text-lg font-semibold">{error}</p>
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
     </div>
