@@ -71,7 +71,7 @@ function ResultPage() {
           className="font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl md:text-5xl"
         >
           {unlocked
-            ? "Ja çfarë po ndodh me biznesin tënd"
+            ? businessName ? `Ja çfarë po ndodh me "${businessName}"` : "Ja çfarë po ndodh me biznesin tënd"
             : "Diagnoza jote është gati 🔒"}
         </motion.h1>
 
