@@ -205,6 +205,7 @@ export type Database = {
           ai_diagnosis: string | null
           ai_source: string | null
           answers: Json
+          business_name: string | null
           created_at: string
           estimated_lost_clients: number | null
           estimated_lost_eur: number | null
@@ -218,6 +219,7 @@ export type Database = {
           ai_diagnosis?: string | null
           ai_source?: string | null
           answers?: Json
+          business_name?: string | null
           created_at?: string
           estimated_lost_clients?: number | null
           estimated_lost_eur?: number | null
@@ -231,6 +233,7 @@ export type Database = {
           ai_diagnosis?: string | null
           ai_source?: string | null
           answers?: Json
+          business_name?: string | null
           created_at?: string
           estimated_lost_clients?: number | null
           estimated_lost_eur?: number | null
