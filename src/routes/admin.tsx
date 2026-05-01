@@ -7,6 +7,7 @@ import {
   ChevronUp, MessageSquare, Check, Filter, Calendar, RefreshCw, Bell, BookOpen,
 } from "lucide-react";
 import { AdminCaseStudies } from "@/components/AdminCaseStudies";
+import { AdminInvites } from "@/components/AdminInvites";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useIsAdmin } from "@/hooks/useAuth";
 
@@ -81,7 +82,7 @@ function buildAdminWaMessage(lead: LeadRow, session: SessionRow | null) {
   return lines.join("\n");
 }
 
-type TabKey = "leads" | "sessions" | "surveys" | "case-studies";
+type TabKey = "leads" | "sessions" | "surveys" | "case-studies" | "admins";
 type FilterService = "all" | string;
 
 function AdminPage() {
@@ -315,7 +316,7 @@ function AdminPage() {
 
             {/* Tabs */}
             <div className="flex items-center gap-1 mb-4 border-b border-border">
-              {(["leads", "sessions", "surveys", "case-studies"] as TabKey[]).map((tab) => (
+              {(["leads", "sessions", "surveys", "case-studies", "admins"] as TabKey[]).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -325,7 +326,7 @@ function AdminPage() {
                       : "border-transparent text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {tab === "leads" ? `Leads (${leads.length})` : tab === "sessions" ? `Sesione (${allSessions.length})` : tab === "surveys" ? `Surveys (${surveys.length})` : "Case Studies"}
+                  {tab === "leads" ? `Leads (${leads.length})` : tab === "sessions" ? `Sesione (${allSessions.length})` : tab === "surveys" ? `Surveys (${surveys.length})` : tab === "case-studies" ? "Case Studies" : "Admin-ët"}
                 </button>
               ))}
             </div>
@@ -670,6 +671,13 @@ function AdminPage() {
             {activeTab === "case-studies" && (
               <section>
                 <AdminCaseStudies />
+              </section>
+            )}
+
+            {/* Admins tab */}
+            {activeTab === "admins" && (
+              <section>
+                <AdminInvites />
               </section>
             )}
           </>
