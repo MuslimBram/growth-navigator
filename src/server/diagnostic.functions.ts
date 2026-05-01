@@ -38,10 +38,8 @@ export const submitDiagnosis = createServerFn({ method: "POST" })
       notifyNewLead({
         data: {
           businessName: data.businessName,
-          diagnosisNotes: typeof diagnosis === "string" ? diagnosis.slice(0, 500) : undefined,
-          recommendedService: typeof diagnosis === "object" && diagnosis !== null
-            ? (diagnosis as any).primary_service
-            : undefined,
+          diagnosisNotes: diagnosis.diagnosis?.slice(0, 500),
+          recommendedService: diagnosis.primary_service,
           answers: data.answers,
           source: "diagnostic",
         },
