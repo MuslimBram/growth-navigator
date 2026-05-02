@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { AdminCaseStudies } from "@/components/AdminCaseStudies";
 import { AdminInvites } from "@/components/AdminInvites";
+import { AdminRecommendations } from "@/components/AdminRecommendations";
+import { AdminPackages } from "@/components/AdminPackages";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useIsAdmin } from "@/hooks/useAuth";
 
