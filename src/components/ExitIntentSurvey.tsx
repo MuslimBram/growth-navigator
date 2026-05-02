@@ -3,18 +3,22 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { track } from "@/lib/analytics";
 import { getVisitorId } from "@/lib/visitor-id";
+import { useT } from "@/lib/i18n";
 
 const DISMISS_KEY = "md_exit_dismissed";
 const SHOWN_KEY = "md_exit_shown";
 
-const REASONS = [
-  { value: "not_sure_need", label: "Nuk jam i sigurt që kam nevojë" },
-  { value: "no_time", label: "Nuk kam kohë tani" },
-  { value: "want_more_info", label: "Dua të di më shumë para se të filloj" },
-  { value: "other", label: "Tjetër..." },
-] as const;
+const REASON_VALUES = ["not_sure_need", "no_time", "want_more_info", "other"] as const;
 
 export function ExitIntentSurvey() {
+  const t = useT();
+  const REASONS = [
+    { value: "not_sure_need", label: t("exit.reason_not_sure") },
+    { value: "no_time", label: t("exit.reason_no_time") },
+    { value: "want_more_info", label: t("exit.reason_more_info") },
+    { value: "other", label: t("exit.reason_other") },
+  ];
+
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState<string | null>(null);
   const [details, setDetails] = useState("");
@@ -34,15 +38,10 @@ export function ExitIntentSurvey() {
       track({ event: "exit_survey_shown" });
     };
 
-    // 1) Mouse-out near top (exit intent)
     const onMouseOut = (e: MouseEvent) => {
       if (e.clientY <= 8 && !e.relatedTarget) trigger();
     };
-
-    // 2) Time-based fallback: 25s on page without clicking CTA
     const timer = window.setTimeout(trigger, 25_000);
-
-    // 3) Scroll-to-bottom
     const onScroll = () => {
       const scrolled = window.scrollY + window.innerHeight;
       if (scrolled >= document.body.scrollHeight - 80) trigger();
@@ -108,7 +107,7 @@ export function ExitIntentSurvey() {
               type="button"
               onClick={close}
               className="absolute right-4 top-4 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
-              aria-label="Mbylle"
+              aria-label={t("common.close")}
             >
               <X className="h-4 w-4" />
             </button>
@@ -118,19 +117,15 @@ export function ExitIntentSurvey() {
                 <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-primary">
                   ✓
                 </div>
-                <h3 className="font-display text-lg font-bold">Faleminderit!</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Reagimi yt na ndihmon të përmirësohemi.
-                </p>
+                <h3 className="font-display text-lg font-bold">{t("exit.thanks_title")}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{t("exit.thanks_desc")}</p>
               </div>
             ) : (
               <form onSubmit={submit}>
                 <h3 className="font-display text-xl font-bold leading-tight">
-                  Po heziton? Na thuaj shkurt — çfarë nuk të bindi?
+                  {t("exit.title")}
                 </h3>
-                <p className="mt-1.5 text-sm text-muted-foreground">
-                  10 sekonda. Asgjë nuk shitet këtu.
-                </p>
+                <p className="mt-1.5 text-sm text-muted-foreground">{t("exit.desc")}</p>
 
                 <div className="mt-5 space-y-2">
                   {REASONS.map((r) => {
@@ -156,7 +151,7 @@ export function ExitIntentSurvey() {
                   <textarea
                     value={details}
                     onChange={(e) => setDetails(e.target.value)}
-                    placeholder="Çfarë të mbajti pas?"
+                    placeholder={t("exit.details_placeholder")}
                     rows={2}
                     maxLength={500}
                     className="mt-3 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/60"
@@ -167,7 +162,7 @@ export function ExitIntentSurvey() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email (opsionale) — të kontaktojmë me përgjigje"
+                  placeholder={t("exit.email_placeholder")}
                   maxLength={200}
                   className="mt-3 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/60"
                 />
@@ -177,7 +172,7 @@ export function ExitIntentSurvey() {
                   disabled={!reason}
                   className="mt-4 w-full rounded-full bg-gradient-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.01] disabled:opacity-40"
                 >
-                  Dërgo
+                  {t("exit.submit")}
                 </button>
               </form>
             )}
@@ -187,3 +182,5 @@ export function ExitIntentSurvey() {
     </AnimatePresence>
   );
 }
+
+export const _REASONS = REASON_VALUES;

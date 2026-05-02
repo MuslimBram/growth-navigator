@@ -14,14 +14,16 @@ import { answersSchema } from "@/lib/diagnostic-schemas";
 import { getVisitorId, setLastSessionId } from "@/lib/visitor-id";
 import { submitDiagnosis } from "@/server/diagnostic.functions";
 import { track } from "@/lib/analytics";
+import { useT, useI18n, QUESTION_TR } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export const Route = createFileRoute("/diagnoze")({
   head: () => ({
     meta: [
-      { title: "Diagnoza — Muslimi Digital" },
+      { title: "Diagnosis — Muslimi Digital" },
       {
         name: "description",
-        content: "Përgjigju pyetjeve të shkurtra dhe ekipi ynë do të kthehet me një analizë të personalizuar.",
+        content: "Answer the short questions and our team will get back with a personalized analysis.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -32,6 +34,8 @@ export const Route = createFileRoute("/diagnoze")({
 type Phase = "name" | "questions" | "context" | "lead" | "submitting" | "done";
 
 function DiagnozePage() {
+  const t = useT();
+  const { locale } = useI18n();
   const [phase, setPhase] = useState<Phase>("name");
   const [businessName, setBusinessName] = useState("");
   const [step, setStep] = useState(0);
@@ -109,7 +113,7 @@ function DiagnozePage() {
   const handleScreenshotUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     if (screenshots.length + files.length > 4) {
-      setError("Maksimumi 4 imazhe.");
+      setError(t("diag.max_images"));
       return;
     }
     setUploadingShot(true);
@@ -121,12 +125,12 @@ function DiagnozePage() {
         fd.append("file", file);
         const res = await fetch("/api/public/upload-screenshot", { method: "POST", body: fd });
         const json = await res.json();
-        if (!res.ok) throw new Error(json.error || "Ngarkimi dështoi");
+        if (!res.ok) throw new Error(json.error || t("diag.upload_failed"));
         newUrls.push(json.url);
       }
       setScreenshots((prev) => [...prev, ...newUrls]);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Ngarkimi i imazhit dështoi");
+      setError(e instanceof Error ? e.message : t("diag.upload_failed"));
     } finally {
       setUploadingShot(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -141,7 +145,7 @@ function DiagnozePage() {
     setError(null);
 
     if (!email.trim() && !whatsapp.trim()) {
-      setError("Lër email ose WhatsApp për të marrë analizën.");
+      setError(t("diag.lead_required"));
       return;
     }
 
@@ -172,7 +176,7 @@ function DiagnozePage() {
       setPhase("done");
     } catch (e) {
       console.error(e);
-      setError("Diçka shkoi keq. Provo përsëri.");
+      setError(t("common.something_wrong"));
       setPhase("lead");
     }
   };
@@ -182,20 +186,23 @@ function DiagnozePage() {
       <div className="pointer-events-none absolute inset-0 bg-radial-glow opacity-50" />
 
       <header className="relative z-10 mx-auto max-w-2xl px-4 pt-6 sm:px-6 sm:pt-8">
-        <div className="mb-4 flex items-center gap-2">
-          <Link
-            to="/"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface/60 text-muted-foreground transition hover:bg-accent hover:text-foreground"
-            aria-label="Faqja kryesore"
-          >
-            <Home className="h-4 w-4" />
-          </Link>
-          <Link to="/" className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-primary shadow-glow" />
-            <span className="font-display text-xs font-semibold tracking-wide">
-              MUSLIMI <span className="text-primary">DIGITAL</span>
-            </span>
-          </Link>
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Link
+              to="/"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface/60 text-muted-foreground transition hover:bg-accent hover:text-foreground"
+              aria-label={t("common.home")}
+            >
+              <Home className="h-4 w-4" />
+            </Link>
+            <Link to="/" className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-primary shadow-glow" />
+              <span className="font-display text-xs font-semibold tracking-wide">
+                MUSLIMI <span className="text-primary">DIGITAL</span>
+              </span>
+            </Link>
+          </div>
+          <LanguageSwitcher />
         </div>
         {phase === "questions" && (
           <>
@@ -206,14 +213,14 @@ function DiagnozePage() {
                 className="flex items-center gap-1.5 rounded-md px-2 py-1 transition-colors hover:text-foreground"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
-                Mbrapa
+                {t("common.back")}
               </button>
               <span>
-                Pyetja{" "}
+                {t("diag.question_label")}{" "}
                 <span className="font-semibold text-foreground">
                   {Math.min(step + 1, total)}
                 </span>{" "}
-                nga <span className="font-semibold text-foreground">{total}</span>
+                {t("diag.of")} <span className="font-semibold text-foreground">{total}</span>
               </span>
               <span className="tabular-nums">{Math.round(progress)}%</span>
             </div>

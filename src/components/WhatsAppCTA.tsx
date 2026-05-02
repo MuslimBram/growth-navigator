@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Copy, Check, ExternalLink } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 const WA_NUMBER = "355697221224";
 
@@ -11,34 +12,27 @@ interface WhatsAppCTAProps {
   className?: string;
 }
 
-function buildMessage({
-  mainBottleneck,
-  recommendedService,
-  businessName,
-}: Omit<WhatsAppCTAProps, "className">) {
-  const lines = [
-    "Përshëndetje Muslimi Digital.",
-    "",
-    "Kam bërë diagnozën e biznesit tim.",
-    "",
-    `Problemi kryesor: ${mainBottleneck}`,
-    `Shërbimi i rekomanduar: ${recommendedService}`,
-  ];
-  if (businessName) {
-    lines.push(`Biznesi: ${businessName}`);
-  }
-  lines.push("", "Dua të rezervoj një analizë më të thellë.");
-  return lines.join("\n");
-}
-
 export function WhatsAppCTA({
   mainBottleneck,
   recommendedService,
   businessName,
   className = "",
 }: WhatsAppCTAProps) {
+  const t = useT();
   const [copied, setCopied] = useState(false);
-  const message = buildMessage({ mainBottleneck, recommendedService, businessName });
+
+  const lines = [
+    t("wa.msg_hello"),
+    "",
+    t("wa.msg_done"),
+    "",
+    t("wa.msg_main_problem", { problem: mainBottleneck }),
+    t("wa.msg_recommended", { service: recommendedService }),
+  ];
+  if (businessName) lines.push(t("wa.msg_business", { name: businessName }));
+  lines.push("", t("wa.msg_book"));
+  const message = lines.join("\n");
+
   const waLink = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(message)}`;
 
   async function handleCopy() {
@@ -47,7 +41,6 @@ export function WhatsAppCTA({
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
-      // fallback
       const ta = document.createElement("textarea");
       ta.value = message;
       document.body.appendChild(ta);
@@ -66,27 +59,21 @@ export function WhatsAppCTA({
       transition={{ delay: 0.3 }}
       className={`rounded-2xl border border-primary/30 bg-primary/5 p-4 text-center sm:p-6 ${className}`}
     >
-      <h3 className="font-display text-lg font-bold">Vazhdo në WhatsApp</h3>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Na shkruaj direkt për një analizë më të thellë — mesazhi është gati.
-      </p>
+      <h3 className="font-display text-lg font-bold">{t("wa.title")}</h3>
+      <p className="mt-2 text-sm text-muted-foreground">{t("wa.desc")}</p>
 
-      {/* Primary CTA — opens WhatsApp externally */}
       <a
         href={waLink}
         target="_blank"
         rel="noopener noreferrer"
         className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.02]"
       >
-        💬 Vazhdo në WhatsApp
+        {t("wa.cta_open")}
         <ExternalLink className="h-3.5 w-3.5" />
       </a>
 
-      {/* Fallback: copy message */}
       <div className="mt-4">
-        <p className="text-xs text-muted-foreground">
-          Nuk u hap? Kopjo mesazhin dhe dërgoje manualisht në WhatsApp.
-        </p>
+        <p className="text-xs text-muted-foreground">{t("wa.fallback")}</p>
         <button
           type="button"
           onClick={handleCopy}
@@ -95,12 +82,12 @@ export function WhatsAppCTA({
           {copied ? (
             <>
               <Check className="h-3.5 w-3.5 text-primary" />
-              U kopjua!
+              {t("wa.copied")}
             </>
           ) : (
             <>
               <Copy className="h-3.5 w-3.5" />
-              Kopjo mesazhin
+              {t("wa.copy")}
             </>
           )}
         </button>

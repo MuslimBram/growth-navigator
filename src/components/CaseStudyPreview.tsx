@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowRight, TrendingUp, Quote } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useT } from "@/lib/i18n";
 
 interface CaseStudy {
   id: string;
@@ -27,7 +28,9 @@ interface Props {
   title?: string;
 }
 
-export function CaseStudyPreview({ filterService, limit = 3, title = "Rezultate reale" }: Props) {
+export function CaseStudyPreview({ filterService, limit = 3, title }: Props) {
+  const t = useT();
+  const sectionTitle = title ?? t("landing.cases_title");
   const [items, setItems] = useState<CaseStudy[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -56,12 +59,12 @@ export function CaseStudyPreview({ filterService, limit = 3, title = "Rezultate 
     <section className="py-16 sm:py-20">
       <div className="max-w-6xl mx-auto px-6">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="font-display text-2xl font-bold sm:text-3xl">{title}</h2>
+          <h2 className="font-display text-2xl font-bold sm:text-3xl">{sectionTitle}</h2>
           <Link
             to="/case-studies"
             className="text-sm text-primary hover:underline flex items-center gap-1"
           >
-            Shiko të gjitha <ArrowRight className="h-3.5 w-3.5" />
+            {t("common.see_all")} <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
