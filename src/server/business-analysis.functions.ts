@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { runBusinessAnalysis } from "./business-analysis.server";
+import { generateAndPersistFromAnalysis } from "./recommendation-engine.server";
 
 const analyzeSchema = z.object({
   visitorId: z.string().min(1).max(128),
