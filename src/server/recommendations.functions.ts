@@ -390,3 +390,83 @@ export const regenerateProposal = createServerFn({ method: "POST" })
     if (updErr) throw new Error(updErr.message);
     return { ok: true, reasoning: ai.reasoning, client_proposal_text: ai.client_proposal_text };
   });
+
+// ───── Add-on services CRUD ─────
+
+export const listAddons = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("addon_services")
+      .select("*")
+      .order("display_order");
+    if (error) throw new Error(error.message);
+    return { addons: data ?? [] };
+  });
+
+export const upsertAddon = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        name: z.string().min(1).max(200),
+        category: z.enum(ADDON_CATEGORIES),
+        description: z.string().max(2000).optional().nullable(),
+        included_features: z.array(z.string()).default([]),
+        supported_platforms: z.array(z.string()).default([]),
+        price_1_month: z.number().min(0),
+        price_3_months: z.number().min(0),
+        price_6_months: z.number().min(0),
+        price_1_year: z.number().min(0),
+        currency: z.string().default("USD"),
+        active: z.boolean().default(true),
+        display_order: z.number().int().default(0),
+        admin_notes: z.string().max(2000).optional().nullable(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const payload = {
+      name: data.name,
+      category: data.category,
+      description: data.description ?? null,
+      included_features: data.included_features,
+      supported_platforms: data.supported_platforms,
+      price_1_month: data.price_1_month,
+      price_3_months: data.price_3_months,
+      price_6_months: data.price_6_months,
+      price_1_year: data.price_1_year,
+      currency: data.currency,
+      active: data.active,
+      display_order: data.display_order,
+      admin_notes: data.admin_notes ?? null,
+    };
+    if (data.id) {
+      const { error } = await context.supabase
+        .from("addon_services")
+        .update(payload)
+        .eq("id", data.id);
+      if (error) throw new Error(error.message);
+      return { ok: true, id: data.id };
+    }
+    const { data: inserted, error } = await context.supabase
+      .from("addon_services")
+      .insert(payload)
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { ok: true, id: inserted.id };
+  });
+
+export const deleteAddon = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("addon_services")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
