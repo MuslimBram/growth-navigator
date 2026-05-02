@@ -617,9 +617,12 @@ function RecommendationDetailModal({
 
             <div className="mt-3 flex items-center justify-between text-xs bg-muted/40 rounded-lg p-3">
               <div>
-                <div className="text-muted-foreground">Totali</div>
+                <div className="text-muted-foreground">Paketat</div>
                 <div className="font-semibold text-foreground text-sm">
-                  ${totals.o.toLocaleString()} <span className="text-muted-foreground line-through font-normal text-xs">${totals.n.toLocaleString()}</span>
+                  ${totals.o.toLocaleString()}{" "}
+                  <span className="text-muted-foreground line-through font-normal text-xs">
+                    ${totals.n.toLocaleString()}
+                  </span>
                 </div>
               </div>
               {totals.s > 0 && (
@@ -629,6 +632,137 @@ function RecommendationDetailModal({
               )}
             </div>
           </section>
+
+          {/* Add-on services */}
+          <section>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase">
+                Shërbime shtesë (add-ons) — {selectedAddons.length}
+              </h3>
+              <button
+                onClick={saveAddons}
+                disabled={busy === "addons"}
+                className="flex items-center gap-1 text-xs text-primary hover:underline disabled:opacity-50"
+              >
+                {busy === "addons" ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Save className="h-3 w-3" />
+                )}
+                Ruaj
+              </button>
+            </div>
+
+            {/* Selected addons */}
+            {selectedAddons.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {selectedAddons.map((sa) => {
+                  const ref = allAddons.find((x) => x.id === sa.addon_id);
+                  if (!ref) return null;
+                  return (
+                    <div
+                      key={sa.addon_id}
+                      className="rounded-lg border border-primary/30 bg-primary/5 p-2"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs font-medium text-foreground">{ref.name}</div>
+                          {sa.reason && (
+                            <div className="text-[10px] text-muted-foreground mt-0.5 italic">
+                              {sa.reason}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => removeAddon(sa.addon_id)}
+                          className="text-muted-foreground hover:text-destructive shrink-0"
+                          title="Hiqe nga propozimi"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <div className="mt-2 flex items-center gap-2 flex-wrap">
+                        <select
+                          value={sa.duration}
+                          onChange={(e) =>
+                            changeAddonDuration(sa.addon_id, e.target.value as AddonDuration)
+                          }
+                          className="rounded border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-primary"
+                        >
+                          {(Object.keys(ADDON_DURATION_LABEL) as AddonDuration[]).map((d) => (
+                            <option key={d} value={d}>
+                              {ADDON_DURATION_LABEL[d]} (${addonPriceFor(ref, d)})
+                            </option>
+                          ))}
+                        </select>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] text-muted-foreground">$</span>
+                          <input
+                            type="number"
+                            min={0}
+                            value={sa.price}
+                            onChange={(e) =>
+                              changeAddonPrice(sa.addon_id, Number(e.target.value) || 0)
+                            }
+                            className="w-20 rounded border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-primary"
+                            title="Ndrysho çmimin manualisht"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Available addons to add */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {allAddons
+                .filter(
+                  (a) => a.active && !selectedAddons.some((s) => s.addon_id === a.id),
+                )
+                .map((a) => (
+                  <button
+                    key={a.id}
+                    onClick={() => addAddon(a)}
+                    className="text-left rounded-lg border border-border hover:border-primary/50 p-2 transition"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="text-xs font-medium text-foreground truncate">
+                          {a.name}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          nga ${Number(a.price_1_month)} / muaj
+                        </div>
+                      </div>
+                      <Plus className="h-3.5 w-3.5 text-primary shrink-0" />
+                    </div>
+                  </button>
+                ))}
+              {allAddons.filter((a) => a.active).length === 0 && (
+                <div className="col-span-full text-[11px] text-muted-foreground text-center py-2">
+                  Asnjë add-on aktiv. Shtoji nga tab-i "Add-ons".
+                </div>
+              )}
+            </div>
+
+            {/* Grand total */}
+            <div className="mt-3 flex items-center justify-between text-xs bg-primary/10 rounded-lg p-3">
+              <div>
+                <div className="text-muted-foreground">Totali i propozimit</div>
+                <div className="font-bold text-foreground text-base">
+                  ${totals.grand.toLocaleString()}
+                </div>
+                {totals.addons > 0 && (
+                  <div className="text-[10px] text-muted-foreground">
+                    Paketa ${totals.o.toLocaleString()} + Add-ons ${totals.addons.toLocaleString()}
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
 
           {/* Client proposal */}
           <section>
