@@ -364,7 +364,7 @@ export const regenerateProposal = createServerFn({ method: "POST" })
       .single();
     if (error || !rec) throw new Error("Rekomandimi nuk u gjet.");
 
-    const packages = await fetchActivePackages();
+    const [packages, addons] = await Promise.all([fetchActivePackages(), fetchActiveAddons()]);
     const aiRes = await generateAIRecommendation(
       {
         businessName: rec.business_name,
@@ -374,6 +374,7 @@ export const regenerateProposal = createServerFn({ method: "POST" })
         diagnosis: rec.reasoning,
       },
       packages,
+      addons,
     );
     if (!aiRes) throw new Error("Gjenerimi dështoi. Provo më vonë.");
 
