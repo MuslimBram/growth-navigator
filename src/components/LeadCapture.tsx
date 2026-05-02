@@ -150,7 +150,7 @@ export function LeadCapture({ sessionId, primaryServiceLabel, diagnosis, mainBot
         disabled={status === "loading"}
         className="mt-5 w-full rounded-full bg-gradient-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.01] disabled:opacity-60"
       >
-        {status === "loading" ? t("common.sending") : t("lead.submit")}
+        {status === "loading" ? t("common.sending") : t("common.send_lead")}
       </button>
 
       <div className="mt-4 flex items-center gap-3">
