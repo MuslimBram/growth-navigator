@@ -669,6 +669,20 @@ function AdminPage() {
               </section>
             )}
 
+            {/* Recommendations tab */}
+            {activeTab === "recommendations" && (
+              <section>
+                <AdminRecommendations />
+              </section>
+            )}
+
+            {/* Packages tab */}
+            {activeTab === "packages" && (
+              <section>
+                <AdminPackages />
+              </section>
+            )}
+
             {/* Case Studies tab */}
             {activeTab === "case-studies" && (
               <section>
