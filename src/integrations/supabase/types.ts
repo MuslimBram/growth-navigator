@@ -41,6 +41,103 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_recommendations: {
+        Row: {
+          admin_notes: string | null
+          ai_source: string
+          analysis_id: string | null
+          business_name: string | null
+          business_type: string | null
+          city: string | null
+          client_proposal_text: string | null
+          created_at: string
+          currency: string
+          digital_score: number | null
+          id: string
+          key_problems: Json
+          lead_id: string | null
+          normal_price_total: number
+          offer_price_total: number
+          priority: Database["public"]["Enums"]["recommendation_priority"]
+          reasoning: string | null
+          recommended_package_ids: Json
+          savings_total: number
+          session_id: string | null
+          status: Database["public"]["Enums"]["recommendation_status"]
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          ai_source?: string
+          analysis_id?: string | null
+          business_name?: string | null
+          business_type?: string | null
+          city?: string | null
+          client_proposal_text?: string | null
+          created_at?: string
+          currency?: string
+          digital_score?: number | null
+          id?: string
+          key_problems?: Json
+          lead_id?: string | null
+          normal_price_total?: number
+          offer_price_total?: number
+          priority?: Database["public"]["Enums"]["recommendation_priority"]
+          reasoning?: string | null
+          recommended_package_ids?: Json
+          savings_total?: number
+          session_id?: string | null
+          status?: Database["public"]["Enums"]["recommendation_status"]
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          ai_source?: string
+          analysis_id?: string | null
+          business_name?: string | null
+          business_type?: string | null
+          city?: string | null
+          client_proposal_text?: string | null
+          created_at?: string
+          currency?: string
+          digital_score?: number | null
+          id?: string
+          key_problems?: Json
+          lead_id?: string | null
+          normal_price_total?: number
+          offer_price_total?: number
+          priority?: Database["public"]["Enums"]["recommendation_priority"]
+          reasoning?: string | null
+          recommended_package_ids?: Json
+          savings_total?: number
+          session_id?: string | null
+          status?: Database["public"]["Enums"]["recommendation_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_recommendations_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "business_report_analyses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_recommendations_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "diagnostic_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_recommendations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "diagnostic_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       analytics_events: {
         Row: {
           created_at: string
@@ -308,6 +405,63 @@ export type Database = {
         }
         Relationships: []
       }
+      service_packages: {
+        Row: {
+          admin_notes: string | null
+          category: Database["public"]["Enums"]["package_category"]
+          created_at: string
+          currency: string
+          description: string | null
+          display_order: number
+          duration: Database["public"]["Enums"]["package_duration"]
+          id: string
+          includes: Json
+          is_quote_only: boolean
+          level: Database["public"]["Enums"]["package_level"]
+          name: string
+          normal_price: number
+          offer_price: number
+          status: Database["public"]["Enums"]["package_status"]
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          category: Database["public"]["Enums"]["package_category"]
+          created_at?: string
+          currency?: string
+          description?: string | null
+          display_order?: number
+          duration: Database["public"]["Enums"]["package_duration"]
+          id?: string
+          includes?: Json
+          is_quote_only?: boolean
+          level: Database["public"]["Enums"]["package_level"]
+          name: string
+          normal_price?: number
+          offer_price?: number
+          status?: Database["public"]["Enums"]["package_status"]
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          category?: Database["public"]["Enums"]["package_category"]
+          created_at?: string
+          currency?: string
+          description?: string | null
+          display_order?: number
+          duration?: Database["public"]["Enums"]["package_duration"]
+          id?: string
+          includes?: Json
+          is_quote_only?: boolean
+          level?: Database["public"]["Enums"]["package_level"]
+          name?: string
+          normal_price?: number
+          offer_price?: number
+          status?: Database["public"]["Enums"]["package_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -345,6 +499,30 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      package_category: "instagram" | "website"
+      package_duration:
+        | "1_month"
+        | "3_months"
+        | "6_months"
+        | "1_year"
+        | "2_years"
+        | "5_years"
+        | "custom"
+      package_level:
+        | "basic"
+        | "advanced"
+        | "premium"
+        | "full_basic"
+        | "full_advanced"
+        | "full_premium"
+      package_status: "active" | "inactive"
+      recommendation_priority: "low" | "medium" | "high"
+      recommendation_status:
+        | "new"
+        | "reviewed"
+        | "contacted"
+        | "converted"
+        | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -473,6 +651,33 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      package_category: ["instagram", "website"],
+      package_duration: [
+        "1_month",
+        "3_months",
+        "6_months",
+        "1_year",
+        "2_years",
+        "5_years",
+        "custom",
+      ],
+      package_level: [
+        "basic",
+        "advanced",
+        "premium",
+        "full_basic",
+        "full_advanced",
+        "full_premium",
+      ],
+      package_status: ["active", "inactive"],
+      recommendation_priority: ["low", "medium", "high"],
+      recommendation_status: [
+        "new",
+        "reviewed",
+        "contacted",
+        "converted",
+        "rejected",
+      ],
     },
   },
 } as const
