@@ -16,6 +16,15 @@ import { Loader2, MessageCircle, RefreshCw, Save, Filter, X, Check, Plus, Trash2
 type Priority = "low" | "medium" | "high";
 type Status = "new" | "reviewed" | "contacted" | "converted" | "rejected";
 
+type AddonDuration = "1_month" | "3_months" | "6_months" | "1_year";
+
+interface RecAddon {
+  addon_id: string;
+  duration: AddonDuration;
+  price: number;
+  reason?: string;
+}
+
 interface Recommendation {
   id: string;
   business_name: string | null;
@@ -24,11 +33,13 @@ interface Recommendation {
   digital_score: number | null;
   key_problems: unknown;
   recommended_package_ids: unknown;
+  recommended_addons: unknown;
   reasoning: string | null;
   client_proposal_text: string | null;
   normal_price_total: number | string;
   offer_price_total: number | string;
   savings_total: number | string;
+  addons_total: number | string;
   currency: string;
   priority: Priority;
   status: Status;
@@ -50,6 +61,36 @@ interface ServicePackage {
   is_quote_only: boolean;
   status: "active" | "inactive";
   includes: unknown;
+}
+
+interface AddonService {
+  id: string;
+  name: string;
+  category: string;
+  description: string | null;
+  included_features: unknown;
+  supported_platforms: unknown;
+  price_1_month: number | string;
+  price_3_months: number | string;
+  price_6_months: number | string;
+  price_1_year: number | string;
+  active: boolean;
+}
+
+const ADDON_DURATION_LABEL: Record<AddonDuration, string> = {
+  "1_month": "1 muaj",
+  "3_months": "3 muaj",
+  "6_months": "6 muaj",
+  "1_year": "1 vit",
+};
+
+function addonPriceFor(addon: AddonService, d: AddonDuration): number {
+  switch (d) {
+    case "1_month": return Number(addon.price_1_month) || 0;
+    case "3_months": return Number(addon.price_3_months) || 0;
+    case "6_months": return Number(addon.price_6_months) || 0;
+    case "1_year": return Number(addon.price_1_year) || 0;
+  }
 }
 
 const WA_NUMBER = "355697221224";
