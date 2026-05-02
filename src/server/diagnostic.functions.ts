@@ -85,6 +85,11 @@ export const submitDiagnosis = createServerFn({ method: "POST" })
         },
       }).catch((err) => console.error("[submitDiagnosis] notify error:", err));
 
+      // Fire-and-forget: generate admin recommendation in background
+      generateAndPersistFromSession(id).catch((err) =>
+        console.error("[submitDiagnosis] recommendation trigger failed:", err),
+      );
+
       return { sessionId: id, ok: true };
     } catch (error) {
       console.error("[submitDiagnosis] error:", error);
