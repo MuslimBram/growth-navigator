@@ -61,5 +61,12 @@ export const analyzeBusinessReport = createServerFn({ method: "POST" })
       userText: data.userText.trim(),
     });
 
+    // Fire-and-forget: generate admin recommendation in background
+    if (result?.id) {
+      generateAndPersistFromAnalysis(result.id).catch((e) =>
+        console.error("[analyzeBusinessReport] recommendation trigger failed:", e),
+      );
+    }
+
     return result;
   });
