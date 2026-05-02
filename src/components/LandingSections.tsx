@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Search, Globe, Camera, Share2, MapPin, Sparkles, Bot, BarChart3, Megaphone } from "lucide-react";
-import { SERVICE_LABELS, SERVICE_TAGLINES } from "@/lib/diagnostic-types";
+import { useT, useI18n, SERVICE_LABELS_I18N, SERVICE_TAGLINES_I18N } from "@/lib/i18n";
 import type { ServiceKey } from "@/lib/diagnostic-types";
 
 const ICONS: Record<ServiceKey, typeof Search> = {
@@ -26,6 +26,17 @@ const ORDER: ServiceKey[] = [
 ];
 
 export function LandingSections() {
+  const t = useT();
+  const { locale } = useI18n();
+  const labels = SERVICE_LABELS_I18N[locale];
+  const taglines = SERVICE_TAGLINES_I18N[locale];
+
+  const steps = [
+    { n: "01", t: t("sections.how_1_title"), d: t("sections.how_1_desc") },
+    { n: "02", t: t("sections.how_2_title"), d: t("sections.how_2_desc") },
+    { n: "03", t: t("sections.how_3_title"), d: t("sections.how_3_desc") },
+  ];
+
   return (
     <section className="relative z-10 mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24">
       {/* How it works */}
@@ -37,31 +48,13 @@ export function LandingSections() {
           className="mb-12 text-center"
         >
           <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            Si funksionon
+            {t("sections.how_title")}
           </h2>
-          <p className="mt-3 text-muted-foreground">
-            Tre hapa. Pa email në fillim. Pa loje me kohën tënde.
-          </p>
+          <p className="mt-3 text-muted-foreground">{t("sections.how_subtitle")}</p>
         </motion.div>
 
         <div className="grid gap-6 sm:grid-cols-3">
-          {[
-            {
-              n: "01",
-              t: "Përgjigju 6 pyetjeve",
-              d: "Pyetje të drejtpërdrejta për gjendjen reale të biznesit tënd online.",
-            },
-            {
-              n: "02",
-              t: "Merr diagnozën tënde",
-              d: "AI analizon dhe identifikon saktësisht ku po humbet klientë.",
-            },
-            {
-              n: "03",
-              t: "Zgjidhja e personalizuar",
-              d: "Të rekomandojmë shërbimin që zgjidh problemin — pa supozime.",
-            },
-          ].map((step, i) => (
+          {steps.map((step, i) => (
             <motion.div
               key={step.n}
               initial={{ opacity: 0, y: 20 }}
@@ -74,9 +67,7 @@ export function LandingSections() {
                 {step.n}
               </div>
               <h3 className="mt-3 font-display text-xl font-bold">{step.t}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {step.d}
-              </p>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.d}</p>
             </motion.div>
           ))}
         </div>
@@ -91,11 +82,9 @@ export function LandingSections() {
           className="mb-12 text-center"
         >
           <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            Çfarë ofrojmë
+            {t("sections.services_title")}
           </h2>
-          <p className="mt-3 text-muted-foreground">
-            6 shërbime që mbulojnë gjithçka prej shfaqjes deri te konvertimi.
-          </p>
+          <p className="mt-3 text-muted-foreground">{t("sections.services_subtitle")}</p>
         </motion.div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -113,11 +102,9 @@ export function LandingSections() {
                 <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
                   <Icon className="h-5 w-5" />
                 </div>
-                <h3 className="font-display text-lg font-bold">
-                  {SERVICE_LABELS[key]}
-                </h3>
+                <h3 className="font-display text-lg font-bold">{labels[key]}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {SERVICE_TAGLINES[key]}
+                  {taglines[key]}
                 </p>
               </motion.div>
             );
@@ -135,17 +122,14 @@ export function LandingSections() {
         <div className="pointer-events-none absolute inset-0 bg-radial-glow opacity-40" />
         <div className="relative">
           <h2 className="font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-            Konkurrentët e tu po e bëjnë tashmë.
+            {t("sections.cta_title")}
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-            Çdo ditë që vonon, dikush tjetër po merr klientët që do të kishin
-            ardhur tek ti. Diagnoza është falas — humbja jo.
-          </p>
+          <p className="mx-auto mt-4 max-w-xl text-muted-foreground">{t("sections.cta_desc")}</p>
           <Link
             to="/diagnoze"
             className="group mt-6 inline-flex items-center gap-3 rounded-full bg-gradient-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.03] sm:mt-8 sm:px-8 sm:py-4 sm:text-base"
           >
-            Nis Diagnozën Falas
+            {t("landing.cta_start")}
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>

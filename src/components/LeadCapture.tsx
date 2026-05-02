@@ -5,6 +5,7 @@ import { submitLead } from "@/server/diagnostic.functions";
 import { notifyNewLead } from "@/server/notify-lead.functions";
 import { leadSchema } from "@/lib/diagnostic-schemas";
 import { WhatsAppCTA } from "@/components/WhatsAppCTA";
+import { useT } from "@/lib/i18n";
 
 interface Props {
   sessionId: string;
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function LeadCapture({ sessionId, primaryServiceLabel, diagnosis, mainBottleneck, answers, onSuccess }: Props) {
+  const t = useT();
   const submit = useServerFn(submitLead);
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
@@ -35,10 +37,7 @@ export function LeadCapture({ sessionId, primaryServiceLabel, diagnosis, mainBot
 
     const parsed = leadSchema.safeParse(payload);
     if (!parsed.success) {
-      setError(
-        parsed.error.issues[0]?.message ??
-          "Të dhënat nuk janë të vlefshme. Kontrollo email ose WhatsApp.",
-      );
+      setError(parsed.error.issues[0]?.message ?? t("lead.invalid"));
       return;
     }
 
@@ -47,7 +46,6 @@ export function LeadCapture({ sessionId, primaryServiceLabel, diagnosis, mainBot
       await submit({ data: { sessionId, ...parsed.data } });
       setStatus("success");
 
-      // Fire-and-forget admin notification with full analysis data
       notifyNewLead({
         data: {
           businessName: businessName.trim() || undefined,
@@ -65,7 +63,7 @@ export function LeadCapture({ sessionId, primaryServiceLabel, diagnosis, mainBot
     } catch (err) {
       console.error(err);
       setStatus("error");
-      setError(err instanceof Error ? err.message : "Diçka shkoi keq.");
+      setError(err instanceof Error ? err.message : t("common.something_wrong"));
     }
   };
 
@@ -88,13 +86,11 @@ export function LeadCapture({ sessionId, primaryServiceLabel, diagnosis, mainBot
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h3 className="font-display text-xl font-bold">Të dhënat u dërguan</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Ekipi ynë do të kontaktojë sa më shpejtë me një plan personal.
-          </p>
+          <h3 className="font-display text-xl font-bold">{t("lead.success_title")}</h3>
+          <p className="mt-2 text-sm text-muted-foreground">{t("lead.success_desc")}</p>
         </motion.div>
         <WhatsAppCTA
-          mainBottleneck="Diagnoza e biznesit"
+          mainBottleneck={t("lead.bottleneck")}
           recommendedService={primaryServiceLabel}
         />
       </div>
@@ -106,17 +102,13 @@ export function LeadCapture({ sessionId, primaryServiceLabel, diagnosis, mainBot
       onSubmit={handleSubmit}
       className="rounded-2xl border border-border bg-surface p-6 sm:p-8"
     >
-      <h3 className="font-display text-xl font-bold">
-        Merr planin tënd personal falas
-      </h3>
-      <p className="mt-1.5 text-sm text-muted-foreground">
-        Lëre Email-in ose WhatsApp — do të kontaktojmë sa më shpejtë.
-      </p>
+      <h3 className="font-display text-xl font-bold">{t("lead.title")}</h3>
+      <p className="mt-1.5 text-sm text-muted-foreground">{t("lead.desc")}</p>
 
       <div className="mt-5 space-y-3">
         <input
           type="text"
-          placeholder="Emri i biznesit (opsionale)"
+          placeholder={t("lead.business_placeholder")}
           value={businessName}
           onChange={(e) => setBusinessName(e.target.value)}
           className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-primary/60"
@@ -124,7 +116,7 @@ export function LeadCapture({ sessionId, primaryServiceLabel, diagnosis, mainBot
         />
         <input
           type="email"
-          placeholder="Email yt"
+          placeholder={t("lead.email_placeholder")}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-primary/60"
@@ -132,7 +124,7 @@ export function LeadCapture({ sessionId, primaryServiceLabel, diagnosis, mainBot
         />
         <input
           type="tel"
-          placeholder="WhatsApp (p.sh. +355 69 ...)"
+          placeholder={t("diag.whatsapp_placeholder")}
           value={whatsapp}
           onChange={(e) => setWhatsapp(e.target.value)}
           className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-primary/60"
@@ -158,26 +150,26 @@ export function LeadCapture({ sessionId, primaryServiceLabel, diagnosis, mainBot
         disabled={status === "loading"}
         className="mt-5 w-full rounded-full bg-gradient-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.01] disabled:opacity-60"
       >
-        {status === "loading" ? "Duke dërguar..." : "Dërgo & Merr Planin"}
+        {status === "loading" ? t("common.sending") : t("lead.submit")}
       </button>
 
       <div className="mt-4 flex items-center gap-3">
         <div className="h-px flex-1 bg-border" />
         <span className="text-xs uppercase tracking-wider text-muted-foreground">
-          ose
+          {t("common.or")}
         </span>
         <div className="h-px flex-1 bg-border" />
       </div>
 
       <a
         href={`https://wa.me/355697221224?text=${encodeURIComponent(
-          `Përshëndetje! Sapo plotësova diagnozën. Më rekomandohet: ${primaryServiceLabel}. Dua të diskutoj më shumë.`
+          t("lead.wa_msg_short", { service: primaryServiceLabel })
         )}`}
         target="_blank"
         rel="noopener noreferrer"
         className="mt-4 flex w-full items-center justify-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-6 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
       >
-        💬 Shkruaj direkt në WhatsApp
+        {t("lead.wa_direct")}
       </a>
     </form>
   );
