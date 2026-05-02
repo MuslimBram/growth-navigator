@@ -115,7 +115,7 @@ export const TRANSLATIONS = {
     "common.admin": "Admin",
     "common.back": "Back",
     "common.home": "Home",
-    "common.send": "Send",
+    "common.send_lead": "Send Lead",
     "common.sending": "Sending...",
     "common.continue": "Continue",
     "common.close": "Close",
