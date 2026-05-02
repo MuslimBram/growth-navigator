@@ -311,6 +311,7 @@ export function AdminRecommendations() {
         <RecommendationDetailModal
           rec={openRec}
           allPackages={packages}
+          allAddons={addons}
           onClose={() => setOpenId(null)}
           onUpdated={fetchAll}
         />
@@ -322,16 +323,19 @@ export function AdminRecommendations() {
 function RecommendationDetailModal({
   rec,
   allPackages,
+  allAddons,
   onClose,
   onUpdated,
 }: {
   rec: Recommendation;
   allPackages: ServicePackage[];
+  allAddons: AddonService[];
   onClose: () => void;
   onUpdated: () => void;
 }) {
   const setStatus = useServerFn(updateRecommendationStatus);
   const setPkgs = useServerFn(updateRecommendationPackages);
+  const setAddonsFn = useServerFn(updateRecommendationAddons);
   const setProposal = useServerFn(updateRecommendationProposal);
   const setNotes = useServerFn(updateRecommendationNotes);
   const regen = useServerFn(regenerateProposal);
@@ -340,6 +344,9 @@ function RecommendationDetailModal({
   const [notes, setNotes_] = useState(rec.admin_notes ?? "");
   const [selectedIds, setSelectedIds] = useState<string[]>(
     asArray<string>(rec.recommended_package_ids),
+  );
+  const [selectedAddons, setSelectedAddons] = useState<RecAddon[]>(
+    asArray<RecAddon>(rec.recommended_addons),
   );
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -352,8 +359,9 @@ function RecommendationDetailModal({
       n += Number(p.normal_price) || 0;
       o += Number(p.offer_price) || 0;
     }
-    return { n, o, s: Math.max(0, n - o) };
-  }, [selectedIds, allPackages]);
+    const addonsSum = selectedAddons.reduce((s, a) => s + (Number(a.price) || 0), 0);
+    return { n, o, s: Math.max(0, n - o), addons: addonsSum, grand: o + addonsSum };
+  }, [selectedIds, selectedAddons, allPackages]);
 
   const togglePkg = (id: string) => {
     setSelectedIds((prev) =>
