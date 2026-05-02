@@ -388,7 +388,7 @@ export const TRANSLATIONS = {
     /* 404 */
     "nf.title": "Page not found",
     "nf.desc": "The page you're looking for doesn't exist or has been moved.",
-    "nf.go_home": "Go home",
+    "nf.go_home": "Go Home",
 
     /* Language switcher */
     "lang.switch": "Language",
