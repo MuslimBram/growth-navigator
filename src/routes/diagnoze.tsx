@@ -71,7 +71,7 @@ function DiagnozePage() {
 
   const startQuestions = () => {
     setPhase("questions");
-    track({ event: "business_name_entered", metadata: { businessName: businessName || "(pa emër)" } });
+    track({ event: "business_name_entered", metadata: { businessName: businessName || "(no name)" } });
   };
 
   const handleAnswer = (value: AnswerValue, weak: boolean) => {
