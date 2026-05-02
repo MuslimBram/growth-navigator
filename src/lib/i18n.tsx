@@ -622,6 +622,61 @@ export const TRANSLATIONS = {
     "ai.too_big": "{name}: tepër e madhe (max 10MB)",
     "ai.max_files": "Maksimumi {max} foto",
 
+    /* Result page */
+    "result.head_title": "Rezultati i Diagnozës — Muslimi Digital",
+    "result.head_desc": "Diagnoza personale e biznesit tënd.",
+    "result.badge_unlocked": "Diagnoza personale",
+    "result.badge_ready": "Diagnoza është gati",
+    "result.title_unlocked_named": "Ja çfarë po ndodh me \"{name}\"",
+    "result.title_unlocked": "Ja çfarë po ndodh me biznesin tënd",
+    "result.title_locked": "Diagnoza jote është gati 🔒",
+    "result.intro_part1": "Bazuar në përgjigjet e tua, kemi identifikuar",
+    "result.intro_emphasis": "shërbimin kryesor",
+    "result.intro_part2": "që të mungon dhe një analizë konkrete të mundësive që po humbet. Lër kontaktin më poshtë dhe merr raportin e plotë + planin personal — pa pagesë.",
+    "result.solution_title": "Zgjidhja kryesore për ty",
+    "result.locked_cta": "Lër kontaktin për t'ju dërguar\nrrezultatin dhe zgjidhjen!",
+    "result.unlocked_badge": "Zhbllokuar",
+    "result.plus_complement": "Plus këto e plotësojnë:",
+    "result.case_similar": "Rast real i ngjashëm",
+    "result.analyze_other": "Analizo një biznes tjetër",
+    "result.restart": "Rifillo diagnozën",
+    "result.history": "Historiku",
+    "result.compare": "Krahaso rezultate",
+    "result.back_home": "← Kthehu në fillim",
+    "result.fallback_diagnosis": "Mungon prania online",
+    "result.error_title": "Diçka shkoi keq",
+    "result.error_default": "Nuk arritëm të ngarkojmë rezultatin.",
+    "result.try_again": "Provo Përsëri",
+    "result.notfound_title": "Sesioni nuk u gjet",
+    "result.notfound_desc": "Mund të ketë skaduar ose linku është i pasaktë.",
+    "result.start_new": "Nis një diagnozë të re",
+
+    /* Auth — extras */
+    "auth.head_title": "Hyr — Muslimi Digital",
+    "auth.email_placeholder": "ti@biznesi.com",
+    "auth.back_aria": "Kthehu mbrapa",
+    "auth.home_aria": "Faqja kryesore",
+
+    /* AI chat — extras */
+    "ai.back_aria": "Kthehu mbrapa",
+    "ai.home_aria": "Faqja kryesore",
+
+    /* Compare — extras */
+    "cmp.unnamed": "Pa emër",
+    "cmp.main_service_label": "Shërbimi kryesor:",
+    "cmp.diagnosis_label": "Diagnoza:",
+
+    /* Home/SEO defaults */
+    "home.head_title": "Muslimi Digital — Diagnoza Falas e Biznesit Tënd",
+    "home.head_desc": "Zbulo brenda 2 minutash cilat shërbime dixhitale i mungojnë biznesit tënd. Diagnozë e personalizuar nga Muslimi Digital.",
+    "home.og_title": "Muslimi Digital — Diagnoza Falas",
+    "home.og_desc": "Nëse dikush kërkon shërbimin tënd sot, a përfundon tek ti apo tek konkurrenti?",
+
+    /* 404 */
+    "nf.title": "Faqja nuk u gjet",
+    "nf.desc": "Faqja që po kërkon nuk ekziston ose është zhvendosur.",
+    "nf.go_home": "Kthehu në fillim",
+
     /* Language switcher */
     "lang.switch": "Gjuha",
     "lang.en": "English",
