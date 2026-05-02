@@ -321,17 +321,18 @@ function DiagnozePage() {
                 </div>
               )}
               <h1 className="text-balance font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl md:text-4xl">
-                {current.question}
+                {QUESTION_TR[locale]?.[current.key]?.question ?? current.question}
               </h1>
-              {current.subtitle && (
+              {(QUESTION_TR[locale]?.[current.key]?.subtitle ?? current.subtitle) && (
                 <p className="mt-3 text-balance text-base text-muted-foreground">
-                  {current.subtitle}
+                  {QUESTION_TR[locale]?.[current.key]?.subtitle ?? current.subtitle}
                 </p>
               )}
 
               <div className="mt-10 space-y-3">
                 {current.options.map((opt) => {
                   const selected = answers[current.key] === opt.value;
+                  const label = QUESTION_TR[locale]?.[current.key]?.options?.[opt.value] ?? opt.label;
                   return (
                     <button
                       key={opt.value}
@@ -342,7 +343,7 @@ function DiagnozePage() {
                           : "border-border bg-surface hover:border-primary/40 hover:bg-surface-elevated"
                       }`}
                     >
-                      <span className="font-medium">{opt.label}</span>
+                      <span className="font-medium">{label}</span>
                       <span
                         className={`flex h-7 w-7 items-center justify-center rounded-full border transition-all ${
                           selected
