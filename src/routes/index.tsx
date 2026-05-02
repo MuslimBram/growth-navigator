@@ -5,16 +5,16 @@ import { LandingSections } from "@/components/LandingSections";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Muslimi Digital — Diagnoza Falas e Biznesit Tënd" },
+      { title: "Muslimi Digital — AI Business Diagnosis" },
       {
         name: "description",
         content:
-          "Zbulo brenda 2 minutash cilat shërbime dixhitale i mungojnë biznesit tënd. Diagnozë e personalizuar nga Muslimi Digital.",
+          "Discover in 2 minutes which digital services your business is missing. A personalized diagnosis from Muslimi Digital.",
       },
-      { property: "og:title", content: "Muslimi Digital — Diagnoza Falas" },
+      { property: "og:title", content: "Muslimi Digital — Free Diagnosis" },
       {
         property: "og:description",
-        content: "Nëse dikush kërkon shërbimin tënd sot, a përfundon tek ti apo tek konkurrenti?",
+        content: "If someone is searching for your service today, do they end up with you, or with your competitor?",
       },
       { property: "og:type", content: "website" },
     ],
