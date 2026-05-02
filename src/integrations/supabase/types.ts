@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      addon_services: {
+        Row: {
+          active: boolean
+          admin_notes: string | null
+          category: Database["public"]["Enums"]["addon_category"]
+          created_at: string
+          currency: string
+          description: string | null
+          display_order: number
+          id: string
+          included_features: Json
+          name: string
+          price_1_month: number
+          price_1_year: number
+          price_3_months: number
+          price_6_months: number
+          supported_platforms: Json
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          admin_notes?: string | null
+          category: Database["public"]["Enums"]["addon_category"]
+          created_at?: string
+          currency?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          included_features?: Json
+          name: string
+          price_1_month?: number
+          price_1_year?: number
+          price_3_months?: number
+          price_6_months?: number
+          supported_platforms?: Json
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          admin_notes?: string | null
+          category?: Database["public"]["Enums"]["addon_category"]
+          created_at?: string
+          currency?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          included_features?: Json
+          name?: string
+          price_1_month?: number
+          price_1_year?: number
+          price_3_months?: number
+          price_6_months?: number
+          supported_platforms?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       admin_invites: {
         Row: {
           created_at: string
@@ -43,6 +100,7 @@ export type Database = {
       }
       admin_recommendations: {
         Row: {
+          addons_total: number
           admin_notes: string | null
           ai_source: string
           analysis_id: string | null
@@ -60,6 +118,7 @@ export type Database = {
           offer_price_total: number
           priority: Database["public"]["Enums"]["recommendation_priority"]
           reasoning: string | null
+          recommended_addons: Json
           recommended_package_ids: Json
           savings_total: number
           session_id: string | null
@@ -67,6 +126,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          addons_total?: number
           admin_notes?: string | null
           ai_source?: string
           analysis_id?: string | null
@@ -84,6 +144,7 @@ export type Database = {
           offer_price_total?: number
           priority?: Database["public"]["Enums"]["recommendation_priority"]
           reasoning?: string | null
+          recommended_addons?: Json
           recommended_package_ids?: Json
           savings_total?: number
           session_id?: string | null
@@ -91,6 +152,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          addons_total?: number
           admin_notes?: string | null
           ai_source?: string
           analysis_id?: string | null
@@ -108,6 +170,7 @@ export type Database = {
           offer_price_total?: number
           priority?: Database["public"]["Enums"]["recommendation_priority"]
           reasoning?: string | null
+          recommended_addons?: Json
           recommended_package_ids?: Json
           savings_total?: number
           session_id?: string | null
@@ -498,6 +561,12 @@ export type Database = {
       }
     }
     Enums: {
+      addon_category:
+        | "optimization"
+        | "strategy"
+        | "analytics"
+        | "planning"
+        | "ads_management"
       app_role: "admin" | "user"
       package_category: "instagram" | "website"
       package_duration:
@@ -650,6 +719,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      addon_category: [
+        "optimization",
+        "strategy",
+        "analytics",
+        "planning",
+        "ads_management",
+      ],
       app_role: ["admin", "user"],
       package_category: ["instagram", "website"],
       package_duration: [
