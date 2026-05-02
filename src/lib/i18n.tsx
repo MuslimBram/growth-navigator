@@ -231,8 +231,8 @@ export const TRANSLATIONS = {
     "wa.msg_book": "I'd like to book a deeper analysis.",
 
     /* Exit intent */
-    "exit.title": "Hesitating? Tell us briefly — what didn't convince you?",
-    "exit.desc": "10 seconds. Nothing is being sold here.",
+    "exit.title": "Wait a second!",
+    "exit.desc": "I know you're busy, but this could save your business thousands of Euros.",
     "exit.reason_not_sure": "I'm not sure I need this",
     "exit.reason_no_time": "I don't have time right now",
     "exit.reason_more_info": "I want to know more before starting",
@@ -518,8 +518,8 @@ export const TRANSLATIONS = {
     "wa.msg_book": "Dua të rezervoj një analizë më të thellë.",
 
     /* Exit intent */
-    "exit.title": "Po heziton? Na thuaj shkurt — çfarë nuk të bindi?",
-    "exit.desc": "10 sekonda. Asgjë nuk shitet këtu.",
+    "exit.title": "Prit 1 sekondë!",
+    "exit.desc": "E di që ke punë, por kjo mund t'i kursejë biznesit tënd mijëra Euro.",
     "exit.reason_not_sure": "Nuk jam i sigurt që kam nevojë",
     "exit.reason_no_time": "Nuk kam kohë tani",
     "exit.reason_more_info": "Dua të di më shumë para se të filloj",
