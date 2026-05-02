@@ -13,6 +13,7 @@ import {
 } from "./diagnostic.server";
 import { aiDiagnose, type DeepAnalysis } from "./diagnostic-ai.server";
 import { notifyNewLead } from "./notify-lead.functions";
+import { generateAndPersistFromSession } from "./recommendation-engine.server";
 
 /**
  * NEW FLOW: Submit answers + extra context + screenshots + lead contact in ONE call.
@@ -83,6 +84,11 @@ export const submitDiagnosis = createServerFn({ method: "POST" })
           source: "diagnostic",
         },
       }).catch((err) => console.error("[submitDiagnosis] notify error:", err));
+
+      // Fire-and-forget: generate admin recommendation in background
+      generateAndPersistFromSession(id).catch((err) =>
+        console.error("[submitDiagnosis] recommendation trigger failed:", err),
+      );
 
       return { sessionId: id, ok: true };
     } catch (error) {

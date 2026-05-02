@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { AdminCaseStudies } from "@/components/AdminCaseStudies";
 import { AdminInvites } from "@/components/AdminInvites";
+import { AdminRecommendations } from "@/components/AdminRecommendations";
+import { AdminPackages } from "@/components/AdminPackages";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useIsAdmin } from "@/hooks/useAuth";
 
@@ -82,7 +84,7 @@ function buildAdminWaMessage(lead: LeadRow, session: SessionRow | null) {
   return lines.join("\n");
 }
 
-type TabKey = "leads" | "sessions" | "surveys" | "case-studies" | "admins";
+type TabKey = "leads" | "sessions" | "surveys" | "recommendations" | "packages" | "case-studies" | "admins";
 type FilterService = "all" | string;
 
 function AdminPage() {
@@ -316,17 +318,17 @@ function AdminPage() {
 
             {/* Tabs */}
             <div className="flex items-center gap-1 mb-4 border-b border-border">
-              {(["leads", "sessions", "surveys", "case-studies", "admins"] as TabKey[]).map((tab) => (
+              {(["leads", "sessions", "recommendations", "packages", "surveys", "case-studies", "admins"] as TabKey[]).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2.5 text-sm font-medium border-b-2 transition ${
+                  className={`px-4 py-2.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${
                     activeTab === tab
                       ? "border-primary text-primary"
                       : "border-transparent text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {tab === "leads" ? `Leads (${leads.length})` : tab === "sessions" ? `Sesione (${allSessions.length})` : tab === "surveys" ? `Surveys (${surveys.length})` : tab === "case-studies" ? "Case Studies" : "Admin-ët"}
+                  {tab === "leads" ? `Leads (${leads.length})` : tab === "sessions" ? `Sesione (${allSessions.length})` : tab === "recommendations" ? "Sugjerime AI" : tab === "packages" ? "Paketat" : tab === "surveys" ? `Surveys (${surveys.length})` : tab === "case-studies" ? "Case Studies" : "Admin-ët"}
                 </button>
               ))}
             </div>
@@ -664,6 +666,20 @@ function AdminPage() {
                     ))
                   )}
                 </div>
+              </section>
+            )}
+
+            {/* Recommendations tab */}
+            {activeTab === "recommendations" && (
+              <section>
+                <AdminRecommendations />
+              </section>
+            )}
+
+            {/* Packages tab */}
+            {activeTab === "packages" && (
+              <section>
+                <AdminPackages />
               </section>
             )}
 
