@@ -6,14 +6,22 @@ import { getLastSessionId } from "@/lib/visitor-id";
 import { track } from "@/lib/analytics";
 import { ExitIntentSurvey } from "@/components/ExitIntentSurvey";
 import { CaseStudyPreview } from "@/components/CaseStudyPreview";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useT } from "@/lib/i18n";
 
 export function Landing() {
+  const t = useT();
   const [returning, setReturning] = useState(false);
 
   useEffect(() => {
     setReturning(Boolean(getLastSessionId()));
     track({ event: "landing_view" });
   }, []);
+
+  const headlineDefault = t("landing.headline_default");
+  const headlineDefaultParts = headlineDefault.split("{highlight}");
+  const headlineReturning = t("landing.headline_returning");
+  const headlineReturningParts = headlineReturning.split("{highlight}");
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
@@ -31,8 +39,9 @@ export function Landing() {
         </div>
         <div className="flex items-center gap-3">
           <span className="hidden text-xs text-muted-foreground sm:inline">
-            Diagnozë Falas · 2 minuta
+            {t("common.brand_tag")}
           </span>
+          <LanguageSwitcher />
           <Link
             to="/auth"
             aria-label="Admin"
@@ -54,7 +63,7 @@ export function Landing() {
         >
           <span className="h-1.5 w-1.5 rounded-full bg-warning animate-pulse" />
           <span className="text-xs font-medium text-muted-foreground">
-            Vende të limituara këtë muaj
+            {t("landing.limited_slots")}
           </span>
         </motion.div>
 
@@ -65,8 +74,9 @@ export function Landing() {
             transition={{ duration: 0.7, delay: 0.1 }}
             className="max-w-3xl text-balance text-3xl font-bold leading-[1.05] tracking-tight sm:text-4xl md:text-5xl lg:text-6xl"
           >
-            Ende nuk e ke{" "}
-            <span className="text-gradient-primary">rregulluar</span> këtë problem?
+            {headlineReturningParts[0]}
+            <span className="text-gradient-primary">{t("landing.headline_returning_highlight")}</span>
+            {headlineReturningParts[1]}
           </motion.h1>
         ) : (
           <motion.h1
@@ -75,10 +85,9 @@ export function Landing() {
             transition={{ duration: 0.7, delay: 0.1 }}
             className="max-w-3xl text-balance text-3xl font-bold leading-[1.05] tracking-tight sm:text-4xl md:text-5xl lg:text-6xl"
           >
-            Nëse dikush kërkon shërbimin tënd sot…{" "}
-            <span className="text-gradient-primary">
-              a përfundon tek ti apo tek konkurrenti?
-            </span>
+            {headlineDefaultParts[0]}
+            <span className="text-gradient-primary">{t("landing.headline_default_highlight")}</span>
+            {headlineDefaultParts[1]}
           </motion.h1>
         )}
 
@@ -88,9 +97,7 @@ export function Landing() {
           transition={{ duration: 0.7, delay: 0.25 }}
           className="mt-6 max-w-xl text-balance text-base text-muted-foreground sm:text-lg"
         >
-          {returning
-            ? "Apo do që të zbulosh ndonjë gjë tjetër? Nis një diagnozë të re falas."
-            : "Zbulo brenda 2 minutash cilat shërbime i mungojnë biznesit tënd."}
+          {returning ? t("landing.subtitle_returning") : t("landing.subtitle_default")}
         </motion.p>
 
         <motion.div
@@ -104,7 +111,7 @@ export function Landing() {
             onClick={() => track({ event: "diagnosis_start", metadata: { source: "hero_cta" } })}
             className="group inline-flex items-center gap-3 rounded-full bg-gradient-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-all hover:scale-[1.03] hover:shadow-glow-soft sm:px-8 sm:py-4 sm:text-base"
           >
-            Nis Diagnozën Falas
+            {t("landing.cta_start")}
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </Link>
 
@@ -113,18 +120,18 @@ export function Landing() {
             onClick={() => track({ event: "ai_analyze_start", metadata: { source: "hero_cta" } })}
             className="group inline-flex items-center gap-3 rounded-full border-2 border-primary px-6 py-3.5 text-sm font-semibold text-primary shadow-glow-soft transition-all hover:scale-[1.03] hover:bg-primary hover:text-primary-foreground sm:px-8 sm:py-4 sm:text-base"
           >
-            Analizo me AI
+            {t("landing.cta_ai")}
             <Sparkles className="h-5 w-5 transition-transform group-hover:scale-110" />
           </Link>
 
           <p className="mt-4 text-xs text-muted-foreground">
-            Pa email · pa regjistrim · 6 pyetje
+            {t("landing.cta_disclaimer")}
           </p>
           <Link
             to="/historiku"
             className="mt-2 text-xs text-primary/60 hover:text-primary transition"
           >
-            Shiko analizat e mëparshme →
+            {t("landing.cta_history")}
           </Link>
         </motion.div>
 
@@ -136,9 +143,9 @@ export function Landing() {
           className="mt-14 grid w-full max-w-2xl grid-cols-3 gap-3 border-t border-border pt-8 sm:mt-20 sm:gap-4 sm:pt-10"
         >
           {[
-            { n: "6", l: "pyetje" },
-            { n: "2 min", l: "kohë" },
-            { n: "100%", l: "personalizuar" },
+            { n: "6", l: t("landing.stats_questions") },
+            { n: "2 min", l: t("landing.stats_time") },
+            { n: "100%", l: t("landing.stats_personalized") },
           ].map((s) => (
             <div key={s.l} className="text-center">
               <div className="font-display text-2xl font-bold text-foreground sm:text-3xl">
@@ -153,7 +160,7 @@ export function Landing() {
       </main>
 
       {/* Case Studies Section */}
-      <CaseStudyPreview limit={3} title="Rezultate reale nga klientët tanë" />
+      <CaseStudyPreview limit={3} title={t("landing.cases_title")} />
 
       <ExitIntentSurvey />
     </div>
