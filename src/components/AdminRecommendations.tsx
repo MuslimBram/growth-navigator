@@ -3,13 +3,15 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   listRecommendations,
   listPackages,
+  listAddons,
   updateRecommendationStatus,
   updateRecommendationPackages,
+  updateRecommendationAddons,
   updateRecommendationProposal,
   updateRecommendationNotes,
   regenerateProposal,
 } from "@/server/recommendations.functions";
-import { Loader2, MessageCircle, RefreshCw, Save, Filter, X, Check } from "lucide-react";
+import { Loader2, MessageCircle, RefreshCw, Save, Filter, X, Check, Plus, Trash2 } from "lucide-react";
 
 type Priority = "low" | "medium" | "high";
 type Status = "new" | "reviewed" | "contacted" | "converted" | "rejected";
