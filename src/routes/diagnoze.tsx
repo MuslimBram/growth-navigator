@@ -492,13 +492,13 @@ function DiagnozePage() {
             >
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-warning/30 bg-warning/5 px-3 py-1 text-xs text-warning">
                 <span className="h-1.5 w-1.5 rounded-full bg-warning animate-pulse" />
-                Hapi i fundit
+                {t("diag.lead_badge")}
               </div>
               <h1 className="font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl md:text-4xl">
-                Ku të të kontaktojmë me analizën?
+                {t("diag.lead_title")}
               </h1>
               <p className="mt-3 text-base text-muted-foreground">
-                Ekipi ynë do të të dërgojë analizën personale brenda 24 orëve në Email ose WhatsApp. Pa pagesë, pa spam.
+                {t("diag.lead_desc")}
               </p>
 
               <div className="mt-6 space-y-3">
@@ -508,7 +508,7 @@ function DiagnozePage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email yt"
+                    placeholder={t("diag.email_placeholder")}
                     maxLength={200}
                     className="w-full rounded-xl border border-border bg-surface pl-11 pr-4 py-3.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
@@ -519,13 +519,13 @@ function DiagnozePage() {
                     type="tel"
                     value={whatsapp}
                     onChange={(e) => setWhatsapp(e.target.value)}
-                    placeholder="WhatsApp (p.sh. +355 69 ...)"
+                    placeholder={t("diag.whatsapp_placeholder")}
                     maxLength={30}
                     className="w-full rounded-xl border border-border bg-surface pl-11 pr-4 py-3.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Mjafton një nga të dyja. Të dyja = përgjigje më e shpejtë.
+                  {t("diag.lead_hint")}
                 </p>
               </div>
 
@@ -539,14 +539,14 @@ function DiagnozePage() {
                   onClick={() => setPhase("context")}
                   className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
                 >
-                  <ArrowLeft className="h-4 w-4" /> Mbrapa
+                  <ArrowLeft className="h-4 w-4" /> {t("common.back")}
                 </button>
                 <button
                   type="button"
                   onClick={submitAll}
                   className="inline-flex items-center gap-2 rounded-full bg-gradient-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow hover:scale-[1.02] transition-all"
                 >
-                  Dërgo & Prit Analizën
+                  {t("diag.lead_submit")}
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
