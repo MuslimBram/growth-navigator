@@ -335,6 +335,61 @@ export const TRANSLATIONS = {
     "ai.too_big": "{name}: too large (max 10MB)",
     "ai.max_files": "Maximum {max} photos",
 
+    /* Result page */
+    "result.head_title": "Your Diagnosis — Muslimi Digital",
+    "result.head_desc": "Your personal business diagnosis.",
+    "result.badge_unlocked": "Personal diagnosis",
+    "result.badge_ready": "Your diagnosis is ready",
+    "result.title_unlocked_named": "Here's what's happening with \"{name}\"",
+    "result.title_unlocked": "Here's what's happening with your business",
+    "result.title_locked": "Your diagnosis is ready 🔒",
+    "result.intro_part1": "Based on your answers, we have identified",
+    "result.intro_emphasis": "the main service",
+    "result.intro_part2": "you are missing and a concrete analysis of the opportunities you are losing. Leave your contact below and get the full report + personal plan — free of charge.",
+    "result.solution_title": "Main solution for you",
+    "result.locked_cta": "Leave your contact so we can send\nthe result and the solution!",
+    "result.unlocked_badge": "Unlocked",
+    "result.plus_complement": "Plus these complement it:",
+    "result.case_similar": "Similar real case",
+    "result.analyze_other": "Analyze another business",
+    "result.restart": "Restart diagnosis",
+    "result.history": "History",
+    "result.compare": "Compare results",
+    "result.back_home": "← Back to start",
+    "result.fallback_diagnosis": "Missing online presence",
+    "result.error_title": "Something went wrong",
+    "result.error_default": "We couldn't load the result.",
+    "result.try_again": "Try Again",
+    "result.notfound_title": "Session not found",
+    "result.notfound_desc": "It may have expired or the link is incorrect.",
+    "result.start_new": "Start a new diagnosis",
+
+    /* Auth — extras */
+    "auth.head_title": "Sign in — Muslimi Digital",
+    "auth.email_placeholder": "you@business.com",
+    "auth.back_aria": "Go back",
+    "auth.home_aria": "Home",
+
+    /* AI chat — extras */
+    "ai.back_aria": "Go back",
+    "ai.home_aria": "Home",
+
+    /* Compare — extras */
+    "cmp.unnamed": "No name",
+    "cmp.main_service_label": "Main service:",
+    "cmp.diagnosis_label": "Diagnosis:",
+
+    /* Home/SEO defaults */
+    "home.head_title": "Muslimi Digital — Free Business Diagnosis",
+    "home.head_desc": "Discover in 2 minutes which digital services your business is missing. A personalized diagnosis from Muslimi Digital.",
+    "home.og_title": "Muslimi Digital — Free Diagnosis",
+    "home.og_desc": "If someone is searching for your service today, do they end up with you, or with your competitor?",
+
+    /* 404 */
+    "nf.title": "Page not found",
+    "nf.desc": "The page you're looking for doesn't exist or has been moved.",
+    "nf.go_home": "Go home",
+
     /* Language switcher */
     "lang.switch": "Language",
     "lang.en": "English",
