@@ -428,6 +428,7 @@ function RecommendationDetailModal({
     }
   };
 
+  const saveProposal = async () => {
     setBusy("proposal");
     try {
       await setProposal({ data: { id: rec.id, client_proposal_text: proposal } });
