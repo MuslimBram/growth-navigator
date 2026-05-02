@@ -1,15 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Home, ArrowLeft, Check } from "lucide-react";
-import { SERVICE_LABELS } from "@/lib/diagnostic-types";
+import { ArrowLeft, Check } from "lucide-react";
+import { useT, useI18n, SERVICE_LABELS_I18N } from "@/lib/i18n";
 import type { ServiceKey } from "@/lib/diagnostic-types";
 import { getSavedAnalyses } from "./historiku";
 
 export const Route = createFileRoute("/krahaso")({
   head: () => ({
     meta: [
-      { title: "Krahaso Analizat — Muslimi Digital" },
+      { title: "Compare Analyses — Muslimi Digital" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -29,6 +29,8 @@ interface SavedAnalysis {
 }
 
 function ComparePage() {
+  const t = useT();
+  const { locale } = useI18n();
   const [analyses, setAnalyses] = useState<SavedAnalysis[]>([]);
   const [selected, setSelected] = useState<[string | null, string | null]>([null, null]);
 
@@ -48,6 +50,7 @@ function ComparePage() {
 
   const left = analyses.find((a) => a.sessionId === selected[0]);
   const right = analyses.find((a) => a.sessionId === selected[1]);
+  const dateLocale = locale === "sq" ? "sq-AL" : "en-US";
 
   return (
     <div className="relative min-h-screen bg-background">
@@ -61,7 +64,7 @@ function ComparePage() {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <h1 className="font-display text-lg font-bold sm:text-xl">
-          Krahaso 2 Analiza
+          {t("cmp.title")}
         </h1>
       </header>
 
@@ -70,7 +73,9 @@ function ComparePage() {
         {(!left || !right) && (
           <div className="mb-8">
             <p className="mb-3 text-sm text-muted-foreground">
-              Zgjidh {!left && !right ? "2 analiza" : "1 analizë tjetër"} për krahasim:
+              {t("cmp.pick_prefix")}
+              {!left && !right ? t("cmp.pick_two") : t("cmp.pick_one_more")}
+              {t("cmp.pick_suffix")}
             </p>
             <div className="space-y-2">
               {analyses.map((a) => {
@@ -87,10 +92,10 @@ function ComparePage() {
                   >
                     <div>
                       <span className="font-medium text-sm">
-                        {a.businessName || "Pa emër"}
+                        {a.businessName || t("cmp.unnamed")}
                       </span>
                       <span className="ml-2 text-xs text-muted-foreground">
-                        {new Date(a.createdAt).toLocaleDateString("sq-AL")}
+                        {new Date(a.createdAt).toLocaleDateString(dateLocale)}
                       </span>
                     </div>
                     {isSelected && <Check className="h-4 w-4 text-primary" />}
@@ -108,15 +113,15 @@ function ComparePage() {
             animate={{ opacity: 1, y: 0 }}
           >
             <div className="grid gap-4 sm:grid-cols-2">
-              <CompareCard analysis={left} label="Analiza A" />
-              <CompareCard analysis={right} label="Analiza B" />
+              <CompareCard analysis={left} label={t("cmp.label_a")} />
+              <CompareCard analysis={right} label={t("cmp.label_b")} />
             </div>
 
             <button
               onClick={() => setSelected([null, null])}
               className="mt-6 text-sm text-muted-foreground hover:text-foreground"
             >
-              ← Zgjidh analiza të tjera
+              {t("cmp.choose_others")}
             </button>
           </motion.div>
         )}
@@ -124,13 +129,13 @@ function ComparePage() {
         {analyses.length < 2 && (
           <div className="mt-12 rounded-2xl border border-border bg-surface p-10 text-center">
             <p className="text-muted-foreground">
-              Duhen të paktën 2 analiza për krahasim.
+              {t("cmp.need_two")}
             </p>
             <Link
               to="/diagnoze"
               className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow"
             >
-              Nis Diagnozën
+              {t("cmp.start_diag")}
             </Link>
           </div>
         )}
@@ -146,29 +151,33 @@ function CompareCard({
   analysis: SavedAnalysis;
   label: string;
 }) {
+  const t = useT();
+  const { locale } = useI18n();
+  const labels = SERVICE_LABELS_I18N[locale];
+  const dateLocale = locale === "sq" ? "sq-AL" : "en-US";
   return (
     <div className="rounded-2xl border border-border bg-surface p-5">
       <div className="mb-3 text-xs font-bold uppercase tracking-wider text-primary">
         {label}
       </div>
       <h3 className="font-display text-lg font-bold">
-        {analysis.businessName || "Pa emër"}
+        {analysis.businessName || t("cmp.unnamed")}
       </h3>
       <p className="mt-1 text-xs text-muted-foreground">
-        {new Date(analysis.createdAt).toLocaleString("sq-AL")}
+        {new Date(analysis.createdAt).toLocaleString(dateLocale)}
       </p>
 
       <div className="mt-4 space-y-3 text-sm">
         <div>
-          <span className="text-xs text-muted-foreground">Shërbimi kryesor:</span>
+          <span className="text-xs text-muted-foreground">{t("cmp.main_service_label")}</span>
           <p className="font-semibold text-primary">
-            {SERVICE_LABELS[analysis.primaryService as ServiceKey] || analysis.primaryService}
+            {labels[analysis.primaryService as ServiceKey] || analysis.primaryService}
           </p>
         </div>
 
         {analysis.diagnosis && (
           <div>
-            <span className="text-xs text-muted-foreground">Diagnoza:</span>
+            <span className="text-xs text-muted-foreground">{t("cmp.diagnosis_label")}</span>
             <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
               {analysis.diagnosis}
             </p>

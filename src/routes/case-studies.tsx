@@ -3,21 +3,22 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Loader2, Quote, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/case-studies")({
   component: CaseStudiesPage,
   head: () => ({
     meta: [
-      { title: "Raste Studimi — Muslimi Digital" },
+      { title: "Case Studies — Muslimi Digital" },
       {
         name: "description",
         content:
-          "Si i kemi ndihmuar bizneset reale të rrisin shitjet, klientët dhe prezencën dixhitale me SEO, web 3D, branding dhe automatizim.",
+          "How we have helped real businesses grow sales, customers and digital presence with SEO, 3D web, branding and automation.",
       },
-      { property: "og:title", content: "Raste Studimi — Muslimi Digital" },
+      { property: "og:title", content: "Case Studies — Muslimi Digital" },
       {
         property: "og:description",
-        content: "Rezultate reale nga klientët tanë.",
+        content: "Real results from our clients.",
       },
     ],
   }),
@@ -40,6 +41,7 @@ interface CaseStudy {
 }
 
 function CaseStudiesPage() {
+  const t = useT();
   const [items, setItems] = useState<CaseStudy[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -61,13 +63,13 @@ function CaseStudiesPage() {
       <header className="border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Kthehu
+            <ArrowLeft className="h-4 w-4" /> {t("common.back")}
           </Link>
           <Link
             to="/diagnoze"
             className="text-sm bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90"
           >
-            Nis Diagnozën
+            {t("hist.start")}
           </Link>
         </div>
       </header>
@@ -78,7 +80,7 @@ function CaseStudiesPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-4xl md:text-5xl font-bold text-foreground mb-4"
         >
-          Rezultate reale, jo premtime
+          {t("cases.title")}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0 }}
@@ -86,7 +88,7 @@ function CaseStudiesPage() {
           transition={{ delay: 0.1 }}
           className="text-lg text-muted-foreground max-w-2xl mx-auto"
         >
-          Si kemi ndihmuar biznese si i yti të rriten brenda 90 ditësh.
+          {t("cases.subtitle")}
         </motion.p>
       </section>
 
@@ -98,13 +100,13 @@ function CaseStudiesPage() {
         ) : items.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-muted-foreground mb-6">
-              Po përgatitemi të publikojmë rastet e para të studimit.
+              {t("cases.empty")}
             </p>
             <Link
               to="/diagnoze"
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium hover:bg-primary/90"
             >
-              Bëhu rasti i parë <ArrowRight className="h-4 w-4" />
+              {t("cases.be_first")} <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         ) : (
@@ -139,11 +141,11 @@ function CaseStudiesPage() {
                     <h2 className="text-2xl font-bold text-foreground mb-3">{cs.title}</h2>
                     <div className="space-y-3 text-sm">
                       <div>
-                        <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Problemi</div>
+                        <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">{t("cases.problem")}</div>
                         <p className="text-foreground/80">{cs.problem}</p>
                       </div>
                       <div>
-                        <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Rezultati</div>
+                        <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">{t("cases.result")}</div>
                         <p className="text-foreground/80">{cs.result_summary}</p>
                       </div>
                     </div>
@@ -184,7 +186,7 @@ function CaseStudiesPage() {
             to="/diagnoze"
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-xl font-semibold hover:bg-primary/90 shadow-lg shadow-primary/20"
           >
-            Dua rezultate si këto <ArrowRight className="h-5 w-5" />
+            {t("cases.want_results")} <ArrowRight className="h-5 w-5" />
           </Link>
         </div>
       </main>

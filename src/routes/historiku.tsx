@@ -2,13 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Clock, ArrowRight, Home, Trash2, BarChart3, Plus } from "lucide-react";
-import { SERVICE_LABELS } from "@/lib/diagnostic-types";
+import { useT, useI18n, SERVICE_LABELS_I18N } from "@/lib/i18n";
 import type { ServiceKey } from "@/lib/diagnostic-types";
 
 export const Route = createFileRoute("/historiku")({
   head: () => ({
     meta: [
-      { title: "Historiku i Analizave — Muslimi Digital" },
+      { title: "Analysis History — Muslimi Digital" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -59,6 +59,9 @@ export function deleteAnalysis(sessionId: string) {
 }
 
 function HistoryPage() {
+  const t = useT();
+  const { locale } = useI18n();
+  const labels = SERVICE_LABELS_I18N[locale];
   const [analyses, setAnalyses] = useState<SavedAnalysis[]>([]);
 
   useEffect(() => {
@@ -69,6 +72,8 @@ function HistoryPage() {
     deleteAnalysis(sessionId);
     setAnalyses(getSavedAnalyses());
   };
+
+  const dateLocale = locale === "sq" ? "sq-AL" : "en-US";
 
   return (
     <div className="relative min-h-screen bg-background">
@@ -83,7 +88,7 @@ function HistoryPage() {
             <Home className="h-4 w-4" />
           </Link>
           <h1 className="font-display text-lg font-bold sm:text-xl">
-            Historiku i Analizave
+            {t("hist.title")}
           </h1>
         </div>
         <Link
@@ -91,7 +96,7 @@ function HistoryPage() {
           className="inline-flex items-center gap-2 rounded-full bg-gradient-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-glow sm:text-sm"
         >
           <Plus className="h-3.5 w-3.5" />
-          Analizë e re
+          {t("hist.new")}
         </Link>
       </header>
 
@@ -104,16 +109,16 @@ function HistoryPage() {
           >
             <BarChart3 className="mx-auto h-12 w-12 text-muted-foreground/40" />
             <h2 className="mt-4 font-display text-xl font-bold">
-              Asnjë analizë ende
+              {t("hist.empty_title")}
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Nis diagnozën e parë për të parë historikun këtu.
+              {t("hist.empty_desc")}
             </p>
             <Link
               to="/diagnoze"
               className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow"
             >
-              Nis Diagnozën <ArrowRight className="h-4 w-4" />
+              {t("hist.start")} <ArrowRight className="h-4 w-4" />
             </Link>
           </motion.div>
         ) : (
@@ -125,7 +130,7 @@ function HistoryPage() {
                   className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-4 py-2 text-xs font-semibold text-primary hover:bg-primary/10"
                 >
                   <BarChart3 className="h-3.5 w-3.5" />
-                  Krahaso 2 analiza
+                  {t("hist.compare")}
                 </Link>
               </div>
             )}
@@ -143,15 +148,15 @@ function HistoryPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold text-foreground text-sm truncate">
-                          {a.businessName || "Pa emër"}
+                          {a.businessName || t("hist.no_name")}
                         </span>
                         <span className="inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                          {SERVICE_LABELS[a.primaryService as ServiceKey] || a.primaryService}
+                          {labels[a.primaryService as ServiceKey] || a.primaryService}
                         </span>
                       </div>
                       <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                         <Clock className="h-3 w-3" />
-                        {new Date(a.createdAt).toLocaleString("sq-AL")}
+                        {new Date(a.createdAt).toLocaleString(dateLocale)}
                       </div>
                       {a.diagnosis && (
                         <p className="mt-2 text-xs text-muted-foreground line-clamp-2">
@@ -165,12 +170,12 @@ function HistoryPage() {
                         params={{ sessionId: a.sessionId }}
                         className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted/40"
                       >
-                        Shiko
+                        {t("hist.view")}
                       </Link>
                       <button
                         onClick={() => handleDelete(a.sessionId)}
                         className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
-                        aria-label="Fshi"
+                        aria-label={t("hist.delete")}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
