@@ -10,6 +10,7 @@ import { AdminCaseStudies } from "@/components/AdminCaseStudies";
 import { AdminInvites } from "@/components/AdminInvites";
 import { AdminRecommendations } from "@/components/AdminRecommendations";
 import { AdminPackages } from "@/components/AdminPackages";
+import { AdminAddons } from "@/components/AdminAddons";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useIsAdmin } from "@/hooks/useAuth";
 
@@ -84,7 +85,7 @@ function buildAdminWaMessage(lead: LeadRow, session: SessionRow | null) {
   return lines.join("\n");
 }
 
-type TabKey = "leads" | "sessions" | "surveys" | "recommendations" | "packages" | "case-studies" | "admins";
+type TabKey = "leads" | "sessions" | "surveys" | "recommendations" | "packages" | "addons" | "case-studies" | "admins";
 type FilterService = "all" | string;
 
 function AdminPage() {
@@ -318,7 +319,7 @@ function AdminPage() {
 
             {/* Tabs */}
             <div className="flex items-center gap-1 mb-4 border-b border-border">
-              {(["leads", "sessions", "recommendations", "packages", "surveys", "case-studies", "admins"] as TabKey[]).map((tab) => (
+              {(["leads", "sessions", "recommendations", "packages", "addons", "surveys", "case-studies", "admins"] as TabKey[]).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -328,7 +329,7 @@ function AdminPage() {
                       : "border-transparent text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {tab === "leads" ? `Leads (${leads.length})` : tab === "sessions" ? `Sesione (${allSessions.length})` : tab === "recommendations" ? "Sugjerime AI" : tab === "packages" ? "Paketat" : tab === "surveys" ? `Surveys (${surveys.length})` : tab === "case-studies" ? "Case Studies" : "Admin-ët"}
+                  {tab === "leads" ? `Leads (${leads.length})` : tab === "sessions" ? `Sesione (${allSessions.length})` : tab === "recommendations" ? "Sugjerime AI" : tab === "packages" ? "Paketat" : tab === "addons" ? "Add-ons" : tab === "surveys" ? `Surveys (${surveys.length})` : tab === "case-studies" ? "Case Studies" : "Admin-ët"}
                 </button>
               ))}
             </div>
@@ -680,6 +681,13 @@ function AdminPage() {
             {activeTab === "packages" && (
               <section>
                 <AdminPackages />
+              </section>
+            )}
+
+            {/* Add-ons tab */}
+            {activeTab === "addons" && (
+              <section>
+                <AdminAddons />
               </section>
             )}
 

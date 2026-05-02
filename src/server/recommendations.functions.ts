@@ -5,11 +5,24 @@ import {
   generateAndPersistFromSession,
   generateAndPersistFromAnalysis,
   fetchActivePackages,
+  fetchActiveAddons,
   computeTotals,
   generateAIRecommendation,
   persistRecommendation,
+  priceLookupForAddon,
   type AIRecommendation,
+  type AddonDuration,
+  type RecommendedAddon,
 } from "./recommendation-engine.server";
+
+const ADDON_DURATIONS = ["1_month", "3_months", "6_months", "1_year"] as const;
+const ADDON_CATEGORIES = [
+  "optimization",
+  "strategy",
+  "analytics",
+  "planning",
+  "ads_management",
+] as const;
 
 // ───── Public-side trigger (no auth, called from diagnosis flow) ─────
 // Fire-and-forget. Only requires a session/analysis ID; service-role used internally.
@@ -124,8 +137,31 @@ export const updateRecommendationPackages = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const packages = await fetchActivePackages();
-    const totals = computeTotals(data.package_ids, packages);
+    const [packages, addons] = await Promise.all([
+      fetchActivePackages(),
+      fetchActiveAddons(),
+    ]);
+    // Re-read current addons to keep totals correct
+    const { data: rec } = await context.supabase
+      .from("admin_recommendations")
+      .select("recommended_addons")
+      .eq("id", data.id)
+      .single();
+    const currentAddons = Array.isArray(rec?.recommended_addons)
+      ? (rec!.recommended_addons as unknown as RecommendedAddon[])
+      : [];
+    // refresh prices in case addon prices changed
+    const refreshed = currentAddons
+      .map((a) => {
+        const addon = addons.find((x) => x.id === a.addon_id);
+        if (!addon) return null;
+        return {
+          ...a,
+          price: priceLookupForAddon(addon, a.duration),
+        } satisfies RecommendedAddon;
+      })
+      .filter(Boolean) as RecommendedAddon[];
+    const totals = computeTotals(data.package_ids, packages, refreshed);
     const { error } = await context.supabase
       .from("admin_recommendations")
       .update({
@@ -133,10 +169,77 @@ export const updateRecommendationPackages = createServerFn({ method: "POST" })
         normal_price_total: totals.normal_price_total,
         offer_price_total: totals.offer_price_total,
         savings_total: totals.savings_total,
+        addons_total: totals.addons_total,
       })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true, totals };
+  });
+
+// Replace addons selection (with optional manual price override)
+export const updateRecommendationAddons = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        addons: z
+          .array(
+            z.object({
+              addon_id: z.string().uuid(),
+              duration: z.enum(ADDON_DURATIONS),
+              price: z.number().min(0).optional(),
+              reason: z.string().max(500).optional(),
+            }),
+          )
+          .max(5),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const [packages, addons] = await Promise.all([
+      fetchActivePackages(),
+      fetchActiveAddons(),
+    ]);
+    const { data: rec } = await context.supabase
+      .from("admin_recommendations")
+      .select("recommended_package_ids")
+      .eq("id", data.id)
+      .single();
+    const pkgIds = Array.isArray(rec?.recommended_package_ids)
+      ? (rec!.recommended_package_ids as unknown as string[])
+      : [];
+
+    const normalized: RecommendedAddon[] = data.addons
+      .map((a) => {
+        const addon = addons.find((x) => x.id === a.addon_id);
+        if (!addon) return null;
+        const price =
+          typeof a.price === "number" && a.price >= 0
+            ? a.price
+            : priceLookupForAddon(addon, a.duration as AddonDuration);
+        return {
+          addon_id: a.addon_id,
+          duration: a.duration as AddonDuration,
+          price,
+          reason: a.reason,
+        };
+      })
+      .filter(Boolean) as RecommendedAddon[];
+
+    const totals = computeTotals(pkgIds, packages, normalized);
+    const { error } = await context.supabase
+      .from("admin_recommendations")
+      .update({
+        recommended_addons: normalized as never,
+        normal_price_total: totals.normal_price_total,
+        offer_price_total: totals.offer_price_total,
+        savings_total: totals.savings_total,
+        addons_total: totals.addons_total,
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true, totals, addons: normalized };
   });
 
 export const updateRecommendationProposal = createServerFn({ method: "POST" })
@@ -261,7 +364,7 @@ export const regenerateProposal = createServerFn({ method: "POST" })
       .single();
     if (error || !rec) throw new Error("Rekomandimi nuk u gjet.");
 
-    const packages = await fetchActivePackages();
+    const [packages, addons] = await Promise.all([fetchActivePackages(), fetchActiveAddons()]);
     const aiRes = await generateAIRecommendation(
       {
         businessName: rec.business_name,
@@ -271,6 +374,7 @@ export const regenerateProposal = createServerFn({ method: "POST" })
         diagnosis: rec.reasoning,
       },
       packages,
+      addons,
     );
     if (!aiRes) throw new Error("Gjenerimi dështoi. Provo më vonë.");
 
@@ -285,4 +389,84 @@ export const regenerateProposal = createServerFn({ method: "POST" })
       .eq("id", data.id);
     if (updErr) throw new Error(updErr.message);
     return { ok: true, reasoning: ai.reasoning, client_proposal_text: ai.client_proposal_text };
+  });
+
+// ───── Add-on services CRUD ─────
+
+export const listAddons = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("addon_services")
+      .select("*")
+      .order("display_order");
+    if (error) throw new Error(error.message);
+    return { addons: data ?? [] };
+  });
+
+export const upsertAddon = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        name: z.string().min(1).max(200),
+        category: z.enum(ADDON_CATEGORIES),
+        description: z.string().max(2000).optional().nullable(),
+        included_features: z.array(z.string()).default([]),
+        supported_platforms: z.array(z.string()).default([]),
+        price_1_month: z.number().min(0),
+        price_3_months: z.number().min(0),
+        price_6_months: z.number().min(0),
+        price_1_year: z.number().min(0),
+        currency: z.string().default("USD"),
+        active: z.boolean().default(true),
+        display_order: z.number().int().default(0),
+        admin_notes: z.string().max(2000).optional().nullable(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const payload = {
+      name: data.name,
+      category: data.category,
+      description: data.description ?? null,
+      included_features: data.included_features,
+      supported_platforms: data.supported_platforms,
+      price_1_month: data.price_1_month,
+      price_3_months: data.price_3_months,
+      price_6_months: data.price_6_months,
+      price_1_year: data.price_1_year,
+      currency: data.currency,
+      active: data.active,
+      display_order: data.display_order,
+      admin_notes: data.admin_notes ?? null,
+    };
+    if (data.id) {
+      const { error } = await context.supabase
+        .from("addon_services")
+        .update(payload)
+        .eq("id", data.id);
+      if (error) throw new Error(error.message);
+      return { ok: true, id: data.id };
+    }
+    const { data: inserted, error } = await context.supabase
+      .from("addon_services")
+      .insert(payload)
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { ok: true, id: inserted.id };
+  });
+
+export const deleteAddon = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("addon_services")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });

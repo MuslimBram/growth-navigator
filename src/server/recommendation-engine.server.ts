@@ -1,11 +1,21 @@
 // Server-only logic for generating admin service recommendations.
 // Uses Lovable AI Gateway with tool calling to pick the best packages
-// from the service_packages catalog based on diagnosis answers + analysis.
+// + add-on services from the catalog based on diagnosis answers + analysis.
 
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 type PackageRow = Database["public"]["Tables"]["service_packages"]["Row"];
+type AddonRow = Database["public"]["Tables"]["addon_services"]["Row"];
+
+export type AddonDuration = "1_month" | "3_months" | "6_months" | "1_year";
+
+export interface RecommendedAddon {
+  addon_id: string;
+  duration: AddonDuration;
+  price: number;
+  reason?: string;
+}
 
 export interface RecommendationContext {
   businessName?: string | null;
@@ -23,6 +33,7 @@ export interface RecommendationContext {
 
 export interface AIRecommendation {
   recommended_package_ids: string[];
+  recommended_addons: RecommendedAddon[];
   reasoning: string;
   client_proposal_text: string;
   priority: "low" | "medium" | "high";
@@ -51,6 +62,20 @@ export async function fetchActivePackages(): Promise<PackageRow[]> {
   return data ?? [];
 }
 
+export async function fetchActiveAddons(): Promise<AddonRow[]> {
+  const admin = getAdminClient();
+  const { data, error } = await admin
+    .from("addon_services")
+    .select("*")
+    .eq("active", true)
+    .order("display_order");
+  if (error) {
+    console.error("[recommendation] fetchActiveAddons error:", error);
+    return [];
+  }
+  return data ?? [];
+}
+
 function buildPackageCatalog(packages: PackageRow[]): string {
   return packages
     .map(
@@ -60,30 +85,67 @@ function buildPackageCatalog(packages: PackageRow[]): string {
     .join("\n");
 }
 
+function buildAddonCatalog(addons: AddonRow[]): string {
+  return addons
+    .map(
+      (a) =>
+        `[${a.id}] ${a.name} | category=${a.category} | platforms=${JSON.stringify(a.supported_platforms)} | features=${JSON.stringify(a.included_features)} | prices: 1m=$${a.price_1_month}, 3m=$${a.price_3_months}, 6m=$${a.price_6_months}, 1y=$${a.price_1_year}`,
+    )
+    .join("\n");
+}
+
 const SYSTEM_PROMPT = `Ti je këshilltar shitjesh dhe strategjie dixhitale për agjencinë Muslimi Digital (tregu shqiptar).
-Detyra jote: bazuar në diagnozën e biznesit, zgjidh nga katalogu i paketave 1-3 paketa që i shërbejnë më mirë këtij biznesi, dhe shkruaj:
-1) Një ARSYETIM të shkurtër (2-4 fjali) për Adminin — pse pikërisht këto paketa, çfarë problemi zgjidhin.
-2) Një PROPOZIM profesional në shqip për t'ia dërguar klientit (3-5 fjali, ton miqësor por profesional, pa shitje agresive).
-3) Prioriteti i lead-it (low/medium/high) bazuar në potencialin e shitjes.
-4) 2-4 problemet kryesore të identifikuara.
+Detyra jote: bazuar në diagnozën e biznesit, zgjidh nga katalogu paketat KRYESORE (1-3 paketa Instagram/Website) dhe nëse ka nevojë SHTO ADD-ONS (0-3 shërbime shtesë: optimizim, strategji, analizë, planifikim, menaxhim reklamash).
 
-REGULLAT:
-- Nëse biznesi nuk ka website → propozo Website Bazë ose Avancuar.
-- Nëse ka website të dobët → Website Avancuar ose Premium.
-- Nëse ka rrjete sociale por poston rrallë → Paketa Bazë ose Avancuar Instagram.
-- Nëse nuk ka strategji/hashtag/raport → Paketa Full Bazë ose Full Avancuar.
-- Restorant / hotel / klinikë / dyqan / biznes me konkurrencë të fortë → kombinim Website + Instagram Full.
-- Nëse kërkon rritje serioze → Website Avancuar + Paketa Full Avancuar.
-- Nëse kërkon e-commerce / booking / shumë faqe → Website Premium (quote only) + shëno "Flet me Adminet".
-- Preferoj kohëzgjatje 3-mujore për Instagram dhe 1-vit për Website kur biznesi është gati.
-- Mos rekomando paketa nga e njëjta kategori me kohëzgjatje të ndryshme — vetëm një variant për kategori.
-- Përdor VETËM ID-të nga katalogu i dhënë. Mos shpik ID.
+Pastaj shkruaj:
+1) ARSYETIM për Adminin (3-5 fjali) — pse pikërisht këto paketa + add-ons.
+2) PROPOZIM profesional në shqip për klientin (4-6 fjali, miqësor por profesional, përmend përfitimin kryesor, pa shitje agresive).
+3) Prioriteti i lead-it (low/medium/high).
+4) 2-4 problemet kryesore.
 
-PROPOZIMI për klientin: shqip, profesional, pa përmendur konkurrentët, pa premtime ekstreme. Përmend përfitimin kryesor.`;
+REGULLAT PËR PAKETAT KRYESORE:
+- Nuk ka website → Website Bazë/Avancuar.
+- Website i dobët → Website Avancuar/Premium.
+- Instagram aktiv por dobët → Bazë/Avancuar Instagram.
+- Pa strategji/raportim → Full Bazë/Avancuar Instagram.
+- Restorant/hotel/klinikë/dyqan/konkurrencë e fortë → Website + Instagram Full.
+- Rritje serioze → Website Avancuar + Full Avancuar Instagram.
+- E-commerce/booking → Website Premium (quote only) + "Flet me Adminet".
+- Vetëm një variant për kategori (mos përzie 1-muaj me 3-muaj nga e njëjta).
+
+REGULLAT PËR ADD-ONS (sugjero kur është e nevojshme):
+- "Optimizim për Biznesin" → poston pa reach, hashtag-e të dobët, pa SEO social, pa targetim.
+- "Strategji Suksesi" → pa plan të qartë, pa objektiva, do rritje shitjesh, pa drejtim.
+- "Analizë për Biznesin" → nuk di çfarë funksionon, ka reklama pa rezultat të qartë, shumë postime pak konvertime.
+- "Planifikim Suksesi" → poston pa rregull, pa kalendar, harron të publikojë.
+- "Menaxhim i Reklamave dhe Buxhetit" → do reklama me pagesë, ka buxhet por nuk di si, reklamat nuk sjellin rezultate.
+
+KOHËZGJATJA E ADD-ONS: zgjidh "1_month" / "3_months" / "6_months" / "1_year" sipas situatës. Default praktik = "3_months" për shumicën, "1_year" kur biznesi do angazhim afatgjatë.
+
+Shembuj:
+- Instagram aktiv me angazhim të dobët → Paketa Avancuar Instagram + Optimizim (3m) + Analizë (3m).
+- Poston rrallë pa plan → Paketa Bazë Instagram + Planifikim (3m) + Strategji (3m).
+- Ka buxhet për reklama → Paketa Full Avancuar + Menaxhim Reklamash (3m) + Analizë (3m).
+
+Përdor VETËM ID-të nga katalogu i dhënë. Mos shpik ID dhe mos shpik çmime — çmimi i add-on duhet të përputhet me kohëzgjatjen e zgjedhur.
+Propozimi për klientin: shqip, profesional, pa konkurrentë, pa premtime ekstreme.`;
+
+const ADDON_PRICE_KEYS: Record<AddonDuration, keyof AddonRow> = {
+  "1_month": "price_1_month",
+  "3_months": "price_3_months",
+  "6_months": "price_6_months",
+  "1_year": "price_1_year",
+};
+
+function priceForAddon(addon: AddonRow, duration: AddonDuration): number {
+  const k = ADDON_PRICE_KEYS[duration];
+  return Number(addon[k]) || 0;
+}
 
 export async function generateAIRecommendation(
   ctx: RecommendationContext,
   packages: PackageRow[],
+  addons: AddonRow[] = [],
 ): Promise<{ result: AIRecommendation; source: "ai" } | null> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) {
@@ -111,8 +173,11 @@ export async function generateAIRecommendation(
     ctx.extraContext ? `\nKONTEKST EKSTRA:\n${ctx.extraContext}` : "",
     ctx.userText ? `\nTEKST NGA KLIENTI:\n${ctx.userText}` : "",
     "",
-    "KATALOGU I PAKETAVE AKTIVE:",
+    "KATALOGU I PAKETAVE KRYESORE:",
     buildPackageCatalog(packages),
+    "",
+    "KATALOGU I ADD-ONS (shërbime shtesë):",
+    addons.length > 0 ? buildAddonCatalog(addons) : "(asnjë add-on aktiv)",
   ]
     .filter(Boolean)
     .join("\n");
@@ -121,29 +186,41 @@ export async function generateAIRecommendation(
     type: "function" as const,
     function: {
       name: "submit_recommendation",
-      description: "Dërgo rekomandimin e paketave për këtë biznes.",
+      description: "Dërgo rekomandimin e paketave + add-ons për këtë biznes.",
       parameters: {
         type: "object",
         properties: {
           recommended_package_ids: {
             type: "array",
             items: { type: "string" },
-            description: "Lista e ID-ve të paketave të zgjedhura nga katalogu (1-3 paketa).",
+            description: "ID-të e paketave kryesore (1-3).",
             minItems: 1,
             maxItems: 3,
           },
-          reasoning: {
-            type: "string",
-            description: "Arsyetimi për Adminin (2-4 fjali në shqip).",
+          recommended_addons: {
+            type: "array",
+            description: "Add-ons të sugjeruara (0-3). Bosh nëse nuk ka nevojë.",
+            maxItems: 3,
+            items: {
+              type: "object",
+              properties: {
+                addon_id: { type: "string", description: "ID e add-on nga katalogu." },
+                duration: {
+                  type: "string",
+                  enum: ["1_month", "3_months", "6_months", "1_year"],
+                },
+                reason: {
+                  type: "string",
+                  description: "Pse u sugjerua ky add-on (1 fjali shqip).",
+                },
+              },
+              required: ["addon_id", "duration", "reason"],
+              additionalProperties: false,
+            },
           },
-          client_proposal_text: {
-            type: "string",
-            description: "Propozim profesional për klientin (3-5 fjali në shqip).",
-          },
-          priority: {
-            type: "string",
-            enum: ["low", "medium", "high"],
-          },
+          reasoning: { type: "string" },
+          client_proposal_text: { type: "string" },
+          priority: { type: "string", enum: ["low", "medium", "high"] },
           key_problems: {
             type: "array",
             items: { type: "string" },
@@ -153,6 +230,7 @@ export async function generateAIRecommendation(
         },
         required: [
           "recommended_package_ids",
+          "recommended_addons",
           "reasoning",
           "client_proposal_text",
           "priority",
@@ -194,18 +272,51 @@ export async function generateAIRecommendation(
       return null;
     }
 
-    const parsed = JSON.parse(call.function.arguments) as AIRecommendation;
-    // Validate IDs exist in catalog
-    const validIds = new Set(packages.map((p) => p.id));
-    parsed.recommended_package_ids = parsed.recommended_package_ids.filter((id) =>
-      validIds.has(id),
-    );
-    if (parsed.recommended_package_ids.length === 0) {
+    const parsed = JSON.parse(call.function.arguments) as {
+      recommended_package_ids: string[];
+      recommended_addons?: Array<{
+        addon_id: string;
+        duration: AddonDuration;
+        reason?: string;
+      }>;
+      reasoning: string;
+      client_proposal_text: string;
+      priority: "low" | "medium" | "high";
+      key_problems: string[];
+    };
+
+    const validPkgIds = new Set(packages.map((p) => p.id));
+    const validAddonMap = new Map(addons.map((a) => [a.id, a]));
+
+    const filteredPkgs = parsed.recommended_package_ids.filter((id) => validPkgIds.has(id));
+    if (filteredPkgs.length === 0) {
       console.error("[recommendation] AI returned no valid package IDs");
       return null;
     }
 
-    return { result: parsed, source: "ai" };
+    const filteredAddons: RecommendedAddon[] = (parsed.recommended_addons ?? [])
+      .filter((a) => validAddonMap.has(a.addon_id))
+      .map((a) => {
+        const addon = validAddonMap.get(a.addon_id)!;
+        return {
+          addon_id: a.addon_id,
+          duration: a.duration,
+          price: priceForAddon(addon, a.duration),
+          reason: a.reason,
+        };
+      });
+
+    return {
+      result: {
+        recommended_package_ids: filteredPkgs,
+        recommended_addons: filteredAddons,
+        reasoning: parsed.reasoning,
+        client_proposal_text: parsed.client_proposal_text,
+        priority: parsed.priority,
+        key_problems: parsed.key_problems,
+      },
+      source: "ai",
+    };
   } catch (e) {
     console.error("[recommendation] generation failed:", e);
     return null;
@@ -216,11 +327,13 @@ export interface RecommendationTotals {
   normal_price_total: number;
   offer_price_total: number;
   savings_total: number;
+  addons_total: number;
 }
 
 export function computeTotals(
   packageIds: string[],
   packages: PackageRow[],
+  addonsSelection: RecommendedAddon[] = [],
 ): RecommendationTotals {
   let normal = 0;
   let offer = 0;
@@ -230,10 +343,12 @@ export function computeTotals(
     normal += Number(p.normal_price) || 0;
     offer += Number(p.offer_price) || 0;
   }
+  const addonsTotal = addonsSelection.reduce((s, a) => s + (Number(a.price) || 0), 0);
   return {
     normal_price_total: normal,
-    offer_price_total: offer,
+    offer_price_total: offer + addonsTotal,
     savings_total: Math.max(0, normal - offer),
+    addons_total: addonsTotal,
   };
 }
 
@@ -264,11 +379,13 @@ export async function persistRecommendation(input: PersistRecommendationInput) {
       digital_score: input.digitalScore ?? null,
       key_problems: input.ai.key_problems,
       recommended_package_ids: input.ai.recommended_package_ids,
+      recommended_addons: input.ai.recommended_addons as never,
       reasoning: input.ai.reasoning,
       client_proposal_text: input.ai.client_proposal_text,
       normal_price_total: input.totals.normal_price_total,
       offer_price_total: input.totals.offer_price_total,
       savings_total: input.totals.savings_total,
+      addons_total: input.totals.addons_total,
       priority: input.ai.priority,
       status: "new",
       ai_source: input.source,
@@ -309,7 +426,7 @@ export async function generateAndPersistFromSession(
     (answers.location as string) ||
     null;
 
-  const packages = await fetchActivePackages();
+  const [packages, addons] = await Promise.all([fetchActivePackages(), fetchActiveAddons()]);
   const ctx: RecommendationContext = {
     businessName: session.business_name,
     businessType,
@@ -324,10 +441,14 @@ export async function generateAndPersistFromSession(
     extraContext: session.extra_context,
   };
 
-  const aiRes = await generateAIRecommendation(ctx, packages);
+  const aiRes = await generateAIRecommendation(ctx, packages, addons);
   if (!aiRes) return null;
 
-  const totals = computeTotals(aiRes.result.recommended_package_ids, packages);
+  const totals = computeTotals(
+    aiRes.result.recommended_package_ids,
+    packages,
+    aiRes.result.recommended_addons,
+  );
   const inserted = await persistRecommendation({
     sessionId,
     leadId: leadId ?? null,
@@ -377,7 +498,7 @@ export async function generateAndPersistFromAnalysis(
       ? (aiAnalysis.digital_score as number)
       : null);
 
-  const packages = await fetchActivePackages();
+  const [packages, addons] = await Promise.all([fetchActivePackages(), fetchActiveAddons()]);
   const ctx: RecommendationContext = {
     businessName,
     businessType,
@@ -390,10 +511,14 @@ export async function generateAndPersistFromAnalysis(
     userText: analysis.user_text,
   };
 
-  const aiRes = await generateAIRecommendation(ctx, packages);
+  const aiRes = await generateAIRecommendation(ctx, packages, addons);
   if (!aiRes) return null;
 
-  const totals = computeTotals(aiRes.result.recommended_package_ids, packages);
+  const totals = computeTotals(
+    aiRes.result.recommended_package_ids,
+    packages,
+    aiRes.result.recommended_addons,
+  );
   const inserted = await persistRecommendation({
     analysisId,
     businessName,
@@ -406,4 +531,8 @@ export async function generateAndPersistFromAnalysis(
   });
 
   return inserted.id;
+}
+
+export function priceLookupForAddon(addon: AddonRow, duration: AddonDuration): number {
+  return priceForAddon(addon, duration);
 }

@@ -3,16 +3,27 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   listRecommendations,
   listPackages,
+  listAddons,
   updateRecommendationStatus,
   updateRecommendationPackages,
+  updateRecommendationAddons,
   updateRecommendationProposal,
   updateRecommendationNotes,
   regenerateProposal,
 } from "@/server/recommendations.functions";
-import { Loader2, MessageCircle, RefreshCw, Save, Filter, X, Check } from "lucide-react";
+import { Loader2, MessageCircle, RefreshCw, Save, Filter, X, Check, Plus, Trash2 } from "lucide-react";
 
 type Priority = "low" | "medium" | "high";
 type Status = "new" | "reviewed" | "contacted" | "converted" | "rejected";
+
+type AddonDuration = "1_month" | "3_months" | "6_months" | "1_year";
+
+interface RecAddon {
+  addon_id: string;
+  duration: AddonDuration;
+  price: number;
+  reason?: string;
+}
 
 interface Recommendation {
   id: string;
@@ -22,11 +33,13 @@ interface Recommendation {
   digital_score: number | null;
   key_problems: unknown;
   recommended_package_ids: unknown;
+  recommended_addons: unknown;
   reasoning: string | null;
   client_proposal_text: string | null;
   normal_price_total: number | string;
   offer_price_total: number | string;
   savings_total: number | string;
+  addons_total: number | string;
   currency: string;
   priority: Priority;
   status: Status;
@@ -48,6 +61,36 @@ interface ServicePackage {
   is_quote_only: boolean;
   status: "active" | "inactive";
   includes: unknown;
+}
+
+interface AddonService {
+  id: string;
+  name: string;
+  category: string;
+  description: string | null;
+  included_features: unknown;
+  supported_platforms: unknown;
+  price_1_month: number | string;
+  price_3_months: number | string;
+  price_6_months: number | string;
+  price_1_year: number | string;
+  active: boolean;
+}
+
+const ADDON_DURATION_LABEL: Record<AddonDuration, string> = {
+  "1_month": "1 muaj",
+  "3_months": "3 muaj",
+  "6_months": "6 muaj",
+  "1_year": "1 vit",
+};
+
+function addonPriceFor(addon: AddonService, d: AddonDuration): number {
+  switch (d) {
+    case "1_month": return Number(addon.price_1_month) || 0;
+    case "3_months": return Number(addon.price_3_months) || 0;
+    case "6_months": return Number(addon.price_6_months) || 0;
+    case "1_year": return Number(addon.price_1_year) || 0;
+  }
 }
 
 const WA_NUMBER = "355697221224";
@@ -86,9 +129,11 @@ function formatPrice(n: number | string, currency = "USD") {
 export function AdminRecommendations() {
   const list = useServerFn(listRecommendations);
   const listPkg = useServerFn(listPackages);
+  const listAdd = useServerFn(listAddons);
 
   const [recs, setRecs] = useState<Recommendation[]>([]);
   const [packages, setPackages] = useState<ServicePackage[]>([]);
+  const [addons, setAddons] = useState<AddonService[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<Status | "all">("all");
   const [filterPriority, setFilterPriority] = useState<Priority | "all">("all");
@@ -99,12 +144,14 @@ export function AdminRecommendations() {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [r, p] = await Promise.all([
+      const [r, p, a] = await Promise.all([
         list({ data: { limit: 100 } }),
         listPkg({ data: undefined as never }),
+        listAdd({ data: undefined as never }),
       ]);
       setRecs(r.recommendations as unknown as Recommendation[]);
       setPackages(p.packages as unknown as ServicePackage[]);
+      setAddons(a.addons as unknown as AddonService[]);
     } catch (e) {
       console.error(e);
     } finally {
@@ -264,6 +311,7 @@ export function AdminRecommendations() {
         <RecommendationDetailModal
           rec={openRec}
           allPackages={packages}
+          allAddons={addons}
           onClose={() => setOpenId(null)}
           onUpdated={fetchAll}
         />
@@ -275,16 +323,19 @@ export function AdminRecommendations() {
 function RecommendationDetailModal({
   rec,
   allPackages,
+  allAddons,
   onClose,
   onUpdated,
 }: {
   rec: Recommendation;
   allPackages: ServicePackage[];
+  allAddons: AddonService[];
   onClose: () => void;
   onUpdated: () => void;
 }) {
   const setStatus = useServerFn(updateRecommendationStatus);
   const setPkgs = useServerFn(updateRecommendationPackages);
+  const setAddonsFn = useServerFn(updateRecommendationAddons);
   const setProposal = useServerFn(updateRecommendationProposal);
   const setNotes = useServerFn(updateRecommendationNotes);
   const regen = useServerFn(regenerateProposal);
@@ -293,6 +344,9 @@ function RecommendationDetailModal({
   const [notes, setNotes_] = useState(rec.admin_notes ?? "");
   const [selectedIds, setSelectedIds] = useState<string[]>(
     asArray<string>(rec.recommended_package_ids),
+  );
+  const [selectedAddons, setSelectedAddons] = useState<RecAddon[]>(
+    asArray<RecAddon>(rec.recommended_addons),
   );
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -305,8 +359,9 @@ function RecommendationDetailModal({
       n += Number(p.normal_price) || 0;
       o += Number(p.offer_price) || 0;
     }
-    return { n, o, s: Math.max(0, n - o) };
-  }, [selectedIds, allPackages]);
+    const addonsSum = selectedAddons.reduce((s, a) => s + (Number(a.price) || 0), 0);
+    return { n, o, s: Math.max(0, n - o), addons: addonsSum, grand: o + addonsSum };
+  }, [selectedIds, selectedAddons, allPackages]);
 
   const togglePkg = (id: string) => {
     setSelectedIds((prev) =>
@@ -318,6 +373,55 @@ function RecommendationDetailModal({
     setBusy("pkgs");
     try {
       await setPkgs({ data: { id: rec.id, package_ids: selectedIds } });
+      onUpdated();
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const addAddon = (addon: AddonService) => {
+    if (selectedAddons.some((a) => a.addon_id === addon.id)) return;
+    const duration: AddonDuration = "3_months";
+    setSelectedAddons((prev) => [
+      ...prev,
+      { addon_id: addon.id, duration, price: addonPriceFor(addon, duration) },
+    ]);
+  };
+
+  const removeAddon = (addonId: string) => {
+    setSelectedAddons((prev) => prev.filter((a) => a.addon_id !== addonId));
+  };
+
+  const changeAddonDuration = (addonId: string, duration: AddonDuration) => {
+    setSelectedAddons((prev) =>
+      prev.map((a) => {
+        if (a.addon_id !== addonId) return a;
+        const ref = allAddons.find((x) => x.id === addonId);
+        return { ...a, duration, price: ref ? addonPriceFor(ref, duration) : a.price };
+      }),
+    );
+  };
+
+  const changeAddonPrice = (addonId: string, price: number) => {
+    setSelectedAddons((prev) =>
+      prev.map((a) => (a.addon_id === addonId ? { ...a, price } : a)),
+    );
+  };
+
+  const saveAddons = async () => {
+    setBusy("addons");
+    try {
+      await setAddonsFn({
+        data: {
+          id: rec.id,
+          addons: selectedAddons.map((a) => ({
+            addon_id: a.addon_id,
+            duration: a.duration,
+            price: a.price,
+            reason: a.reason,
+          })),
+        },
+      });
       onUpdated();
     } finally {
       setBusy(null);
@@ -513,9 +617,12 @@ function RecommendationDetailModal({
 
             <div className="mt-3 flex items-center justify-between text-xs bg-muted/40 rounded-lg p-3">
               <div>
-                <div className="text-muted-foreground">Totali</div>
+                <div className="text-muted-foreground">Paketat</div>
                 <div className="font-semibold text-foreground text-sm">
-                  ${totals.o.toLocaleString()} <span className="text-muted-foreground line-through font-normal text-xs">${totals.n.toLocaleString()}</span>
+                  ${totals.o.toLocaleString()}{" "}
+                  <span className="text-muted-foreground line-through font-normal text-xs">
+                    ${totals.n.toLocaleString()}
+                  </span>
                 </div>
               </div>
               {totals.s > 0 && (
@@ -525,6 +632,137 @@ function RecommendationDetailModal({
               )}
             </div>
           </section>
+
+          {/* Add-on services */}
+          <section>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase">
+                Shërbime shtesë (add-ons) — {selectedAddons.length}
+              </h3>
+              <button
+                onClick={saveAddons}
+                disabled={busy === "addons"}
+                className="flex items-center gap-1 text-xs text-primary hover:underline disabled:opacity-50"
+              >
+                {busy === "addons" ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Save className="h-3 w-3" />
+                )}
+                Ruaj
+              </button>
+            </div>
+
+            {/* Selected addons */}
+            {selectedAddons.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {selectedAddons.map((sa) => {
+                  const ref = allAddons.find((x) => x.id === sa.addon_id);
+                  if (!ref) return null;
+                  return (
+                    <div
+                      key={sa.addon_id}
+                      className="rounded-lg border border-primary/30 bg-primary/5 p-2"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs font-medium text-foreground">{ref.name}</div>
+                          {sa.reason && (
+                            <div className="text-[10px] text-muted-foreground mt-0.5 italic">
+                              {sa.reason}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => removeAddon(sa.addon_id)}
+                          className="text-muted-foreground hover:text-destructive shrink-0"
+                          title="Hiqe nga propozimi"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <div className="mt-2 flex items-center gap-2 flex-wrap">
+                        <select
+                          value={sa.duration}
+                          onChange={(e) =>
+                            changeAddonDuration(sa.addon_id, e.target.value as AddonDuration)
+                          }
+                          className="rounded border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-primary"
+                        >
+                          {(Object.keys(ADDON_DURATION_LABEL) as AddonDuration[]).map((d) => (
+                            <option key={d} value={d}>
+                              {ADDON_DURATION_LABEL[d]} (${addonPriceFor(ref, d)})
+                            </option>
+                          ))}
+                        </select>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] text-muted-foreground">$</span>
+                          <input
+                            type="number"
+                            min={0}
+                            value={sa.price}
+                            onChange={(e) =>
+                              changeAddonPrice(sa.addon_id, Number(e.target.value) || 0)
+                            }
+                            className="w-20 rounded border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-primary"
+                            title="Ndrysho çmimin manualisht"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Available addons to add */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {allAddons
+                .filter(
+                  (a) => a.active && !selectedAddons.some((s) => s.addon_id === a.id),
+                )
+                .map((a) => (
+                  <button
+                    key={a.id}
+                    onClick={() => addAddon(a)}
+                    className="text-left rounded-lg border border-border hover:border-primary/50 p-2 transition"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="text-xs font-medium text-foreground truncate">
+                          {a.name}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          nga ${Number(a.price_1_month)} / muaj
+                        </div>
+                      </div>
+                      <Plus className="h-3.5 w-3.5 text-primary shrink-0" />
+                    </div>
+                  </button>
+                ))}
+              {allAddons.filter((a) => a.active).length === 0 && (
+                <div className="col-span-full text-[11px] text-muted-foreground text-center py-2">
+                  Asnjë add-on aktiv. Shtoji nga tab-i "Add-ons".
+                </div>
+              )}
+            </div>
+
+            {/* Grand total */}
+            <div className="mt-3 flex items-center justify-between text-xs bg-primary/10 rounded-lg p-3">
+              <div>
+                <div className="text-muted-foreground">Totali i propozimit</div>
+                <div className="font-bold text-foreground text-base">
+                  ${totals.grand.toLocaleString()}
+                </div>
+                {totals.addons > 0 && (
+                  <div className="text-[10px] text-muted-foreground">
+                    Paketa ${totals.o.toLocaleString()} + Add-ons ${totals.addons.toLocaleString()}
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
 
           {/* Client proposal */}
           <section>
