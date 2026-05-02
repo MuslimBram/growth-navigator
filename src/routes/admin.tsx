@@ -684,6 +684,13 @@ function AdminPage() {
               </section>
             )}
 
+            {/* Add-ons tab */}
+            {activeTab === "addons" && (
+              <section>
+                <AdminAddons />
+              </section>
+            )}
+
             {/* Case Studies tab */}
             {activeTab === "case-studies" && (
               <section>
