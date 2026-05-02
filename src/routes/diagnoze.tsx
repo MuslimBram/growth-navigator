@@ -375,26 +375,26 @@ function DiagnozePage() {
             >
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
                 <Sparkles className="h-3 w-3" />
-                Hap opsional — sa më shumë informacion, aq më precize analiza
+                {t("diag.context_badge")}
               </div>
               <h1 className="font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl md:text-4xl">
-                Tregona pak më shumë (opsionale)
+                {t("diag.context_title")}
               </h1>
               <p className="mt-3 text-base text-muted-foreground">
-                Çdo detaj ndihmon ekipin tonë të të japë një analizë reale, jo gjenerike.
+                {t("diag.context_desc")}
               </p>
 
               <div className="mt-6 space-y-5">
                 <div>
                   <label className="block text-sm font-medium text-foreground">
-                    Çfarë do të donin t'i thoshe ekipit tonë?
+                    {t("diag.context_label")}
                   </label>
                   <textarea
                     value={extraContext}
                     onChange={(e) => setExtraContext(e.target.value)}
                     maxLength={4000}
                     rows={5}
-                    placeholder="P.sh. sektori, qyteti, sa vjet ke që punon, çfarë ke provuar deri tani, ku ndihesh i bllokuar..."
+                    placeholder={t("diag.context_placeholder")}
                     className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                   <p className="mt-1 text-xs text-muted-foreground">
@@ -404,10 +404,10 @@ function DiagnozePage() {
 
                 <div>
                   <label className="block text-sm font-medium text-foreground">
-                    Screenshot nga Instagram, website, Google Maps (max 4)
+                    {t("diag.screenshots_label")}
                   </label>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    AI i shikon dhe i përfshin në analizë.
+                    {t("diag.screenshots_help")}
                   </p>
 
                   <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
