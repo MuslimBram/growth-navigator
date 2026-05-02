@@ -186,20 +186,23 @@ function DiagnozePage() {
       <div className="pointer-events-none absolute inset-0 bg-radial-glow opacity-50" />
 
       <header className="relative z-10 mx-auto max-w-2xl px-4 pt-6 sm:px-6 sm:pt-8">
-        <div className="mb-4 flex items-center gap-2">
-          <Link
-            to="/"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface/60 text-muted-foreground transition hover:bg-accent hover:text-foreground"
-            aria-label="Faqja kryesore"
-          >
-            <Home className="h-4 w-4" />
-          </Link>
-          <Link to="/" className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-primary shadow-glow" />
-            <span className="font-display text-xs font-semibold tracking-wide">
-              MUSLIMI <span className="text-primary">DIGITAL</span>
-            </span>
-          </Link>
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Link
+              to="/"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface/60 text-muted-foreground transition hover:bg-accent hover:text-foreground"
+              aria-label={t("common.home")}
+            >
+              <Home className="h-4 w-4" />
+            </Link>
+            <Link to="/" className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-primary shadow-glow" />
+              <span className="font-display text-xs font-semibold tracking-wide">
+                MUSLIMI <span className="text-primary">DIGITAL</span>
+              </span>
+            </Link>
+          </div>
+          <LanguageSwitcher />
         </div>
         {phase === "questions" && (
           <>
@@ -210,14 +213,14 @@ function DiagnozePage() {
                 className="flex items-center gap-1.5 rounded-md px-2 py-1 transition-colors hover:text-foreground"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
-                Mbrapa
+                {t("common.back")}
               </button>
               <span>
-                Pyetja{" "}
+                {t("diag.question_label")}{" "}
                 <span className="font-semibold text-foreground">
                   {Math.min(step + 1, total)}
                 </span>{" "}
-                nga <span className="font-semibold text-foreground">{total}</span>
+                {t("diag.of")} <span className="font-semibold text-foreground">{total}</span>
               </span>
               <span className="tabular-nums">{Math.round(progress)}%</span>
             </div>
