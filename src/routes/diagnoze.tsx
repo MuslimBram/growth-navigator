@@ -82,7 +82,8 @@ function DiagnozePage() {
     track({ event: "question_answered", step, metadata: { key: current.key, value, weak } });
 
     if (weak) {
-      setFeedback(current.weakFeedback);
+      const tr = QUESTION_TR[locale]?.[current.key];
+      setFeedback(tr?.weakFeedback ?? current.weakFeedback);
       if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
       feedbackTimerRef.current = setTimeout(() => advance(next), 2500);
     } else {
@@ -252,10 +253,10 @@ function DiagnozePage() {
                 <Building2 className="h-8 w-8 text-primary" />
               </div>
               <h1 className="font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl md:text-4xl">
-                Si quhet biznesi yt?
+                {t("diag.business_q")}
               </h1>
               <p className="mt-3 text-base text-muted-foreground">
-                Emri i biznesit ndihmon për një diagnozë më të personalizuar.
+                {t("diag.business_help")}
               </p>
 
               <div className="mx-auto mt-8 max-w-sm">
@@ -263,7 +264,7 @@ function DiagnozePage() {
                   type="text"
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
-                  placeholder="P.sh. Caffe Milano, Studio Bella..."
+                  placeholder={t("diag.business_placeholder")}
                   maxLength={120}
                   className="w-full rounded-xl border border-border bg-surface px-5 py-4 text-center text-lg font-medium text-foreground placeholder:text-muted-foreground/50 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   onKeyDown={(e) => {
@@ -276,11 +277,11 @@ function DiagnozePage() {
                   onClick={startQuestions}
                   className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-all hover:scale-[1.02]"
                 >
-                  {businessName ? "Vazhdo me diagnozën" : "Vazhdo pa emër"}
+                  {businessName ? t("diag.business_continue_with") : t("diag.business_continue_without")}
                   <ArrowRight className="h-4 w-4" />
                 </button>
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Mund ta lësh bosh — diagnoza funksionon njëlloj.
+                  {t("diag.business_skip_hint")}
                 </p>
               </div>
             </motion.div>
@@ -320,17 +321,18 @@ function DiagnozePage() {
                 </div>
               )}
               <h1 className="text-balance font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl md:text-4xl">
-                {current.question}
+                {QUESTION_TR[locale]?.[current.key]?.question ?? current.question}
               </h1>
-              {current.subtitle && (
+              {(QUESTION_TR[locale]?.[current.key]?.subtitle ?? current.subtitle) && (
                 <p className="mt-3 text-balance text-base text-muted-foreground">
-                  {current.subtitle}
+                  {QUESTION_TR[locale]?.[current.key]?.subtitle ?? current.subtitle}
                 </p>
               )}
 
               <div className="mt-10 space-y-3">
                 {current.options.map((opt) => {
                   const selected = answers[current.key] === opt.value;
+                  const label = QUESTION_TR[locale]?.[current.key]?.options?.[opt.value] ?? opt.label;
                   return (
                     <button
                       key={opt.value}
@@ -341,7 +343,7 @@ function DiagnozePage() {
                           : "border-border bg-surface hover:border-primary/40 hover:bg-surface-elevated"
                       }`}
                     >
-                      <span className="font-medium">{opt.label}</span>
+                      <span className="font-medium">{label}</span>
                       <span
                         className={`flex h-7 w-7 items-center justify-center rounded-full border transition-all ${
                           selected
@@ -373,26 +375,26 @@ function DiagnozePage() {
             >
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
                 <Sparkles className="h-3 w-3" />
-                Hap opsional — sa më shumë informacion, aq më precize analiza
+                {t("diag.context_badge")}
               </div>
               <h1 className="font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl md:text-4xl">
-                Tregona pak më shumë (opsionale)
+                {t("diag.context_title")}
               </h1>
               <p className="mt-3 text-base text-muted-foreground">
-                Çdo detaj ndihmon ekipin tonë të të japë një analizë reale, jo gjenerike.
+                {t("diag.context_desc")}
               </p>
 
               <div className="mt-6 space-y-5">
                 <div>
                   <label className="block text-sm font-medium text-foreground">
-                    Çfarë do të donin t'i thoshe ekipit tonë?
+                    {t("diag.context_label")}
                   </label>
                   <textarea
                     value={extraContext}
                     onChange={(e) => setExtraContext(e.target.value)}
                     maxLength={4000}
                     rows={5}
-                    placeholder="P.sh. sektori, qyteti, sa vjet ke që punon, çfarë ke provuar deri tani, ku ndihesh i bllokuar..."
+                    placeholder={t("diag.context_placeholder")}
                     className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                   <p className="mt-1 text-xs text-muted-foreground">
@@ -402,10 +404,10 @@ function DiagnozePage() {
 
                 <div>
                   <label className="block text-sm font-medium text-foreground">
-                    Screenshot nga Instagram, website, Google Maps (max 4)
+                    {t("diag.screenshots_label")}
                   </label>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    AI i shikon dhe i përfshin në analizë.
+                    {t("diag.screenshots_help")}
                   </p>
 
                   <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -419,7 +421,7 @@ function DiagnozePage() {
                           type="button"
                           onClick={() => removeScreenshot(url)}
                           className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background/80 text-foreground hover:bg-destructive hover:text-destructive-foreground"
-                          aria-label="Hiq imazhin"
+                          aria-label={t("diag.remove_image")}
                         >
                           <XIcon className="h-3 w-3" />
                         </button>
@@ -438,7 +440,7 @@ function DiagnozePage() {
                         ) : (
                           <>
                             <ImagePlus className="h-5 w-5" />
-                            Shto imazh
+                            {t("diag.add_image")}
                           </>
                         )}
                       </button>
@@ -464,14 +466,14 @@ function DiagnozePage() {
                     onClick={() => setPhase("questions")}
                     className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
                   >
-                    <ArrowLeft className="h-4 w-4" /> Mbrapa
+                    <ArrowLeft className="h-4 w-4" /> {t("common.back")}
                   </button>
                   <button
                     type="button"
                     onClick={() => { setError(null); setPhase("lead"); }}
                     className="inline-flex items-center gap-2 rounded-full bg-gradient-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow hover:scale-[1.02] transition-all"
                   >
-                    Vazhdo
+                    {t("common.continue")}
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
@@ -490,13 +492,13 @@ function DiagnozePage() {
             >
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-warning/30 bg-warning/5 px-3 py-1 text-xs text-warning">
                 <span className="h-1.5 w-1.5 rounded-full bg-warning animate-pulse" />
-                Hapi i fundit
+                {t("diag.lead_badge")}
               </div>
               <h1 className="font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl md:text-4xl">
-                Ku të të kontaktojmë me analizën?
+                {t("diag.lead_title")}
               </h1>
               <p className="mt-3 text-base text-muted-foreground">
-                Ekipi ynë do të të dërgojë analizën personale brenda 24 orëve në Email ose WhatsApp. Pa pagesë, pa spam.
+                {t("diag.lead_desc")}
               </p>
 
               <div className="mt-6 space-y-3">
@@ -506,7 +508,7 @@ function DiagnozePage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email yt"
+                    placeholder={t("diag.email_placeholder")}
                     maxLength={200}
                     className="w-full rounded-xl border border-border bg-surface pl-11 pr-4 py-3.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
@@ -517,13 +519,13 @@ function DiagnozePage() {
                     type="tel"
                     value={whatsapp}
                     onChange={(e) => setWhatsapp(e.target.value)}
-                    placeholder="WhatsApp (p.sh. +355 69 ...)"
+                    placeholder={t("diag.whatsapp_placeholder")}
                     maxLength={30}
                     className="w-full rounded-xl border border-border bg-surface pl-11 pr-4 py-3.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Mjafton një nga të dyja. Të dyja = përgjigje më e shpejtë.
+                  {t("diag.lead_hint")}
                 </p>
               </div>
 
@@ -537,14 +539,14 @@ function DiagnozePage() {
                   onClick={() => setPhase("context")}
                   className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
                 >
-                  <ArrowLeft className="h-4 w-4" /> Mbrapa
+                  <ArrowLeft className="h-4 w-4" /> {t("common.back")}
                 </button>
                 <button
                   type="button"
                   onClick={submitAll}
                   className="inline-flex items-center gap-2 rounded-full bg-gradient-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow hover:scale-[1.02] transition-all"
                 >
-                  Dërgo & Prit Analizën
+                  {t("diag.lead_submit")}
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
@@ -561,10 +563,10 @@ function DiagnozePage() {
             >
               <div className="mx-auto mb-6 h-12 w-12 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               <p className="font-display text-xl font-semibold">
-                Po dërgojmë{businessName ? ` analizën për "${businessName}"` : " analizën"}…
+                {businessName ? t("diag.submitting_named", { name: businessName }) : t("diag.submitting")}
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
-                Disa sekonda.
+                {t("diag.submitting_hint")}
               </p>
             </motion.div>
           )}
@@ -582,28 +584,30 @@ function DiagnozePage() {
                 <Check className="h-10 w-10 text-primary" strokeWidth={2.5} />
               </div>
               <h1 className="font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-                Faleminderit{businessName ? `, ${businessName}` : ""}!
+                {businessName ? t("diag.done_thanks_named", { name: businessName }) : t("diag.done_thanks")}
               </h1>
               <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
-                Analiza jote po përgatitet personalisht nga ekipi ynë.
-                <br className="hidden sm:block" />
-                Do të të kontaktojmë brenda <span className="font-semibold text-foreground">24 orëve</span> në {email && whatsapp ? "Email dhe WhatsApp" : email ? "Email" : "WhatsApp"}.
+                {email && whatsapp
+                  ? t("diag.done_desc_email_wa")
+                  : email
+                  ? t("diag.done_desc_email")
+                  : t("diag.done_desc_wa")}
               </p>
 
               <div className="mt-8 rounded-2xl border border-border bg-surface p-5 text-left text-sm">
-                <p className="font-semibold text-foreground">Çfarë po ndodh tani:</p>
+                <p className="font-semibold text-foreground">{t("diag.done_what_now")}</p>
                 <ul className="mt-3 space-y-2 text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    Përgjigjet e tua janë regjistruar
+                    {t("diag.done_step1")}
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    AI dhe ekipi po analizojnë rastin tënd
+                    {t("diag.done_step2")}
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    Do të marrësh planin personal pa pagesë
+                    {t("diag.done_step3")}
                   </li>
                 </ul>
               </div>
@@ -611,19 +615,21 @@ function DiagnozePage() {
               <div className="mt-8 flex flex-col items-center gap-3">
                 <a
                   href={`https://wa.me/355697221224?text=${encodeURIComponent(
-                    `Përshëndetje! Sapo dërgova diagnozën${businessName ? ` për "${businessName}"` : ""}. Dua ta diskutoj sa më shpejt.`
+                    t("diag.wa_msg_done", {
+                      forBusiness: businessName ? t("diag.wa_for_business", { name: businessName }) : "",
+                    })
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-6 py-3 text-sm font-semibold text-primary hover:bg-primary/10"
                 >
-                  💬 Dua ta diskutoj tani në WhatsApp
+                  {t("diag.done_wa_cta")}
                 </a>
                 <Link
                   to="/"
                   className="text-sm text-muted-foreground hover:text-foreground"
                 >
-                  ← Kthehu në fillim
+                  {t("diag.done_back")}
                 </Link>
               </div>
             </motion.div>
