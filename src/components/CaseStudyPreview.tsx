@@ -31,6 +31,7 @@ interface Props {
 
 export function CaseStudyPreview({ filterService, limit = 3, title }: Props) {
   const t = useT();
+  const { locale } = useI18n();
   const sectionTitle = title ?? t("landing.cases_title");
   const [items, setItems] = useState<CaseStudy[]>([]);
   const [loading, setLoading] = useState(true);
