@@ -467,7 +467,7 @@ export const TRANSLATIONS = {
     "diag.upload_failed": "Ngarkimi i imazhit dështoi",
     "diag.lead_badge": "Hapi i fundit",
     "diag.lead_title": "Ku të të kontaktojmë me analizën?",
-    "diag.lead_desc": "Ekipi ynë do të të dërgojë analizën personale brenda 24 orëve në Email ose WhatsApp. Pa pagesë, pa spam.",
+    "diag.lead_desc": "Ekipi ynë do të të dërgojë analizën personale përmes Email ose WhatsApp. Pa pagesë, pa spam.",
     "diag.email_placeholder": "Email yt",
     "diag.whatsapp_placeholder": "WhatsApp (p.sh. +355 69 ...)",
     "diag.lead_hint": "Mjafton një nga të dyja. Të dyja = përgjigje më e shpejtë.",
