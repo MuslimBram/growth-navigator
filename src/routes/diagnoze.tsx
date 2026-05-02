@@ -421,7 +421,7 @@ function DiagnozePage() {
                           type="button"
                           onClick={() => removeScreenshot(url)}
                           className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background/80 text-foreground hover:bg-destructive hover:text-destructive-foreground"
-                          aria-label="Hiq imazhin"
+                          aria-label={t("diag.remove_image")}
                         >
                           <XIcon className="h-3 w-3" />
                         </button>
@@ -440,7 +440,7 @@ function DiagnozePage() {
                         ) : (
                           <>
                             <ImagePlus className="h-5 w-5" />
-                            Shto imazh
+                            {t("diag.add_image")}
                           </>
                         )}
                       </button>
@@ -466,14 +466,14 @@ function DiagnozePage() {
                     onClick={() => setPhase("questions")}
                     className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
                   >
-                    <ArrowLeft className="h-4 w-4" /> Mbrapa
+                    <ArrowLeft className="h-4 w-4" /> {t("common.back")}
                   </button>
                   <button
                     type="button"
                     onClick={() => { setError(null); setPhase("lead"); }}
                     className="inline-flex items-center gap-2 rounded-full bg-gradient-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow hover:scale-[1.02] transition-all"
                   >
-                    Vazhdo
+                    {t("common.continue")}
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
