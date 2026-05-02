@@ -253,10 +253,10 @@ function DiagnozePage() {
                 <Building2 className="h-8 w-8 text-primary" />
               </div>
               <h1 className="font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl md:text-4xl">
-                Si quhet biznesi yt?
+                {t("diag.business_q")}
               </h1>
               <p className="mt-3 text-base text-muted-foreground">
-                Emri i biznesit ndihmon për një diagnozë më të personalizuar.
+                {t("diag.business_help")}
               </p>
 
               <div className="mx-auto mt-8 max-w-sm">
@@ -264,7 +264,7 @@ function DiagnozePage() {
                   type="text"
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
-                  placeholder="P.sh. Caffe Milano, Studio Bella..."
+                  placeholder={t("diag.business_placeholder")}
                   maxLength={120}
                   className="w-full rounded-xl border border-border bg-surface px-5 py-4 text-center text-lg font-medium text-foreground placeholder:text-muted-foreground/50 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   onKeyDown={(e) => {
@@ -277,11 +277,11 @@ function DiagnozePage() {
                   onClick={startQuestions}
                   className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-all hover:scale-[1.02]"
                 >
-                  {businessName ? "Vazhdo me diagnozën" : "Vazhdo pa emër"}
+                  {businessName ? t("diag.business_continue_with") : t("diag.business_continue_without")}
                   <ArrowRight className="h-4 w-4" />
                 </button>
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Mund ta lësh bosh — diagnoza funksionon njëlloj.
+                  {t("diag.business_skip_hint")}
                 </p>
               </div>
             </motion.div>
