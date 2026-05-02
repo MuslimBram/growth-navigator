@@ -563,10 +563,10 @@ function DiagnozePage() {
             >
               <div className="mx-auto mb-6 h-12 w-12 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               <p className="font-display text-xl font-semibold">
-                Po dërgojmë{businessName ? ` analizën për "${businessName}"` : " analizën"}…
+                {businessName ? t("diag.submitting_named", { name: businessName }) : t("diag.submitting")}
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
-                Disa sekonda.
+                {t("diag.submitting_hint")}
               </p>
             </motion.div>
           )}
@@ -584,28 +584,30 @@ function DiagnozePage() {
                 <Check className="h-10 w-10 text-primary" strokeWidth={2.5} />
               </div>
               <h1 className="font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-                Faleminderit{businessName ? `, ${businessName}` : ""}!
+                {businessName ? t("diag.done_thanks_named", { name: businessName }) : t("diag.done_thanks")}
               </h1>
               <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
-                Analiza jote po përgatitet personalisht nga ekipi ynë.
-                <br className="hidden sm:block" />
-                Do të të kontaktojmë brenda <span className="font-semibold text-foreground">24 orëve</span> në {email && whatsapp ? "Email dhe WhatsApp" : email ? "Email" : "WhatsApp"}.
+                {email && whatsapp
+                  ? t("diag.done_desc_email_wa")
+                  : email
+                  ? t("diag.done_desc_email")
+                  : t("diag.done_desc_wa")}
               </p>
 
               <div className="mt-8 rounded-2xl border border-border bg-surface p-5 text-left text-sm">
-                <p className="font-semibold text-foreground">Çfarë po ndodh tani:</p>
+                <p className="font-semibold text-foreground">{t("diag.done_what_now")}</p>
                 <ul className="mt-3 space-y-2 text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    Përgjigjet e tua janë regjistruar
+                    {t("diag.done_step1")}
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    AI dhe ekipi po analizojnë rastin tënd
+                    {t("diag.done_step2")}
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    Do të marrësh planin personal pa pagesë
+                    {t("diag.done_step3")}
                   </li>
                 </ul>
               </div>
@@ -613,19 +615,21 @@ function DiagnozePage() {
               <div className="mt-8 flex flex-col items-center gap-3">
                 <a
                   href={`https://wa.me/355697221224?text=${encodeURIComponent(
-                    `Përshëndetje! Sapo dërgova diagnozën${businessName ? ` për "${businessName}"` : ""}. Dua ta diskutoj sa më shpejt.`
+                    t("diag.wa_msg_done", {
+                      forBusiness: businessName ? t("diag.wa_for_business", { name: businessName }) : "",
+                    })
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-6 py-3 text-sm font-semibold text-primary hover:bg-primary/10"
                 >
-                  💬 Dua ta diskutoj tani në WhatsApp
+                  {t("diag.done_wa_cta")}
                 </a>
                 <Link
                   to="/"
                   className="text-sm text-muted-foreground hover:text-foreground"
                 >
-                  ← Kthehu në fillim
+                  {t("diag.done_back")}
                 </Link>
               </div>
             </motion.div>
