@@ -64,7 +64,7 @@ export function CaseStudyPreview({ filterService, limit = 3, title }: Props) {
       if (locale === "en" && finalItems.length > 0) {
         // Try cache first
         const translatedItems = await Promise.all(finalItems.map(async (item) => {
-          const cacheKey = `mdg_cs_en_${item.id}_${item.updated_at}`;
+          const cacheKey = `mdg_cs_en_v2_${item.id}_${item.updated_at}`;
           const cached = localStorage.getItem(cacheKey);
           if (cached) return JSON.parse(cached);
           return null;
@@ -78,7 +78,7 @@ export function CaseStudyPreview({ filterService, limit = 3, title }: Props) {
           
           translated.forEach((item: any, i: number) => {
             const original = toTranslate[i];
-            const cacheKey = `mdg_cs_en_${original.id}_${original.updated_at}`;
+            const cacheKey = `mdg_cs_en_v2_${original.id}_${original.updated_at}`;
             localStorage.setItem(cacheKey, JSON.stringify(item));
             translatedItems[missingIndices[i]] = item;
           });
