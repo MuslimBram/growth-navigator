@@ -13,6 +13,7 @@ import {
 } from "./diagnostic.server";
 import { aiDiagnose, type DeepAnalysis } from "./diagnostic-ai.server";
 import { notifyNewLead } from "./notify-lead.functions";
+import { generateAndPersistFromSession } from "./recommendation-engine.server";
 
 /**
  * NEW FLOW: Submit answers + extra context + screenshots + lead contact in ONE call.
