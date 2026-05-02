@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Lock, Sparkles, Plus, History, RefreshCw, Building2 } from "lucide-react";
 import { CaseStudyPreview } from "@/components/CaseStudyPreview";
-import { SERVICE_LABELS, SERVICE_TAGLINES } from "@/lib/diagnostic-types";
+import { useT, useI18n, SERVICE_LABELS_I18N, SERVICE_TAGLINES_I18N } from "@/lib/i18n";
 import type { ServiceKey } from "@/lib/diagnostic-types";
 import { getResult } from "@/server/diagnostic.functions";
 import { LeadCapture } from "@/components/LeadCapture";
@@ -13,8 +13,8 @@ import { saveAnalysis } from "@/routes/historiku";
 export const Route = createFileRoute("/rezultati/$sessionId")({
   head: () => ({
     meta: [
-      { title: "Rezultati i Diagnozës — Muslimi Digital" },
-      { name: "description", content: "Diagnoza personale e biznesit tënd." },
+      { title: "Your Diagnosis — Muslimi Digital" },
+      { name: "description", content: "Your personal business diagnosis." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -29,6 +29,11 @@ export const Route = createFileRoute("/rezultati/$sessionId")({
 });
 
 function ResultPage() {
+  const t = useT();
+  const { locale } = useI18n();
+  const labels = SERVICE_LABELS_I18N[locale];
+  const taglines = SERVICE_TAGLINES_I18N[locale];
+
   const data = Route.useLoaderData();
   const primary = data.primary_service as ServiceKey;
   const secondaries = data.secondary_services as ServiceKey[];
@@ -61,7 +66,7 @@ function ResultPage() {
           className="mb-6 inline-flex items-center gap-2 rounded-full border border-warning/30 bg-warning/5 px-4 py-1.5 text-xs text-warning"
         >
           <span className="h-1.5 w-1.5 rounded-full bg-warning animate-pulse" />
-          {unlocked ? "Diagnoza personale" : "Diagnoza është gati"}
+          {unlocked ? t("result.badge_unlocked") : t("result.badge_ready")}
         </motion.div>
 
         <motion.h1
@@ -71,8 +76,10 @@ function ResultPage() {
           className="font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl md:text-5xl"
         >
           {unlocked
-            ? businessName ? `Ja çfarë po ndodh me "${businessName}"` : "Ja çfarë po ndodh me biznesin tënd"
-            : "Diagnoza jote është gati 🔒"}
+            ? businessName
+              ? t("result.title_unlocked_named", { name: businessName })
+              : t("result.title_unlocked")
+            : t("result.title_locked")}
         </motion.h1>
 
         {!unlocked ? (
@@ -83,13 +90,11 @@ function ResultPage() {
               transition={{ delay: 0.15 }}
               className="mt-4 text-base leading-relaxed text-muted-foreground sm:mt-6 sm:text-lg"
             >
-              Bazuar në përgjigjet e tua, kemi identifikuar{" "}
+              {t("result.intro_part1")}{" "}
               <span className="font-semibold text-foreground">
-                shërbimin kryesor
+                {t("result.intro_emphasis")}
               </span>{" "}
-              që të mungon dhe një analizë konkrete të mundësive që po humbet.
-              Lër kontaktin më poshtë dhe merr raportin e plotë + planin
-              personal — pa pagesë.
+              {t("result.intro_part2")}
             </motion.p>
 
             <motion.div
@@ -101,7 +106,7 @@ function ResultPage() {
               <div className="pointer-events-none select-none blur-md grayscale">
                 <div className="mt-4 rounded-2xl border border-primary/40 bg-primary/5 p-5 shadow-glow sm:p-6">
                   <div className="text-xs uppercase tracking-wider text-primary">
-                    Zgjidhja kryesore për ty
+                    {t("result.solution_title")}
                   </div>
                   <h2 className="mt-2 font-display text-xl font-bold sm:text-2xl">
                     ●●●●●●●●●●●●●●
@@ -115,7 +120,7 @@ function ResultPage() {
                 <div className="flex items-center gap-2 rounded-full border border-primary/40 bg-background/80 px-4 py-2 backdrop-blur sm:px-5 sm:py-2.5">
                   <Lock className="h-4 w-4 text-primary" />
                   <span className="text-xs font-medium whitespace-pre-line sm:text-sm">
-                    Lër kontaktin për t'ju dërguar{"\n"}rrezultatin dhe zgjidhjen!
+                    {t("result.locked_cta")}
                   </span>
                 </div>
               </div>
@@ -129,7 +134,7 @@ function ResultPage() {
             >
               <LeadCapture
                 sessionId={data.id}
-                primaryServiceLabel={SERVICE_LABELS[primary]}
+                primaryServiceLabel={labels[primary]}
                 onSuccess={() => setUnlocked(true)}
               />
             </motion.div>
@@ -141,7 +146,7 @@ function ResultPage() {
               animate={{ opacity: 1, y: 0 }}
               className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary"
             >
-              <Sparkles className="h-3 w-3" /> Zhbllokuar
+              <Sparkles className="h-3 w-3" /> {t("result.unlocked_badge")}
             </motion.div>
 
             <motion.p
@@ -160,18 +165,18 @@ function ResultPage() {
               className="mt-8 rounded-2xl border border-primary/40 bg-primary/5 p-5 shadow-glow sm:mt-10 sm:p-8"
             >
               <div className="text-xs uppercase tracking-wider text-primary">
-                Zgjidhja kryesore për ty
+                {t("result.solution_title")}
               </div>
               <h2 className="mt-2 font-display text-xl font-bold sm:text-2xl md:text-3xl">
-                {SERVICE_LABELS[primary]}
+                {labels[primary]}
               </h2>
-              <p className="mt-3 text-sm text-muted-foreground sm:text-base">{SERVICE_TAGLINES[primary]}</p>
+              <p className="mt-3 text-sm text-muted-foreground sm:text-base">{taglines[primary]}</p>
             </motion.div>
 
             {secondaries.length > 0 && (
               <div className="mt-4 space-y-3">
                 <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                  Plus këto e plotësojnë:
+                  {t("result.plus_complement")}
                 </div>
                 {secondaries.map((s, i) => (
                   <motion.div
@@ -181,9 +186,9 @@ function ResultPage() {
                     transition={{ delay: 0.5 + i * 0.08 }}
                     className="rounded-xl border border-border bg-surface p-4"
                   >
-                    <div className="font-semibold text-sm sm:text-base">{SERVICE_LABELS[s]}</div>
+                    <div className="font-semibold text-sm sm:text-base">{labels[s]}</div>
                     <div className="mt-1 text-xs text-muted-foreground sm:text-sm">
-                      {SERVICE_TAGLINES[s]}
+                      {taglines[s]}
                     </div>
                   </motion.div>
                 ))}
@@ -191,8 +196,8 @@ function ResultPage() {
             )}
 
             <WhatsAppCTA
-              mainBottleneck={data.diagnosis || "Mungon prania online"}
-              recommendedService={SERVICE_LABELS[primary]}
+              mainBottleneck={data.diagnosis || t("result.fallback_diagnosis")}
+              recommendedService={labels[primary]}
               className="mt-10 sm:mt-12"
             />
 
@@ -200,7 +205,7 @@ function ResultPage() {
             <CaseStudyPreview
               filterService={primary}
               limit={1}
-              title="Rast real i ngjashëm"
+              title={t("result.case_similar")}
             />
           </>
         )}
@@ -213,14 +218,14 @@ function ResultPage() {
               className="inline-flex items-center gap-2 rounded-full bg-gradient-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow hover:scale-[1.02] transition-all"
             >
               <Building2 className="h-4 w-4" />
-              Analizo një biznes tjetër
+              {t("result.analyze_other")}
             </Link>
             <Link
               to="/diagnoze"
               className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary/10"
             >
               <RefreshCw className="h-4 w-4" />
-              Rifillo diagnozën
+              {t("result.restart")}
             </Link>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-3">
@@ -229,21 +234,21 @@ function ResultPage() {
               className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface-elevated"
             >
               <History className="h-4 w-4" />
-              Historiku
+              {t("result.history")}
             </Link>
             <Link
               to="/krahaso"
               className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface-elevated"
             >
               <Plus className="h-4 w-4" />
-              Krahaso rezultate
+              {t("result.compare")}
             </Link>
           </div>
           <Link
             to="/"
             className="text-xs text-muted-foreground hover:text-foreground"
           >
-            ← Kthehu në fillim
+            {t("result.back_home")}
           </Link>
         </div>
       </main>
@@ -252,18 +257,19 @@ function ResultPage() {
 }
 
 function ResultError({ error, reset }: { error: Error; reset: () => void }) {
+  const t = useT();
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 sm:px-6">
       <div className="max-w-md text-center">
-        <h1 className="font-display text-xl font-bold sm:text-2xl">Diçka shkoi keq</h1>
+        <h1 className="font-display text-xl font-bold sm:text-2xl">{t("result.error_title")}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {error.message || "Nuk arritëm të ngarkojmë rezultatin."}
+          {error.message || t("result.error_default")}
         </p>
         <button
           onClick={reset}
           className="mt-6 rounded-full bg-gradient-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow"
         >
-          Provo Përsëri
+          {t("result.try_again")}
         </button>
       </div>
     </div>
@@ -271,18 +277,19 @@ function ResultError({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 function ResultNotFound() {
+  const t = useT();
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 sm:px-6">
       <div className="max-w-md text-center">
-        <h1 className="font-display text-xl font-bold sm:text-2xl">Sesioni nuk u gjet</h1>
+        <h1 className="font-display text-xl font-bold sm:text-2xl">{t("result.notfound_title")}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Mund të ketë skaduar ose linku është i pasaktë.
+          {t("result.notfound_desc")}
         </p>
         <Link
           to="/diagnoze"
           className="mt-6 inline-flex rounded-full bg-gradient-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow"
         >
-          Nis një diagnozë të re
+          {t("result.start_new")}
         </Link>
       </div>
     </div>
