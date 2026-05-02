@@ -129,9 +129,11 @@ function formatPrice(n: number | string, currency = "USD") {
 export function AdminRecommendations() {
   const list = useServerFn(listRecommendations);
   const listPkg = useServerFn(listPackages);
+  const listAdd = useServerFn(listAddons);
 
   const [recs, setRecs] = useState<Recommendation[]>([]);
   const [packages, setPackages] = useState<ServicePackage[]>([]);
+  const [addons, setAddons] = useState<AddonService[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<Status | "all">("all");
   const [filterPriority, setFilterPriority] = useState<Priority | "all">("all");
@@ -142,12 +144,14 @@ export function AdminRecommendations() {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [r, p] = await Promise.all([
+      const [r, p, a] = await Promise.all([
         list({ data: { limit: 100 } }),
         listPkg({ data: undefined as never }),
+        listAdd({ data: undefined as never }),
       ]);
       setRecs(r.recommendations as unknown as Recommendation[]);
       setPackages(p.packages as unknown as ServicePackage[]);
+      setAddons(a.addons as unknown as AddonService[]);
     } catch (e) {
       console.error(e);
     } finally {
