@@ -5,11 +5,24 @@ import {
   generateAndPersistFromSession,
   generateAndPersistFromAnalysis,
   fetchActivePackages,
+  fetchActiveAddons,
   computeTotals,
   generateAIRecommendation,
   persistRecommendation,
+  priceLookupForAddon,
   type AIRecommendation,
+  type AddonDuration,
+  type RecommendedAddon,
 } from "./recommendation-engine.server";
+
+const ADDON_DURATIONS = ["1_month", "3_months", "6_months", "1_year"] as const;
+const ADDON_CATEGORIES = [
+  "optimization",
+  "strategy",
+  "analytics",
+  "planning",
+  "ads_management",
+] as const;
 
 // ───── Public-side trigger (no auth, called from diagnosis flow) ─────
 // Fire-and-forget. Only requires a session/analysis ID; service-role used internally.
