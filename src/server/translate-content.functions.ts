@@ -12,50 +12,66 @@ export const translateCaseStudies = createServerFn({ method: "POST" })
     const { items, targetLocale } = data;
     if (targetLocale === "sq" || items.length === 0) return items;
 
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (!apiKey) {
+      console.error("[translate] LOVABLE_API_KEY missing");
+      return items;
+    }
+
     try {
-      // Use the AI Gateway to translate in one batch
-      const response = await fetch("https://api.lovable.ai/v1/chat/completions", {
+      const payload = items.map((i) => ({
+        id: i.id,
+        title: i.title,
+        industry: i.industry,
+        result_summary: i.result_summary,
+        testimonial: i.testimonial,
+        metrics: i.metrics,
+      }));
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.LOVABLE_API_KEY}`,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
           model: "google/gemini-2.5-flash",
           messages: [
             {
               role: "system",
-              content: `You are a professional marketing translator. Translate the following business case studies from Albanian to English. 
-              Keep tone professional and concise. 
-              - Do NOT change numbers, percentages, or proper business names.
-              - Translate "industry", "title", "result_summary", "testimonial".
-              - Inside "metrics", translate the "label" field (e.g. "pacientë/muaj" -> "patients/month").
-              - Return ONLY a JSON array of objects matching the input structure.`,
+              content:
+                'You are a professional marketing translator. Translate Albanian business case-study fields into natural, fluent English. ' +
+                'Rules: keep numbers, percentages, URLs, and proper business names unchanged. ' +
+                'Translate the "industry", "title", "result_summary", and "testimonial" fields. ' +
+                'Inside "metrics", translate the "label" property only (e.g., "pacientë/muaj" -> "patients/month"); leave "value" untouched. ' +
+                'Return ONLY a valid JSON object of the form {"items":[...]} where each item has the SAME shape and SAME id as the input.',
             },
             {
               role: "user",
-              content: JSON.stringify(items.map(i => ({
-                id: i.id,
-                title: i.title,
-                industry: i.industry,
-                result_summary: i.result_summary,
-                testimonial: i.testimonial,
-                metrics: i.metrics
-              }))),
+              content: JSON.stringify({ items: payload }),
             },
           ],
           response_format: { type: "json_object" },
         }),
       });
 
-      const result = await response.json();
-      const translatedData = JSON.parse(result.choices[0].message.content);
-      
-      // The AI might return { "items": [...] } or just [...] depending on formatting
-      const translatedArray = Array.isArray(translatedData) ? translatedData : translatedData.items || [];
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("[translate] AI Gateway error", response.status, text);
+        return items;
+      }
 
-      // Merge translations back into original items (keeping image_url, client_name etc)
-      return items.map(original => {
+      const result = await response.json();
+      const content = result?.choices?.[0]?.message?.content;
+      if (!content) {
+        console.error("[translate] empty AI response");
+        return items;
+      }
+
+      const parsed = JSON.parse(content);
+      const translatedArray = Array.isArray(parsed) ? parsed : parsed.items || [];
+
+      return items.map((original) => {
         const trans = translatedArray.find((t: any) => t.id === original.id);
         if (!trans) return original;
         return {
@@ -68,7 +84,7 @@ export const translateCaseStudies = createServerFn({ method: "POST" })
         };
       });
     } catch (error) {
-      console.error("Translation error:", error);
-      return items; // Fallback to original
+      console.error("[translate] error:", error);
+      return items;
     }
   });
