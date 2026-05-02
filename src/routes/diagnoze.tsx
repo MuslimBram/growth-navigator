@@ -82,7 +82,8 @@ function DiagnozePage() {
     track({ event: "question_answered", step, metadata: { key: current.key, value, weak } });
 
     if (weak) {
-      setFeedback(current.weakFeedback);
+      const tr = QUESTION_TR[locale]?.[current.key];
+      setFeedback(tr?.weakFeedback ?? current.weakFeedback);
       if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
       feedbackTimerRef.current = setTimeout(() => advance(next), 2500);
     } else {
