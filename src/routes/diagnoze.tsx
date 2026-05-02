@@ -14,14 +14,16 @@ import { answersSchema } from "@/lib/diagnostic-schemas";
 import { getVisitorId, setLastSessionId } from "@/lib/visitor-id";
 import { submitDiagnosis } from "@/server/diagnostic.functions";
 import { track } from "@/lib/analytics";
+import { useT, useI18n, QUESTION_TR } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export const Route = createFileRoute("/diagnoze")({
   head: () => ({
     meta: [
-      { title: "Diagnoza — Muslimi Digital" },
+      { title: "Diagnosis — Muslimi Digital" },
       {
         name: "description",
-        content: "Përgjigju pyetjeve të shkurtra dhe ekipi ynë do të kthehet me një analizë të personalizuar.",
+        content: "Answer the short questions and our team will get back with a personalized analysis.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -32,6 +34,8 @@ export const Route = createFileRoute("/diagnoze")({
 type Phase = "name" | "questions" | "context" | "lead" | "submitting" | "done";
 
 function DiagnozePage() {
+  const t = useT();
+  const { locale } = useI18n();
   const [phase, setPhase] = useState<Phase>("name");
   const [businessName, setBusinessName] = useState("");
   const [step, setStep] = useState(0);
