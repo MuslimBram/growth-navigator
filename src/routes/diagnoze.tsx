@@ -113,7 +113,7 @@ function DiagnozePage() {
   const handleScreenshotUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     if (screenshots.length + files.length > 4) {
-      setError("Maksimumi 4 imazhe.");
+      setError(t("diag.max_images"));
       return;
     }
     setUploadingShot(true);
@@ -125,12 +125,12 @@ function DiagnozePage() {
         fd.append("file", file);
         const res = await fetch("/api/public/upload-screenshot", { method: "POST", body: fd });
         const json = await res.json();
-        if (!res.ok) throw new Error(json.error || "Ngarkimi dështoi");
+        if (!res.ok) throw new Error(json.error || t("diag.upload_failed"));
         newUrls.push(json.url);
       }
       setScreenshots((prev) => [...prev, ...newUrls]);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Ngarkimi i imazhit dështoi");
+      setError(e instanceof Error ? e.message : t("diag.upload_failed"));
     } finally {
       setUploadingShot(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -145,7 +145,7 @@ function DiagnozePage() {
     setError(null);
 
     if (!email.trim() && !whatsapp.trim()) {
-      setError("Lër email ose WhatsApp për të marrë analizën.");
+      setError(t("diag.lead_required"));
       return;
     }
 
@@ -176,7 +176,7 @@ function DiagnozePage() {
       setPhase("done");
     } catch (e) {
       console.error(e);
-      setError("Diçka shkoi keq. Provo përsëri.");
+      setError(t("common.something_wrong"));
       setPhase("lead");
     }
   };
