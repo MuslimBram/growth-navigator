@@ -379,7 +379,55 @@ function RecommendationDetailModal({
     }
   };
 
-  const saveProposal = async () => {
+  const addAddon = (addon: AddonService) => {
+    if (selectedAddons.some((a) => a.addon_id === addon.id)) return;
+    const duration: AddonDuration = "3_months";
+    setSelectedAddons((prev) => [
+      ...prev,
+      { addon_id: addon.id, duration, price: addonPriceFor(addon, duration) },
+    ]);
+  };
+
+  const removeAddon = (addonId: string) => {
+    setSelectedAddons((prev) => prev.filter((a) => a.addon_id !== addonId));
+  };
+
+  const changeAddonDuration = (addonId: string, duration: AddonDuration) => {
+    setSelectedAddons((prev) =>
+      prev.map((a) => {
+        if (a.addon_id !== addonId) return a;
+        const ref = allAddons.find((x) => x.id === addonId);
+        return { ...a, duration, price: ref ? addonPriceFor(ref, duration) : a.price };
+      }),
+    );
+  };
+
+  const changeAddonPrice = (addonId: string, price: number) => {
+    setSelectedAddons((prev) =>
+      prev.map((a) => (a.addon_id === addonId ? { ...a, price } : a)),
+    );
+  };
+
+  const saveAddons = async () => {
+    setBusy("addons");
+    try {
+      await setAddonsFn({
+        data: {
+          id: rec.id,
+          addons: selectedAddons.map((a) => ({
+            addon_id: a.addon_id,
+            duration: a.duration,
+            price: a.price,
+            reason: a.reason,
+          })),
+        },
+      });
+      onUpdated();
+    } finally {
+      setBusy(null);
+    }
+  };
+
     setBusy("proposal");
     try {
       await setProposal({ data: { id: rec.id, client_proposal_text: proposal } });
