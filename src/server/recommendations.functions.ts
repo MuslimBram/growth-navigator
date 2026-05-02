@@ -241,6 +241,8 @@ export const updateRecommendationAddons = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true, totals, addons: normalized };
   });
+
+export const updateRecommendationProposal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z.object({ id: z.string().uuid(), client_proposal_text: z.string().max(5000) }).parse(input),
