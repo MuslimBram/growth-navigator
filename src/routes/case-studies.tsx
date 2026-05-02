@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Loader2, Quote, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useT } from "@/lib/i18n";
+import { useT, useI18n } from "@/lib/i18n";
+import { translateCaseStudies } from "@/server/translate-content.functions";
 
 export const Route = createFileRoute("/case-studies")({
   component: CaseStudiesPage,
@@ -37,26 +38,62 @@ interface CaseStudy {
   testimonial_author: string | null;
   image_url: string | null;
   services: any;
-  display_order: number;
+  updated_at: string;
 }
 
 function CaseStudiesPage() {
   const t = useT();
+  const { locale } = useI18n();
   const [items, setItems] = useState<CaseStudy[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase
-      .from("case_studies")
-      .select("*")
-      .eq("published", true)
-      .order("display_order", { ascending: true })
-      .order("created_at", { ascending: false })
-      .then(({ data }) => {
-        if (data) setItems(data as CaseStudy[]);
+    const load = async () => {
+      const { data } = await supabase
+        .from("case_studies")
+        .select("*")
+        .eq("published", true)
+        .order("display_order", { ascending: true })
+        .order("created_at", { ascending: false });
+
+      if (!data) {
         setLoading(false);
-      });
-  }, []);
+        return;
+      }
+
+      const rawItems = data as CaseStudy[];
+
+      if (locale === "en" && rawItems.length > 0) {
+        const translatedItems = await Promise.all(rawItems.map(async (item) => {
+          const cacheKey = `mdg_cs_en_${item.id}_${item.updated_at}`;
+          const cached = localStorage.getItem(cacheKey);
+          if (cached) return JSON.parse(cached);
+          return null;
+        }));
+
+        const missingIndices = translatedItems.map((item, idx) => item === null ? idx : -1).filter(idx => idx !== -1);
+        
+        if (missingIndices.length > 0) {
+          const toTranslate = missingIndices.map(idx => rawItems[idx]);
+          const translated = await translateCaseStudies({ data: { items: toTranslate, targetLocale: "en" } });
+          
+          translated.forEach((item: any, i: number) => {
+            const original = toTranslate[i];
+            const cacheKey = `mdg_cs_en_${original.id}_${original.updated_at}`;
+            localStorage.setItem(cacheKey, JSON.stringify(item));
+            translatedItems[missingIndices[i]] = item;
+          });
+        }
+        
+        setItems(translatedItems);
+      } else {
+        setItems(rawItems);
+      }
+      setLoading(false);
+    };
+
+    load();
+  }, [locale]);
 
   return (
     <div className="min-h-screen bg-background">
