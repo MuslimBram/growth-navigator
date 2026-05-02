@@ -318,17 +318,17 @@ function AdminPage() {
 
             {/* Tabs */}
             <div className="flex items-center gap-1 mb-4 border-b border-border">
-              {(["leads", "sessions", "surveys", "case-studies", "admins"] as TabKey[]).map((tab) => (
+              {(["leads", "sessions", "recommendations", "packages", "surveys", "case-studies", "admins"] as TabKey[]).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2.5 text-sm font-medium border-b-2 transition ${
+                  className={`px-4 py-2.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${
                     activeTab === tab
                       ? "border-primary text-primary"
                       : "border-transparent text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {tab === "leads" ? `Leads (${leads.length})` : tab === "sessions" ? `Sesione (${allSessions.length})` : tab === "surveys" ? `Surveys (${surveys.length})` : tab === "case-studies" ? "Case Studies" : "Admin-ët"}
+                  {tab === "leads" ? `Leads (${leads.length})` : tab === "sessions" ? `Sesione (${allSessions.length})` : tab === "recommendations" ? "Sugjerime AI" : tab === "packages" ? "Paketat" : tab === "surveys" ? `Surveys (${surveys.length})` : tab === "case-studies" ? "Case Studies" : "Admin-ët"}
                 </button>
               ))}
             </div>
