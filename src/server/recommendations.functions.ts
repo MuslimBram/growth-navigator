@@ -137,8 +137,31 @@ export const updateRecommendationPackages = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const packages = await fetchActivePackages();
-    const totals = computeTotals(data.package_ids, packages);
+    const [packages, addons] = await Promise.all([
+      fetchActivePackages(),
+      fetchActiveAddons(),
+    ]);
+    // Re-read current addons to keep totals correct
+    const { data: rec } = await context.supabase
+      .from("admin_recommendations")
+      .select("recommended_addons")
+      .eq("id", data.id)
+      .single();
+    const currentAddons = Array.isArray(rec?.recommended_addons)
+      ? (rec!.recommended_addons as unknown as RecommendedAddon[])
+      : [];
+    // refresh prices in case addon prices changed
+    const refreshed = currentAddons
+      .map((a) => {
+        const addon = addons.find((x) => x.id === a.addon_id);
+        if (!addon) return null;
+        return {
+          ...a,
+          price: priceLookupForAddon(addon, a.duration),
+        } satisfies RecommendedAddon;
+      })
+      .filter(Boolean) as RecommendedAddon[];
+    const totals = computeTotals(data.package_ids, packages, refreshed);
     const { error } = await context.supabase
       .from("admin_recommendations")
       .update({
@@ -146,13 +169,78 @@ export const updateRecommendationPackages = createServerFn({ method: "POST" })
         normal_price_total: totals.normal_price_total,
         offer_price_total: totals.offer_price_total,
         savings_total: totals.savings_total,
+        addons_total: totals.addons_total,
       })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true, totals };
   });
 
-export const updateRecommendationProposal = createServerFn({ method: "POST" })
+// Replace addons selection (with optional manual price override)
+export const updateRecommendationAddons = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        addons: z
+          .array(
+            z.object({
+              addon_id: z.string().uuid(),
+              duration: z.enum(ADDON_DURATIONS),
+              price: z.number().min(0).optional(),
+              reason: z.string().max(500).optional(),
+            }),
+          )
+          .max(5),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const [packages, addons] = await Promise.all([
+      fetchActivePackages(),
+      fetchActiveAddons(),
+    ]);
+    const { data: rec } = await context.supabase
+      .from("admin_recommendations")
+      .select("recommended_package_ids")
+      .eq("id", data.id)
+      .single();
+    const pkgIds = Array.isArray(rec?.recommended_package_ids)
+      ? (rec!.recommended_package_ids as unknown as string[])
+      : [];
+
+    const normalized: RecommendedAddon[] = data.addons
+      .map((a) => {
+        const addon = addons.find((x) => x.id === a.addon_id);
+        if (!addon) return null;
+        const price =
+          typeof a.price === "number" && a.price >= 0
+            ? a.price
+            : priceLookupForAddon(addon, a.duration as AddonDuration);
+        return {
+          addon_id: a.addon_id,
+          duration: a.duration as AddonDuration,
+          price,
+          reason: a.reason,
+        };
+      })
+      .filter(Boolean) as RecommendedAddon[];
+
+    const totals = computeTotals(pkgIds, packages, normalized);
+    const { error } = await context.supabase
+      .from("admin_recommendations")
+      .update({
+        recommended_addons: normalized as never,
+        normal_price_total: totals.normal_price_total,
+        offer_price_total: totals.offer_price_total,
+        savings_total: totals.savings_total,
+        addons_total: totals.addons_total,
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true, totals, addons: normalized };
+  });
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z.object({ id: z.string().uuid(), client_proposal_text: z.string().max(5000) }).parse(input),
