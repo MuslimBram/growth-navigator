@@ -638,7 +638,7 @@ type QuestionTr = {
   options: Partial<Record<AnswerValue, string>>;
 };
 
-export const QUESTION_TR: Record<Locale, Record<AnswerKey, QuestionTr>> = {
+export const QUESTION_TR: Record<Locale, Partial<Record<AnswerKey, QuestionTr>>> = {
   en: {
     online_leads: {
       question: "How many customers come to you online each month?",
