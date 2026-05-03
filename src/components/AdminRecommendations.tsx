@@ -164,10 +164,12 @@ export function AdminRecommendations() {
   const list = useServerFn(listRecommendations);
   const listPkg = useServerFn(listPackages);
   const listAdd = useServerFn(listAddons);
+  const listMicro = useServerFn(listMicroServices);
 
   const [recs, setRecs] = useState<Recommendation[]>([]);
   const [packages, setPackages] = useState<ServicePackage[]>([]);
   const [addons, setAddons] = useState<AddonService[]>([]);
+  const [microServices, setMicroServices] = useState<MicroService[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<Status | "all">("all");
   const [filterPriority, setFilterPriority] = useState<Priority | "all">("all");
@@ -178,14 +180,16 @@ export function AdminRecommendations() {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [r, p, a] = await Promise.all([
+      const [r, p, a, m] = await Promise.all([
         list({ data: { limit: 100 } }),
         listPkg({ data: undefined as never }),
         listAdd({ data: undefined as never }),
+        listMicro({ data: undefined as never }),
       ]);
       setRecs(r.recommendations as unknown as Recommendation[]);
       setPackages(p.packages as unknown as ServicePackage[]);
       setAddons(a.addons as unknown as AddonService[]);
+      setMicroServices(m.services as unknown as MicroService[]);
     } catch (e) {
       console.error(e);
     } finally {
