@@ -92,6 +92,25 @@ interface AddonService {
   active: boolean;
 }
 
+interface MicroService {
+  id: string;
+  platform: string;
+  service_name: string;
+  variant: string;
+  unit: string;
+  standard_price: number | string;
+  offer_price: number | string;
+  risk_level: "low" | "medium" | "high";
+  recommended_use_case: string | null;
+  active: boolean;
+}
+
+const RISK_COLOR: Record<"low" | "medium" | "high", string> = {
+  low: "bg-green-500/10 text-green-600",
+  medium: "bg-orange-500/10 text-orange-500",
+  high: "bg-red-500/10 text-red-500",
+};
+
 const ADDON_DURATION_LABEL: Record<AddonDuration, string> = {
   "1_month": "1 muaj",
   "3_months": "3 muaj",
