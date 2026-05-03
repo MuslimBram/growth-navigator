@@ -405,8 +405,9 @@ function RecommendationDetailModal({
       o += Number(p.offer_price) || 0;
     }
     const addonsSum = selectedAddons.reduce((s, a) => s + (Number(a.price) || 0), 0);
-    return { n, o, s: Math.max(0, n - o), addons: addonsSum, grand: o + addonsSum };
-  }, [selectedIds, selectedAddons, allPackages]);
+    const microSum = selectedMicro.reduce((s, m) => s + (Number(m.total_price) || 0), 0);
+    return { n, o, s: Math.max(0, n - o), addons: addonsSum, micro: microSum, grand: o + addonsSum + microSum };
+  }, [selectedIds, selectedAddons, selectedMicro, allPackages]);
 
   const togglePkg = (id: string) => {
     setSelectedIds((prev) =>
