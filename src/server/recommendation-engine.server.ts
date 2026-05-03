@@ -417,12 +417,14 @@ export interface RecommendationTotals {
   offer_price_total: number;
   savings_total: number;
   addons_total: number;
+  micro_services_total: number;
 }
 
 export function computeTotals(
   packageIds: string[],
   packages: PackageRow[],
   addonsSelection: RecommendedAddon[] = [],
+  microSelection: RecommendedMicroService[] = [],
 ): RecommendationTotals {
   let normal = 0;
   let offer = 0;
@@ -433,11 +435,13 @@ export function computeTotals(
     offer += Number(p.offer_price) || 0;
   }
   const addonsTotal = addonsSelection.reduce((s, a) => s + (Number(a.price) || 0), 0);
+  const microTotal = microSelection.reduce((s, m) => s + (Number(m.total_price) || 0), 0);
   return {
     normal_price_total: normal,
-    offer_price_total: offer + addonsTotal,
+    offer_price_total: offer + addonsTotal + microTotal,
     savings_total: Math.max(0, normal - offer),
     addons_total: addonsTotal,
+    micro_services_total: microTotal,
   };
 }
 
