@@ -600,7 +600,11 @@ export async function generateAndPersistFromAnalysis(
       ? (aiAnalysis.digital_score as number)
       : null);
 
-  const [packages, addons] = await Promise.all([fetchActivePackages(), fetchActiveAddons()]);
+  const [packages, addons, micros] = await Promise.all([
+    fetchActivePackages(),
+    fetchActiveAddons(),
+    fetchActiveMicroServices(),
+  ]);
   const ctx: RecommendationContext = {
     businessName,
     businessType,
@@ -613,13 +617,14 @@ export async function generateAndPersistFromAnalysis(
     userText: analysis.user_text,
   };
 
-  const aiRes = await generateAIRecommendation(ctx, packages, addons);
+  const aiRes = await generateAIRecommendation(ctx, packages, addons, micros);
   if (!aiRes) return null;
 
   const totals = computeTotals(
     aiRes.result.recommended_package_ids,
     packages,
     aiRes.result.recommended_addons,
+    aiRes.result.recommended_micro_services,
   );
   const inserted = await persistRecommendation({
     analysisId,
