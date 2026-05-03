@@ -350,6 +350,7 @@ export function AdminRecommendations() {
           rec={openRec}
           allPackages={packages}
           allAddons={addons}
+          allMicroServices={microServices}
           onClose={() => setOpenId(null)}
           onUpdated={fetchAll}
         />
@@ -362,12 +363,14 @@ function RecommendationDetailModal({
   rec,
   allPackages,
   allAddons,
+  allMicroServices,
   onClose,
   onUpdated,
 }: {
   rec: Recommendation;
   allPackages: ServicePackage[];
   allAddons: AddonService[];
+  allMicroServices: MicroService[];
   onClose: () => void;
   onUpdated: () => void;
 }) {
@@ -376,6 +379,7 @@ function RecommendationDetailModal({
   const setAddonsFn = useServerFn(updateRecommendationAddons);
   const setProposal = useServerFn(updateRecommendationProposal);
   const setNotes = useServerFn(updateRecommendationNotes);
+  const setMicroFn = useServerFn(updateRecommendationMicroServices);
   const regen = useServerFn(regenerateProposal);
 
   const [proposal, setProposal_] = useState(rec.client_proposal_text ?? "");
@@ -385,6 +389,9 @@ function RecommendationDetailModal({
   );
   const [selectedAddons, setSelectedAddons] = useState<RecAddon[]>(
     asArray<RecAddon>(rec.recommended_addons),
+  );
+  const [selectedMicro, setSelectedMicro] = useState<RecMicroService[]>(
+    asArray<RecMicroService>(rec.recommended_micro_services),
   );
   const [busy, setBusy] = useState<string | null>(null);
 
