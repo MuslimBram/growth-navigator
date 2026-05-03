@@ -692,6 +692,13 @@ function AdminPage() {
               </section>
             )}
 
+            {/* Boost tab */}
+            {activeTab === "boost" && (
+              <section>
+                <AdminMicroServices />
+              </section>
+            )}
+
             {/* Case Studies tab */}
             {activeTab === "case-studies" && (
               <section>
