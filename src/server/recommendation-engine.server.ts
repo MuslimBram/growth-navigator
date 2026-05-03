@@ -184,7 +184,18 @@ Shembuj:
 - Ka buxhet për reklama → Paketa Full Avancuar + Menaxhim Reklamash (3m) + Analizë (3m).
 
 Përdor VETËM ID-të nga katalogu i dhënë. Mos shpik ID dhe mos shpik çmime — çmimi i add-on duhet të përputhet me kohëzgjatjen e zgjedhur.
-Propozimi për klientin: shqip, profesional, pa konkurrentë, pa premtime ekstreme.`;
+Propozimi për klientin: shqip, profesional, pa konkurrentë, pa premtime ekstreme.
+
+REGULLAT KRITIKE PËR MICRO SERVICES (BOOST — opsionale):
+- Sugjeron MAKSIMUM 0-4 micro services VETËM nëse BOOST ELIGIBLE=PO.
+- NËSE BOOST ELIGIBLE=JO → array recommended_micro_services duhet të jetë BOSH ([]). MOS sugjero followers/likes/views.
+- Micro services janë OPSIONALE — kurrë zgjidhje kryesore. Sugjero VETËM kur biznesi ka:
+  * reach të ulët në postime ekzistuese
+  * fushatë aktive marketingu
+  * launch produkti / event së shpejti
+- STEP 1: paketa → STEP 2: add-ons → STEP 3 (vetëm nëse eligible): micro services boost.
+- Prefero risk_level=low (views, livestream) ndaj high (followers, monetizim).
+- Quantity = numri i njësive (p.sh. 5 = 5K views nëse unit='per 1K').`;
 
 const ADDON_PRICE_KEYS: Record<AddonDuration, keyof AddonRow> = {
   "1_month": "price_1_month",
