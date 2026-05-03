@@ -29,6 +29,13 @@ interface RecAddon {
   reason?: string;
 }
 
+interface RecMicroService {
+  service_id: string;
+  quantity: number;
+  total_price: number;
+  reason?: string;
+}
+
 interface Recommendation {
   id: string;
   business_name: string | null;
@@ -38,6 +45,10 @@ interface Recommendation {
   key_problems: unknown;
   recommended_package_ids: unknown;
   recommended_addons: unknown;
+  recommended_micro_services: unknown;
+  micro_services_total: number | string;
+  boost_eligible: boolean;
+  boost_eligibility_reason: string | null;
   reasoning: string | null;
   client_proposal_text: string | null;
   normal_price_total: number | string;
