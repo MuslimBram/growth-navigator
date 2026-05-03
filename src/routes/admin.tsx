@@ -86,7 +86,7 @@ function buildAdminWaMessage(lead: LeadRow, session: SessionRow | null) {
   return lines.join("\n");
 }
 
-type TabKey = "leads" | "sessions" | "surveys" | "recommendations" | "packages" | "addons" | "case-studies" | "admins";
+type TabKey = "leads" | "sessions" | "surveys" | "recommendations" | "packages" | "addons" | "boost" | "case-studies" | "admins";
 type FilterService = "all" | string;
 
 function AdminPage() {
