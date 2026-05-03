@@ -11,7 +11,11 @@ import {
   updateRecommendationNotes,
   regenerateProposal,
 } from "@/server/recommendations.functions";
-import { Loader2, MessageCircle, RefreshCw, Save, Filter, X, Check, Plus, Trash2 } from "lucide-react";
+import {
+  listMicroServices,
+  updateRecommendationMicroServices,
+} from "@/server/micro-services.functions";
+import { Loader2, MessageCircle, RefreshCw, Save, Filter, X, Check, Plus, Trash2, AlertTriangle, Zap } from "lucide-react";
 
 type Priority = "low" | "medium" | "high";
 type Status = "new" | "reviewed" | "contacted" | "converted" | "rejected";
@@ -25,6 +29,13 @@ interface RecAddon {
   reason?: string;
 }
 
+interface RecMicroService {
+  service_id: string;
+  quantity: number;
+  total_price: number;
+  reason?: string;
+}
+
 interface Recommendation {
   id: string;
   business_name: string | null;
@@ -34,6 +45,10 @@ interface Recommendation {
   key_problems: unknown;
   recommended_package_ids: unknown;
   recommended_addons: unknown;
+  recommended_micro_services: unknown;
+  micro_services_total: number | string;
+  boost_eligible: boolean;
+  boost_eligibility_reason: string | null;
   reasoning: string | null;
   client_proposal_text: string | null;
   normal_price_total: number | string;
@@ -76,6 +91,25 @@ interface AddonService {
   price_1_year: number | string;
   active: boolean;
 }
+
+interface MicroService {
+  id: string;
+  platform: string;
+  service_name: string;
+  variant: string;
+  unit: string;
+  standard_price: number | string;
+  offer_price: number | string;
+  risk_level: "low" | "medium" | "high";
+  recommended_use_case: string | null;
+  active: boolean;
+}
+
+const RISK_COLOR: Record<"low" | "medium" | "high", string> = {
+  low: "bg-green-500/10 text-green-600",
+  medium: "bg-orange-500/10 text-orange-500",
+  high: "bg-red-500/10 text-red-500",
+};
 
 const ADDON_DURATION_LABEL: Record<AddonDuration, string> = {
   "1_month": "1 muaj",
@@ -130,10 +164,12 @@ export function AdminRecommendations() {
   const list = useServerFn(listRecommendations);
   const listPkg = useServerFn(listPackages);
   const listAdd = useServerFn(listAddons);
+  const listMicro = useServerFn(listMicroServices);
 
   const [recs, setRecs] = useState<Recommendation[]>([]);
   const [packages, setPackages] = useState<ServicePackage[]>([]);
   const [addons, setAddons] = useState<AddonService[]>([]);
+  const [microServices, setMicroServices] = useState<MicroService[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<Status | "all">("all");
   const [filterPriority, setFilterPriority] = useState<Priority | "all">("all");
@@ -144,14 +180,16 @@ export function AdminRecommendations() {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [r, p, a] = await Promise.all([
+      const [r, p, a, m] = await Promise.all([
         list({ data: { limit: 100 } }),
         listPkg({ data: undefined as never }),
         listAdd({ data: undefined as never }),
+        listMicro({ data: undefined as never }),
       ]);
       setRecs(r.recommendations as unknown as Recommendation[]);
       setPackages(p.packages as unknown as ServicePackage[]);
       setAddons(a.addons as unknown as AddonService[]);
+      setMicroServices(m.services as unknown as MicroService[]);
     } catch (e) {
       console.error(e);
     } finally {
@@ -312,6 +350,7 @@ export function AdminRecommendations() {
           rec={openRec}
           allPackages={packages}
           allAddons={addons}
+          allMicroServices={microServices}
           onClose={() => setOpenId(null)}
           onUpdated={fetchAll}
         />
@@ -324,12 +363,14 @@ function RecommendationDetailModal({
   rec,
   allPackages,
   allAddons,
+  allMicroServices,
   onClose,
   onUpdated,
 }: {
   rec: Recommendation;
   allPackages: ServicePackage[];
   allAddons: AddonService[];
+  allMicroServices: MicroService[];
   onClose: () => void;
   onUpdated: () => void;
 }) {
@@ -338,6 +379,7 @@ function RecommendationDetailModal({
   const setAddonsFn = useServerFn(updateRecommendationAddons);
   const setProposal = useServerFn(updateRecommendationProposal);
   const setNotes = useServerFn(updateRecommendationNotes);
+  const setMicroFn = useServerFn(updateRecommendationMicroServices);
   const regen = useServerFn(regenerateProposal);
 
   const [proposal, setProposal_] = useState(rec.client_proposal_text ?? "");
@@ -347,6 +389,9 @@ function RecommendationDetailModal({
   );
   const [selectedAddons, setSelectedAddons] = useState<RecAddon[]>(
     asArray<RecAddon>(rec.recommended_addons),
+  );
+  const [selectedMicro, setSelectedMicro] = useState<RecMicroService[]>(
+    asArray<RecMicroService>(rec.recommended_micro_services),
   );
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -360,8 +405,9 @@ function RecommendationDetailModal({
       o += Number(p.offer_price) || 0;
     }
     const addonsSum = selectedAddons.reduce((s, a) => s + (Number(a.price) || 0), 0);
-    return { n, o, s: Math.max(0, n - o), addons: addonsSum, grand: o + addonsSum };
-  }, [selectedIds, selectedAddons, allPackages]);
+    const microSum = selectedMicro.reduce((s, m) => s + (Number(m.total_price) || 0), 0);
+    return { n, o, s: Math.max(0, n - o), addons: addonsSum, micro: microSum, grand: o + addonsSum + microSum };
+  }, [selectedIds, selectedAddons, selectedMicro, allPackages]);
 
   const togglePkg = (id: string) => {
     setSelectedIds((prev) =>
@@ -423,6 +469,50 @@ function RecommendationDetailModal({
         },
       });
       onUpdated();
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const addMicro = (svc: MicroService) => {
+    if (selectedMicro.some((m) => m.service_id === svc.id)) return;
+    setSelectedMicro((prev) => [
+      ...prev,
+      { service_id: svc.id, quantity: 1, total_price: Number(svc.offer_price) || 0 },
+    ]);
+  };
+  const removeMicro = (id: string) =>
+    setSelectedMicro((prev) => prev.filter((m) => m.service_id !== id));
+  const changeMicroQty = (id: string, qty: number) =>
+    setSelectedMicro((prev) =>
+      prev.map((m) => {
+        if (m.service_id !== id) return m;
+        const ref = allMicroServices.find((s) => s.id === id);
+        const unit = ref ? Number(ref.offer_price) || 0 : 0;
+        return { ...m, quantity: qty, total_price: unit * qty };
+      }),
+    );
+  const changeMicroPrice = (id: string, price: number) =>
+    setSelectedMicro((prev) => prev.map((m) => (m.service_id === id ? { ...m, total_price: price } : m)));
+
+  const saveMicro = async () => {
+    setBusy("micro");
+    try {
+      await setMicroFn({
+        data: {
+          id: rec.id,
+          items: selectedMicro.map((m) => ({
+            service_id: m.service_id,
+            quantity: m.quantity,
+            total_price: m.total_price,
+            reason: m.reason,
+          })),
+        },
+      });
+      onUpdated();
+    } catch (e) {
+      console.error(e);
+      alert(e instanceof Error ? e.message : "Ruajtja dështoi.");
     } finally {
       setBusy(null);
     }
@@ -754,13 +844,137 @@ function RecommendationDetailModal({
                 <div className="font-bold text-foreground text-base">
                   ${totals.grand.toLocaleString()}
                 </div>
-                {totals.addons > 0 && (
+                {(totals.addons > 0 || totals.micro > 0) && (
                   <div className="text-[10px] text-muted-foreground">
-                    Paketa ${totals.o.toLocaleString()} + Add-ons ${totals.addons.toLocaleString()}
+                    Paketa ${totals.o.toLocaleString()}
+                    {totals.addons > 0 && <> + Add-ons ${totals.addons.toLocaleString()}</>}
+                    {totals.micro > 0 && <> + Boost ${totals.micro.toLocaleString()}</>}
                   </div>
                 )}
               </div>
             </div>
+          </section>
+
+          {/* Boost suggestions (Micro Services) */}
+          <section>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5 text-orange-500" />
+                Boost Services — {selectedMicro.length}
+              </h3>
+              <button
+                onClick={saveMicro}
+                disabled={busy === "micro" || !rec.boost_eligible}
+                className="flex items-center gap-1 text-xs text-primary hover:underline disabled:opacity-50"
+              >
+                {busy === "micro" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                Ruaj
+              </button>
+            </div>
+
+            {!rec.boost_eligible ? (
+              <div className="rounded-lg border border-orange-500/30 bg-orange-500/5 p-3 flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
+                <div className="text-xs">
+                  <p className="font-medium text-foreground">Biznesi nuk është gati për boost.</p>
+                  <p className="text-muted-foreground mt-0.5">
+                    {rec.boost_eligibility_reason ||
+                      "Boost services janë vetëm për biznese me strategji + përmbajtje aktive + website. Sugjero fillimisht paketën kryesore."}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="rounded-lg border border-orange-500/30 bg-orange-500/5 p-2 mb-2 text-[11px] text-foreground flex items-start gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5 text-orange-500 shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Kujdes:</strong> Boost services janë opsionale, on-demand. NUK zëvendësojnë strategji apo përmbajtje organike.
+                  </span>
+                </div>
+
+                {selectedMicro.length > 0 && (
+                  <div className="space-y-2 mb-3">
+                    {selectedMicro.map((sm) => {
+                      const ref = allMicroServices.find((s) => s.id === sm.service_id);
+                      if (!ref) return null;
+                      return (
+                        <div key={sm.service_id} className="rounded-lg border border-primary/30 bg-primary/5 p-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-[10px] uppercase text-muted-foreground">{ref.platform}</span>
+                                <span className="text-xs font-medium text-foreground">{ref.service_name}</span>
+                                {ref.variant !== "none" && (
+                                  <span className="inline-flex rounded bg-muted px-1.5 py-0.5 text-[10px]">{ref.variant}</span>
+                                )}
+                                <span className={`inline-flex rounded-full px-1.5 py-0.5 text-[10px] font-medium ${RISK_COLOR[ref.risk_level]}`}>
+                                  {ref.risk_level}
+                                </span>
+                              </div>
+                              {sm.reason && <div className="text-[10px] text-muted-foreground mt-0.5 italic">{sm.reason}</div>}
+                            </div>
+                            <button
+                              onClick={() => removeMicro(sm.service_id)}
+                              className="text-muted-foreground hover:text-destructive shrink-0"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                          <div className="mt-2 flex items-center gap-2 flex-wrap">
+                            <label className="text-[10px] text-muted-foreground">Sasia:</label>
+                            <input
+                              type="number"
+                              min={1}
+                              max={100}
+                              value={sm.quantity}
+                              onChange={(e) => changeMicroQty(sm.service_id, Math.max(1, Number(e.target.value) || 1))}
+                              className="w-16 rounded border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-primary"
+                            />
+                            <span className="text-[10px] text-muted-foreground">$</span>
+                            <input
+                              type="number"
+                              min={0}
+                              value={sm.total_price}
+                              onChange={(e) => changeMicroPrice(sm.service_id, Number(e.target.value) || 0)}
+                              className="w-24 rounded border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-primary"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
+                  {allMicroServices
+                    .filter((s) => s.active && !selectedMicro.some((m) => m.service_id === s.id))
+                    .slice(0, 30)
+                    .map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => addMicro(s)}
+                        className="text-left rounded-lg border border-border hover:border-primary/50 p-2 transition"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="text-[10px] uppercase text-muted-foreground">{s.platform}</div>
+                            <div className="text-xs font-medium text-foreground truncate">
+                              {s.service_name} {s.variant !== "none" && `(${s.variant})`}
+                            </div>
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <span className="text-[10px] text-foreground">${Number(s.offer_price)}</span>
+                              <span className={`inline-flex rounded-full px-1.5 py-0.5 text-[9px] ${RISK_COLOR[s.risk_level]}`}>
+                                {s.risk_level}
+                              </span>
+                            </div>
+                          </div>
+                          <Plus className="h-3.5 w-3.5 text-primary shrink-0" />
+                        </div>
+                      </button>
+                    ))}
+                </div>
+              </>
+            )}
           </section>
 
 
