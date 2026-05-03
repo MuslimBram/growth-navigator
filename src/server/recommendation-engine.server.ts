@@ -7,6 +7,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 type PackageRow = Database["public"]["Tables"]["service_packages"]["Row"];
 type AddonRow = Database["public"]["Tables"]["addon_services"]["Row"];
+type MicroRow = Database["public"]["Tables"]["micro_services"]["Row"];
 
 export type AddonDuration = "1_month" | "3_months" | "6_months" | "1_year";
 
@@ -14,6 +15,13 @@ export interface RecommendedAddon {
   addon_id: string;
   duration: AddonDuration;
   price: number;
+  reason?: string;
+}
+
+export interface RecommendedMicroService {
+  service_id: string;
+  quantity: number;
+  total_price: number;
   reason?: string;
 }
 
