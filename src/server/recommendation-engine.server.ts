@@ -42,10 +42,13 @@ export interface RecommendationContext {
 export interface AIRecommendation {
   recommended_package_ids: string[];
   recommended_addons: RecommendedAddon[];
+  recommended_micro_services: RecommendedMicroService[];
   reasoning: string;
   client_proposal_text: string;
   priority: "low" | "medium" | "high";
   key_problems: string[];
+  boost_eligible: boolean;
+  boost_eligibility_reason: string;
 }
 
 function getAdminClient() {
