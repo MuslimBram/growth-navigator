@@ -104,6 +104,8 @@ export type Database = {
           admin_notes: string | null
           ai_source: string
           analysis_id: string | null
+          boost_eligibility_reason: string | null
+          boost_eligible: boolean
           business_name: string | null
           business_type: string | null
           city: string | null
@@ -114,11 +116,13 @@ export type Database = {
           id: string
           key_problems: Json
           lead_id: string | null
+          micro_services_total: number
           normal_price_total: number
           offer_price_total: number
           priority: Database["public"]["Enums"]["recommendation_priority"]
           reasoning: string | null
           recommended_addons: Json
+          recommended_micro_services: Json
           recommended_package_ids: Json
           savings_total: number
           session_id: string | null
@@ -130,6 +134,8 @@ export type Database = {
           admin_notes?: string | null
           ai_source?: string
           analysis_id?: string | null
+          boost_eligibility_reason?: string | null
+          boost_eligible?: boolean
           business_name?: string | null
           business_type?: string | null
           city?: string | null
@@ -140,11 +146,13 @@ export type Database = {
           id?: string
           key_problems?: Json
           lead_id?: string | null
+          micro_services_total?: number
           normal_price_total?: number
           offer_price_total?: number
           priority?: Database["public"]["Enums"]["recommendation_priority"]
           reasoning?: string | null
           recommended_addons?: Json
+          recommended_micro_services?: Json
           recommended_package_ids?: Json
           savings_total?: number
           session_id?: string | null
@@ -156,6 +164,8 @@ export type Database = {
           admin_notes?: string | null
           ai_source?: string
           analysis_id?: string | null
+          boost_eligibility_reason?: string | null
+          boost_eligible?: boolean
           business_name?: string | null
           business_type?: string | null
           city?: string | null
@@ -166,11 +176,13 @@ export type Database = {
           id?: string
           key_problems?: Json
           lead_id?: string | null
+          micro_services_total?: number
           normal_price_total?: number
           offer_price_total?: number
           priority?: Database["public"]["Enums"]["recommendation_priority"]
           reasoning?: string | null
           recommended_addons?: Json
+          recommended_micro_services?: Json
           recommended_package_ids?: Json
           savings_total?: number
           session_id?: string | null
@@ -468,6 +480,126 @@ export type Database = {
         }
         Relationships: []
       }
+      micro_service_usage: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          id: string
+          quantity: number
+          recommendation_id: string
+          service_id: string
+          status: Database["public"]["Enums"]["micro_usage_status"]
+          total_price: number
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          quantity?: number
+          recommendation_id: string
+          service_id: string
+          status?: Database["public"]["Enums"]["micro_usage_status"]
+          total_price?: number
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          quantity?: number
+          recommendation_id?: string
+          service_id?: string
+          status?: Database["public"]["Enums"]["micro_usage_status"]
+          total_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "micro_service_usage_recommendation_id_fkey"
+            columns: ["recommendation_id"]
+            isOneToOne: false
+            referencedRelation: "admin_recommendations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "micro_service_usage_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "micro_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      micro_services: {
+        Row: {
+          active: boolean
+          admin_notes: string | null
+          category: Database["public"]["Enums"]["micro_category"]
+          created_at: string
+          currency: string
+          delivery_time: string | null
+          description: string | null
+          difference: number | null
+          discount_percentage: number | null
+          display_order: number
+          group_name: string
+          id: string
+          offer_price: number
+          platform: Database["public"]["Enums"]["micro_platform"]
+          recommended_use_case: string | null
+          risk_level: Database["public"]["Enums"]["micro_risk_level"]
+          service_name: string
+          standard_price: number
+          unit: string
+          updated_at: string
+          variant: Database["public"]["Enums"]["micro_variant"]
+        }
+        Insert: {
+          active?: boolean
+          admin_notes?: string | null
+          category?: Database["public"]["Enums"]["micro_category"]
+          created_at?: string
+          currency?: string
+          delivery_time?: string | null
+          description?: string | null
+          difference?: number | null
+          discount_percentage?: number | null
+          display_order?: number
+          group_name?: string
+          id?: string
+          offer_price?: number
+          platform: Database["public"]["Enums"]["micro_platform"]
+          recommended_use_case?: string | null
+          risk_level?: Database["public"]["Enums"]["micro_risk_level"]
+          service_name: string
+          standard_price?: number
+          unit?: string
+          updated_at?: string
+          variant?: Database["public"]["Enums"]["micro_variant"]
+        }
+        Update: {
+          active?: boolean
+          admin_notes?: string | null
+          category?: Database["public"]["Enums"]["micro_category"]
+          created_at?: string
+          currency?: string
+          delivery_time?: string | null
+          description?: string | null
+          difference?: number | null
+          discount_percentage?: number | null
+          display_order?: number
+          group_name?: string
+          id?: string
+          offer_price?: number
+          platform?: Database["public"]["Enums"]["micro_platform"]
+          recommended_use_case?: string | null
+          risk_level?: Database["public"]["Enums"]["micro_risk_level"]
+          service_name?: string
+          standard_price?: number
+          unit?: string
+          updated_at?: string
+          variant?: Database["public"]["Enums"]["micro_variant"]
+        }
+        Relationships: []
+      }
       service_packages: {
         Row: {
           admin_notes: string | null
@@ -568,6 +700,22 @@ export type Database = {
         | "planning"
         | "ads_management"
       app_role: "admin" | "user"
+      micro_category:
+        | "growth"
+        | "engagement"
+        | "engagement_high"
+        | "visibility_boost"
+        | "advanced"
+      micro_platform:
+        | "facebook"
+        | "instagram"
+        | "tiktok"
+        | "youtube"
+        | "twitter"
+        | "linkedin"
+      micro_risk_level: "low" | "medium" | "high"
+      micro_usage_status: "pending" | "approved" | "rejected" | "delivered"
+      micro_variant: "S" | "M" | "L" | "XL" | "none"
       package_category: "instagram" | "website"
       package_duration:
         | "1_month"
@@ -727,6 +875,24 @@ export const Constants = {
         "ads_management",
       ],
       app_role: ["admin", "user"],
+      micro_category: [
+        "growth",
+        "engagement",
+        "engagement_high",
+        "visibility_boost",
+        "advanced",
+      ],
+      micro_platform: [
+        "facebook",
+        "instagram",
+        "tiktok",
+        "youtube",
+        "twitter",
+        "linkedin",
+      ],
+      micro_risk_level: ["low", "medium", "high"],
+      micro_usage_status: ["pending", "approved", "rejected", "delivered"],
+      micro_variant: ["S", "M", "L", "XL", "none"],
       package_category: ["instagram", "website"],
       package_duration: [
         "1_month",

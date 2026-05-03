@@ -1,37 +1,121 @@
-## Problemi
+## Micro Services Marketplace (Boost Suggestions)
 
-Kartat e "Real results from our clients" mbeten në shqip edhe kur faqja është në anglisht. Shkaku: server function `translateCaseStudies` po i bën thirrje URL-së së gabuar të AI Gateway:
+Modul i ri që shton **shërbime boost on-demand** (Followers, Likes, Views, Komente, Monetizim) si **opsione shtesë** për propozimet ekzistuese. Trajtohen GJITHMONË si shtesë, kurrë si zgjidhje kryesore.
 
-- **Tani (gabim)**: `https://api.lovable.ai/v1/chat/completions` → s'ekziston, kthen error rrjeti.
-- **Rregullimi**: `https://ai.gateway.lovable.dev/v1/chat/completions` (URL-ja e saktë e Lovable AI Gateway).
+### 1. Database Schema (migration)
 
-Komponenti `CaseStudyPreview` thirr funksionin, dështon në heshtje (catch block), dhe bie back te të dhënat origjinale shqip — prandaj ti vazhdon të shohësh shqipen.
+**Enum-e të reja:**
+- `micro_platform`: facebook, instagram, tiktok, youtube, twitter, linkedin
+- `micro_category`: growth, engagement, engagement_high, visibility_boost, advanced
+- `micro_variant`: S, M, L, XL, none
+- `risk_level`: low, medium, high
+- `usage_status`: pending, approved, rejected, delivered
 
-## Plani
+**Tabela `micro_services`:**
+- id, group_name (default 'Shërbime Individuale'), platform, category, service_name, variant, unit
+- standard_price, offer_price, currency (USD)
+- difference + discount_percentage si **GENERATED columns**
+- delivery_time, description, risk_level, recommended_use_case
+- active, display_order, created_at, updated_at
 
-### 1. Rregullo `src/server/translate-content.functions.ts`
+**Tabela `micro_service_usage`:**
+- id, recommendation_id (→ admin_recommendations.id), service_id (→ micro_services.id)
+- quantity, total_price, status, admin_notes, created_at
+- Lidhet me `admin_recommendations` (siç u vendos), jo me `businesses` që nuk ekziston
 
-- Ndrysho URL-në e AI Gateway-it në `https://ai.gateway.lovable.dev/v1/chat/completions`.
-- Shto kontroll për `LOVABLE_API_KEY` para thirrjes.
-- Përdor format më të qartë për prompt-in: kërko `{"items":[...]}` për të shmangur ambiguitetin e JSON.
-- Shto logging më të mirë (`console.error` me status code dhe tekstin e gabimit) që ta kapim problemin nëse përsëritet.
-- Trajto rastin kur `response.ok === false` (status jo-200) duke u kthyer te items origjinale me log.
+**RLS:** të dyja tabelat → `Admins manage` (përdor `has_role(auth.uid(), 'admin')`), njëlloj si `service_packages` / `addon_services`.
 
-### 2. Asnjë ndryshim tjetër
+**Trigger auto-categorize:** funksion PL/pgSQL që vendos `category` automatikisht para INSERT/UPDATE bazuar në `service_name` (rregullat e specifikuara në brief).
 
-- `CaseStudyPreview.tsx` dhe `case-studies.tsx` janë në rregull — logjika e cache + fallback funksionon, thjesht thirrja po dështon.
-- Cache-ja invalidohet automatikisht me `updated_at`, kështu që nuk duhet pastrim manual.
+**Shtesë te `admin_recommendations`:**
+- `recommended_micro_services jsonb default '[]'` — array me {service_id, quantity, total_price, reason}
+- `micro_services_total numeric default 0`
+- `boost_eligible boolean default false` — rezultati i kontrollit "plotëson kushtet boost"
 
-## Rezultati
+### 2. Seed data
 
-Pas rregullimit, kur vizitori e ka faqen në anglisht:
-1. Komponenti merr case studies nga DB.
-2. Thirr `translateCaseStudies` → AI Gateway përkthen në ~1-2s.
-3. Përkthimi ruhet në `localStorage` (cache për vizitat e ardhshme).
-4. Karta shfaqen plotësisht në anglisht: titulli, sektori, rezultati, metrikat, testimoniali.
+~75 shërbime totale: Facebook (20), Instagram (15 — me çmime të ngjashme me FB sipas kërkesës), TikTok (7), YouTube (22), Twitter (13), LinkedIn (3). Të gjitha çmimet në USD me standard_price + offer_price + risk_level + recommended_use_case.
 
-Kur është në shqip → asnjë ndryshim, shfaq direkt nga DB pa kosto.
+### 3. Recommendation Engine — përditësim
 
-## Skedarët që ndryshohen
+`src/server/recommendation-engine.server.ts`:
 
-- `src/server/translate-content.functions.ts` (vetëm një skedar — riformulim i plotë me URL-në e saktë dhe error handling më të mirë).
+**Hap 1: Eligibility gate** — `checkBoostEligibility(ctx)` kthen `boost_eligible: boolean` + arsyet. Kthen `true` VETËM nëse:
+- biznesi ka website (përgjigje në answers ose IG bio)
+- ka përmbajtje aktive (signal nga diagnoza/answers: "poston rregullisht")
+- AI rekomandon tashmë një paketë strategjike kryesore
+
+**Hap 2: AI tool i ri** — shtoj `recommended_micro_services` te `submit_recommendation` schema, i tipit array (0–4 items) me `service_id`, `quantity`, `reason`. Përfshihet katalogu i micro_services në prompt.
+
+**Hap 3: System prompt update** — rregulla strikte:
+- "STEP 1 paketë → STEP 2 add-ons → STEP 3 micro services (vetëm nëse boost_eligible=true)"
+- "MOS sugjero Followers/Likes/Views nëse mungon strategji+përmbajtje+website"
+- Sugjero vetëm kur ka: reach i ulët, fushatë aktive, launch produkti, event
+
+Nëse `boost_eligible=false`, AI thirret pa katalogun e micro services dhe array-i mbetet bosh.
+
+### 4. Backend functions
+
+`src/server/recommendations.functions.ts` — shto:
+- `updateRecommendationMicroServices({ recommendationId, items })` — ricalcullon `micro_services_total` dhe `offer_price_total`
+- `getMicroServicesCatalog()` — për UI
+
+`src/server/micro-services.functions.ts` (e re):
+- `listMicroServices()`, `createMicroService()`, `updateMicroService()`, `deleteMicroService()`, `toggleActive()`
+
+### 5. Admin Panel UI
+
+**Tab i ri "Boost Services"** te `src/routes/admin.tsx` → `<AdminMicroServices />`:
+- CRUD i plotë i katalogut (njëlloj si `AdminAddons`)
+- Filtra: platformë, kategori, risk level, active/inactive
+- Tabelë me kolona: Platform badge (ngjyra specifike), Service, Variant, Çmimi ofertë, Risk badge, Discount %
+- Zbritjet >30% portokalli, >50% e kuqe + bold
+
+**Përditësim te `AdminRecommendations.tsx`:**
+- Seksion i ri "🚀 Boost Suggestions" në modal-in e detajeve, **vetëm kur `boost_eligible=true`**
+- Banner paralajmërimi: "⚠️ Këto janë shërbime boost dhe nuk zëvendësojnë strategjinë organike."
+- Tabelë me micro services të sugjeruara nga AI: checkbox "Shto në propozim", quantity input, risk badge, arsyeja
+- Buton "Shfleto katalogun" për të shtuar manualisht
+- Total i ri: `Paketat + Add-ons + Micro Services = Grand Total`
+
+Nëse `boost_eligible=false`, shfaqet vetëm një notë: *"Biznesi nuk plotëson kushtet për boost services (mungon: …)"*.
+
+### 6. Proposal text (WhatsApp)
+
+Te tekstuara e propozimit për klientin, micro services shfaqen në fund në një seksion të ndarë:
+
+```
+📦 Opsione Shtesë për Rritje të Përkohshme
+Për të përshpejtuar rezultatet, mund të shtohen edhe:
+• 5K Views Boost — $X
+• 1K Followers — $Y
+*Këto janë opsionale dhe nuk ndikojnë në paketën kryesore.
+```
+
+AI gjeneron këtë vetëm nëse ka micro services të zgjedhura.
+
+### 7. Abuse protection
+
+Funksion `checkDailyLimit(recommendationId, serviceCategory)` te server: kontrollon `micro_service_usage` për sot:
+- max 10 views, 5 likes, 3 followers, 3 comments për recommendation/ditë
+
+Thirret para se Admini të shtojë në propozim. Nëse tejkalohet → toast error.
+
+### 8. Files
+
+**Të reja:**
+- `supabase/migrations/<timestamp>_micro_services.sql` (schema + trigger + seed)
+- `src/server/micro-services.functions.ts`
+- `src/components/AdminMicroServices.tsx`
+
+**Të modifikuara:**
+- `src/server/recommendation-engine.server.ts` — eligibility check + tool schema + prompt
+- `src/server/recommendations.functions.ts` — updateRecommendationMicroServices, daily limit
+- `src/components/AdminRecommendations.tsx` — seksioni Boost + total i ri
+- `src/routes/admin.tsx` — tab i ri "Boost"
+
+### Çfarë përjashtoj qëllimisht
+
+- **Tabelë `businesses`** — nuk ekziston; përdor `admin_recommendations` si pikë lidhjeje (vendimi yt).
+- **Faqe publike Micro Services** — sugjerimi #1 e propozonte, por bie ndesh me direktivën kryesore "rezultatet pas lead capture, asnjëherë çmimet agresive te klienti". Mbahet vetëm si modul Admin + opsion në propozim.
+- **Kombinime automatike pre-defined** (pika 9) — AI tashmë i gjeneron dinamikisht bazuar në kontekst; tabelë e veçantë do ishte mbingarkesë.

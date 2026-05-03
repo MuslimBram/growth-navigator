@@ -7,6 +7,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 type PackageRow = Database["public"]["Tables"]["service_packages"]["Row"];
 type AddonRow = Database["public"]["Tables"]["addon_services"]["Row"];
+type MicroRow = Database["public"]["Tables"]["micro_services"]["Row"];
 
 export type AddonDuration = "1_month" | "3_months" | "6_months" | "1_year";
 
@@ -14,6 +15,13 @@ export interface RecommendedAddon {
   addon_id: string;
   duration: AddonDuration;
   price: number;
+  reason?: string;
+}
+
+export interface RecommendedMicroService {
+  service_id: string;
+  quantity: number;
+  total_price: number;
   reason?: string;
 }
 
@@ -34,10 +42,13 @@ export interface RecommendationContext {
 export interface AIRecommendation {
   recommended_package_ids: string[];
   recommended_addons: RecommendedAddon[];
+  recommended_micro_services: RecommendedMicroService[];
   reasoning: string;
   client_proposal_text: string;
   priority: "low" | "medium" | "high";
   key_problems: string[];
+  boost_eligible: boolean;
+  boost_eligibility_reason: string;
 }
 
 function getAdminClient() {
@@ -76,6 +87,20 @@ export async function fetchActiveAddons(): Promise<AddonRow[]> {
   return data ?? [];
 }
 
+export async function fetchActiveMicroServices(): Promise<MicroRow[]> {
+  const admin = getAdminClient();
+  const { data, error } = await admin
+    .from("micro_services")
+    .select("*")
+    .eq("active", true)
+    .order("display_order");
+  if (error) {
+    console.error("[recommendation] fetchActiveMicroServices error:", error);
+    return [];
+  }
+  return data ?? [];
+}
+
 function buildPackageCatalog(packages: PackageRow[]): string {
   return packages
     .map(
@@ -92,6 +117,37 @@ function buildAddonCatalog(addons: AddonRow[]): string {
         `[${a.id}] ${a.name} | category=${a.category} | platforms=${JSON.stringify(a.supported_platforms)} | features=${JSON.stringify(a.included_features)} | prices: 1m=$${a.price_1_month}, 3m=$${a.price_3_months}, 6m=$${a.price_6_months}, 1y=$${a.price_1_year}`,
     )
     .join("\n");
+}
+
+function buildMicroCatalog(items: MicroRow[]): string {
+  return items
+    .map(
+      (m) =>
+        `[${m.id}] ${m.service_name} (${m.variant}) | platform=${m.platform} | category=${m.category} | risk=${m.risk_level} | offer=$${m.offer_price} | use_case=${m.recommended_use_case ?? ""}`,
+    )
+    .join("\n");
+}
+
+// Boost eligibility gate
+export interface BoostEligibility {
+  eligible: boolean;
+  reason: string;
+}
+
+export function checkBoostEligibility(ctx: RecommendationContext): BoostEligibility {
+  const a = (ctx.answers ?? {}) as Record<string, unknown>;
+  const blob = JSON.stringify(a).toLowerCase() + " " + (ctx.diagnosis ?? "").toLowerCase();
+  const hasWebsite =
+    blob.includes("website") && !blob.includes("nuk ka website") && !blob.includes("pa website");
+  const hasContent =
+    blob.includes("poston") || blob.includes("aktiv") || blob.includes("përmbajtje");
+  const missing: string[] = [];
+  if (!hasWebsite) missing.push("website");
+  if (!hasContent) missing.push("përmbajtje aktive");
+  if (missing.length > 0) {
+    return { eligible: false, reason: `Mungon: ${missing.join(", ")}` };
+  }
+  return { eligible: true, reason: "Biznesi ka strategji + përmbajtje + website." };
 }
 
 const SYSTEM_PROMPT = `Ti je këshilltar shitjesh dhe strategjie dixhitale për agjencinë Muslimi Digital (tregu shqiptar).
@@ -128,7 +184,18 @@ Shembuj:
 - Ka buxhet për reklama → Paketa Full Avancuar + Menaxhim Reklamash (3m) + Analizë (3m).
 
 Përdor VETËM ID-të nga katalogu i dhënë. Mos shpik ID dhe mos shpik çmime — çmimi i add-on duhet të përputhet me kohëzgjatjen e zgjedhur.
-Propozimi për klientin: shqip, profesional, pa konkurrentë, pa premtime ekstreme.`;
+Propozimi për klientin: shqip, profesional, pa konkurrentë, pa premtime ekstreme.
+
+REGULLAT KRITIKE PËR MICRO SERVICES (BOOST — opsionale):
+- Sugjeron MAKSIMUM 0-4 micro services VETËM nëse BOOST ELIGIBLE=PO.
+- NËSE BOOST ELIGIBLE=JO → array recommended_micro_services duhet të jetë BOSH ([]). MOS sugjero followers/likes/views.
+- Micro services janë OPSIONALE — kurrë zgjidhje kryesore. Sugjero VETËM kur biznesi ka:
+  * reach të ulët në postime ekzistuese
+  * fushatë aktive marketingu
+  * launch produkti / event së shpejti
+- STEP 1: paketa → STEP 2: add-ons → STEP 3 (vetëm nëse eligible): micro services boost.
+- Prefero risk_level=low (views, livestream) ndaj high (followers, monetizim).
+- Quantity = numri i njësive (p.sh. 5 = 5K views nëse unit='per 1K').`;
 
 const ADDON_PRICE_KEYS: Record<AddonDuration, keyof AddonRow> = {
   "1_month": "price_1_month",
@@ -146,6 +213,7 @@ export async function generateAIRecommendation(
   ctx: RecommendationContext,
   packages: PackageRow[],
   addons: AddonRow[] = [],
+  microServices: MicroRow[] = [],
 ): Promise<{ result: AIRecommendation; source: "ai" } | null> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) {
@@ -157,6 +225,9 @@ export async function generateAIRecommendation(
     return null;
   }
 
+  const eligibility = checkBoostEligibility(ctx);
+  const showMicroCatalog = eligibility.eligible && microServices.length > 0;
+
   const userPrompt = [
     `BIZNESI: ${ctx.businessName ?? "N/A"}`,
     `LLOJI: ${ctx.businessType ?? "N/A"}`,
@@ -164,6 +235,7 @@ export async function generateAIRecommendation(
     `SCORE DIXHITAL: ${ctx.digitalScore ?? "N/A"}`,
     `SHËRBIMI PRIMARY: ${ctx.primaryService ?? "N/A"}`,
     `SHËRBIME DYTËSORE: ${(ctx.secondaryServices ?? []).join(", ") || "—"}`,
+    `BOOST ELIGIBLE: ${eligibility.eligible ? "PO" : "JO"} (${eligibility.reason})`,
     "",
     "PËRGJIGJET E DIAGNOZËS:",
     JSON.stringify(ctx.answers ?? {}, null, 2),
@@ -178,6 +250,11 @@ export async function generateAIRecommendation(
     "",
     "KATALOGU I ADD-ONS (shërbime shtesë):",
     addons.length > 0 ? buildAddonCatalog(addons) : "(asnjë add-on aktiv)",
+    "",
+    "KATALOGU I MICRO SERVICES (boost on-demand — opsionale):",
+    showMicroCatalog
+      ? buildMicroCatalog(microServices)
+      : "(NUK lejohet boost — biznesi nuk plotëson kushtet, lëre array-in bosh)",
   ]
     .filter(Boolean)
     .join("\n");
@@ -186,7 +263,7 @@ export async function generateAIRecommendation(
     type: "function" as const,
     function: {
       name: "submit_recommendation",
-      description: "Dërgo rekomandimin e paketave + add-ons për këtë biznes.",
+      description: "Dërgo rekomandimin për këtë biznes (paketa + add-ons + micro services boost).",
       parameters: {
         type: "object",
         properties: {
@@ -204,33 +281,39 @@ export async function generateAIRecommendation(
             items: {
               type: "object",
               properties: {
-                addon_id: { type: "string", description: "ID e add-on nga katalogu." },
-                duration: {
-                  type: "string",
-                  enum: ["1_month", "3_months", "6_months", "1_year"],
-                },
-                reason: {
-                  type: "string",
-                  description: "Pse u sugjerua ky add-on (1 fjali shqip).",
-                },
+                addon_id: { type: "string" },
+                duration: { type: "string", enum: ["1_month", "3_months", "6_months", "1_year"] },
+                reason: { type: "string" },
               },
               required: ["addon_id", "duration", "reason"],
+              additionalProperties: false,
+            },
+          },
+          recommended_micro_services: {
+            type: "array",
+            description:
+              "Micro services boost (0-4). VETËM nëse BOOST ELIGIBLE=PO. Përdor vetëm IDs nga katalogu.",
+            maxItems: 4,
+            items: {
+              type: "object",
+              properties: {
+                service_id: { type: "string" },
+                quantity: { type: "integer", minimum: 1, maximum: 50 },
+                reason: { type: "string", description: "Pse u sugjerua (1 fjali shqip)." },
+              },
+              required: ["service_id", "quantity", "reason"],
               additionalProperties: false,
             },
           },
           reasoning: { type: "string" },
           client_proposal_text: { type: "string" },
           priority: { type: "string", enum: ["low", "medium", "high"] },
-          key_problems: {
-            type: "array",
-            items: { type: "string" },
-            minItems: 1,
-            maxItems: 5,
-          },
+          key_problems: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 5 },
         },
         required: [
           "recommended_package_ids",
           "recommended_addons",
+          "recommended_micro_services",
           "reasoning",
           "client_proposal_text",
           "priority",
@@ -244,10 +327,7 @@ export async function generateAIRecommendation(
   try {
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
@@ -260,25 +340,18 @@ export async function generateAIRecommendation(
     });
 
     if (!res.ok) {
-      const t = await res.text();
-      console.error("[recommendation] AI gateway error:", res.status, t);
+      console.error("[recommendation] AI gateway error:", res.status, await res.text());
       return null;
     }
 
     const data = await res.json();
     const call = data?.choices?.[0]?.message?.tool_calls?.[0];
-    if (!call?.function?.arguments) {
-      console.error("[recommendation] no tool call in response");
-      return null;
-    }
+    if (!call?.function?.arguments) return null;
 
     const parsed = JSON.parse(call.function.arguments) as {
       recommended_package_ids: string[];
-      recommended_addons?: Array<{
-        addon_id: string;
-        duration: AddonDuration;
-        reason?: string;
-      }>;
+      recommended_addons?: Array<{ addon_id: string; duration: AddonDuration; reason?: string }>;
+      recommended_micro_services?: Array<{ service_id: string; quantity: number; reason?: string }>;
       reasoning: string;
       client_proposal_text: string;
       priority: "low" | "medium" | "high";
@@ -287,12 +360,10 @@ export async function generateAIRecommendation(
 
     const validPkgIds = new Set(packages.map((p) => p.id));
     const validAddonMap = new Map(addons.map((a) => [a.id, a]));
+    const validMicroMap = new Map(microServices.map((m) => [m.id, m]));
 
     const filteredPkgs = parsed.recommended_package_ids.filter((id) => validPkgIds.has(id));
-    if (filteredPkgs.length === 0) {
-      console.error("[recommendation] AI returned no valid package IDs");
-      return null;
-    }
+    if (filteredPkgs.length === 0) return null;
 
     const filteredAddons: RecommendedAddon[] = (parsed.recommended_addons ?? [])
       .filter((a) => validAddonMap.has(a.addon_id))
@@ -306,14 +377,32 @@ export async function generateAIRecommendation(
         };
       });
 
+    const filteredMicros: RecommendedMicroService[] = eligibility.eligible
+      ? (parsed.recommended_micro_services ?? [])
+          .filter((m) => validMicroMap.has(m.service_id))
+          .map((m) => {
+            const ref = validMicroMap.get(m.service_id)!;
+            const qty = Math.max(1, m.quantity || 1);
+            return {
+              service_id: m.service_id,
+              quantity: qty,
+              total_price: Number(ref.offer_price) * qty,
+              reason: m.reason,
+            };
+          })
+      : [];
+
     return {
       result: {
         recommended_package_ids: filteredPkgs,
         recommended_addons: filteredAddons,
+        recommended_micro_services: filteredMicros,
         reasoning: parsed.reasoning,
         client_proposal_text: parsed.client_proposal_text,
         priority: parsed.priority,
         key_problems: parsed.key_problems,
+        boost_eligible: eligibility.eligible,
+        boost_eligibility_reason: eligibility.reason,
       },
       source: "ai",
     };
@@ -328,12 +417,14 @@ export interface RecommendationTotals {
   offer_price_total: number;
   savings_total: number;
   addons_total: number;
+  micro_services_total: number;
 }
 
 export function computeTotals(
   packageIds: string[],
   packages: PackageRow[],
   addonsSelection: RecommendedAddon[] = [],
+  microSelection: RecommendedMicroService[] = [],
 ): RecommendationTotals {
   let normal = 0;
   let offer = 0;
@@ -344,11 +435,13 @@ export function computeTotals(
     offer += Number(p.offer_price) || 0;
   }
   const addonsTotal = addonsSelection.reduce((s, a) => s + (Number(a.price) || 0), 0);
+  const microTotal = microSelection.reduce((s, m) => s + (Number(m.total_price) || 0), 0);
   return {
     normal_price_total: normal,
-    offer_price_total: offer + addonsTotal,
+    offer_price_total: offer + addonsTotal + microTotal,
     savings_total: Math.max(0, normal - offer),
     addons_total: addonsTotal,
+    micro_services_total: microTotal,
   };
 }
 
@@ -380,12 +473,16 @@ export async function persistRecommendation(input: PersistRecommendationInput) {
       key_problems: input.ai.key_problems,
       recommended_package_ids: input.ai.recommended_package_ids,
       recommended_addons: input.ai.recommended_addons as never,
+      recommended_micro_services: input.ai.recommended_micro_services as never,
       reasoning: input.ai.reasoning,
       client_proposal_text: input.ai.client_proposal_text,
       normal_price_total: input.totals.normal_price_total,
       offer_price_total: input.totals.offer_price_total,
       savings_total: input.totals.savings_total,
       addons_total: input.totals.addons_total,
+      micro_services_total: input.totals.micro_services_total,
+      boost_eligible: input.ai.boost_eligible,
+      boost_eligibility_reason: input.ai.boost_eligibility_reason,
       priority: input.ai.priority,
       status: "new",
       ai_source: input.source,
@@ -426,7 +523,11 @@ export async function generateAndPersistFromSession(
     (answers.location as string) ||
     null;
 
-  const [packages, addons] = await Promise.all([fetchActivePackages(), fetchActiveAddons()]);
+  const [packages, addons, micros] = await Promise.all([
+    fetchActivePackages(),
+    fetchActiveAddons(),
+    fetchActiveMicroServices(),
+  ]);
   const ctx: RecommendationContext = {
     businessName: session.business_name,
     businessType,
@@ -441,13 +542,14 @@ export async function generateAndPersistFromSession(
     extraContext: session.extra_context,
   };
 
-  const aiRes = await generateAIRecommendation(ctx, packages, addons);
+  const aiRes = await generateAIRecommendation(ctx, packages, addons, micros);
   if (!aiRes) return null;
 
   const totals = computeTotals(
     aiRes.result.recommended_package_ids,
     packages,
     aiRes.result.recommended_addons,
+    aiRes.result.recommended_micro_services,
   );
   const inserted = await persistRecommendation({
     sessionId,
@@ -498,7 +600,11 @@ export async function generateAndPersistFromAnalysis(
       ? (aiAnalysis.digital_score as number)
       : null);
 
-  const [packages, addons] = await Promise.all([fetchActivePackages(), fetchActiveAddons()]);
+  const [packages, addons, micros] = await Promise.all([
+    fetchActivePackages(),
+    fetchActiveAddons(),
+    fetchActiveMicroServices(),
+  ]);
   const ctx: RecommendationContext = {
     businessName,
     businessType,
@@ -511,13 +617,14 @@ export async function generateAndPersistFromAnalysis(
     userText: analysis.user_text,
   };
 
-  const aiRes = await generateAIRecommendation(ctx, packages, addons);
+  const aiRes = await generateAIRecommendation(ctx, packages, addons, micros);
   if (!aiRes) return null;
 
   const totals = computeTotals(
     aiRes.result.recommended_package_ids,
     packages,
     aiRes.result.recommended_addons,
+    aiRes.result.recommended_micro_services,
   );
   const inserted = await persistRecommendation({
     analysisId,
