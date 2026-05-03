@@ -11,6 +11,7 @@ import { AdminInvites } from "@/components/AdminInvites";
 import { AdminRecommendations } from "@/components/AdminRecommendations";
 import { AdminPackages } from "@/components/AdminPackages";
 import { AdminAddons } from "@/components/AdminAddons";
+import { AdminMicroServices } from "@/components/AdminMicroServices";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useIsAdmin } from "@/hooks/useAuth";
 
