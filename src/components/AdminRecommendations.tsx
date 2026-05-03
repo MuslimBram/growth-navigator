@@ -474,6 +474,50 @@ function RecommendationDetailModal({
     }
   };
 
+  const addMicro = (svc: MicroService) => {
+    if (selectedMicro.some((m) => m.service_id === svc.id)) return;
+    setSelectedMicro((prev) => [
+      ...prev,
+      { service_id: svc.id, quantity: 1, total_price: Number(svc.offer_price) || 0 },
+    ]);
+  };
+  const removeMicro = (id: string) =>
+    setSelectedMicro((prev) => prev.filter((m) => m.service_id !== id));
+  const changeMicroQty = (id: string, qty: number) =>
+    setSelectedMicro((prev) =>
+      prev.map((m) => {
+        if (m.service_id !== id) return m;
+        const ref = allMicroServices.find((s) => s.id === id);
+        const unit = ref ? Number(ref.offer_price) || 0 : 0;
+        return { ...m, quantity: qty, total_price: unit * qty };
+      }),
+    );
+  const changeMicroPrice = (id: string, price: number) =>
+    setSelectedMicro((prev) => prev.map((m) => (m.service_id === id ? { ...m, total_price: price } : m)));
+
+  const saveMicro = async () => {
+    setBusy("micro");
+    try {
+      await setMicroFn({
+        data: {
+          id: rec.id,
+          items: selectedMicro.map((m) => ({
+            service_id: m.service_id,
+            quantity: m.quantity,
+            total_price: m.total_price,
+            reason: m.reason,
+          })),
+        },
+      });
+      onUpdated();
+    } catch (e) {
+      console.error(e);
+      alert(e instanceof Error ? e.message : "Ruajtja dështoi.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const saveProposal = async () => {
     setBusy("proposal");
     try {
