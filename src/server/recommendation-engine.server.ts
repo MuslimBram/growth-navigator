@@ -87,6 +87,20 @@ export async function fetchActiveAddons(): Promise<AddonRow[]> {
   return data ?? [];
 }
 
+export async function fetchActiveMicroServices(): Promise<MicroRow[]> {
+  const admin = getAdminClient();
+  const { data, error } = await admin
+    .from("micro_services")
+    .select("*")
+    .eq("active", true)
+    .order("display_order");
+  if (error) {
+    console.error("[recommendation] fetchActiveMicroServices error:", error);
+    return [];
+  }
+  return data ?? [];
+}
+
 function buildPackageCatalog(packages: PackageRow[]): string {
   return packages
     .map(
@@ -103,6 +117,37 @@ function buildAddonCatalog(addons: AddonRow[]): string {
         `[${a.id}] ${a.name} | category=${a.category} | platforms=${JSON.stringify(a.supported_platforms)} | features=${JSON.stringify(a.included_features)} | prices: 1m=$${a.price_1_month}, 3m=$${a.price_3_months}, 6m=$${a.price_6_months}, 1y=$${a.price_1_year}`,
     )
     .join("\n");
+}
+
+function buildMicroCatalog(items: MicroRow[]): string {
+  return items
+    .map(
+      (m) =>
+        `[${m.id}] ${m.service_name} (${m.variant}) | platform=${m.platform} | category=${m.category} | risk=${m.risk_level} | offer=$${m.offer_price} | use_case=${m.recommended_use_case ?? ""}`,
+    )
+    .join("\n");
+}
+
+// Boost eligibility gate
+export interface BoostEligibility {
+  eligible: boolean;
+  reason: string;
+}
+
+export function checkBoostEligibility(ctx: RecommendationContext): BoostEligibility {
+  const a = (ctx.answers ?? {}) as Record<string, unknown>;
+  const blob = JSON.stringify(a).toLowerCase() + " " + (ctx.diagnosis ?? "").toLowerCase();
+  const hasWebsite =
+    blob.includes("website") && !blob.includes("nuk ka website") && !blob.includes("pa website");
+  const hasContent =
+    blob.includes("poston") || blob.includes("aktiv") || blob.includes("përmbajtje");
+  const missing: string[] = [];
+  if (!hasWebsite) missing.push("website");
+  if (!hasContent) missing.push("përmbajtje aktive");
+  if (missing.length > 0) {
+    return { eligible: false, reason: `Mungon: ${missing.join(", ")}` };
+  }
+  return { eligible: true, reason: "Biznesi ka strategji + përmbajtje + website." };
 }
 
 const SYSTEM_PROMPT = `Ti je këshilltar shitjesh dhe strategjie dixhitale për agjencinë Muslimi Digital (tregu shqiptar).
