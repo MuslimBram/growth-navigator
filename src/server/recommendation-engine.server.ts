@@ -523,7 +523,11 @@ export async function generateAndPersistFromSession(
     (answers.location as string) ||
     null;
 
-  const [packages, addons] = await Promise.all([fetchActivePackages(), fetchActiveAddons()]);
+  const [packages, addons, micros] = await Promise.all([
+    fetchActivePackages(),
+    fetchActiveAddons(),
+    fetchActiveMicroServices(),
+  ]);
   const ctx: RecommendationContext = {
     businessName: session.business_name,
     businessType,
@@ -538,13 +542,14 @@ export async function generateAndPersistFromSession(
     extraContext: session.extra_context,
   };
 
-  const aiRes = await generateAIRecommendation(ctx, packages, addons);
+  const aiRes = await generateAIRecommendation(ctx, packages, addons, micros);
   if (!aiRes) return null;
 
   const totals = computeTotals(
     aiRes.result.recommended_package_ids,
     packages,
     aiRes.result.recommended_addons,
+    aiRes.result.recommended_micro_services,
   );
   const inserted = await persistRecommendation({
     sessionId,
