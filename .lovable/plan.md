@@ -1,121 +1,61 @@
-## Micro Services Marketplace (Boost Suggestions)
+# Strategist Persona Upgrade for Business Chat
 
-Modul i ri që shton **shërbime boost on-demand** (Followers, Likes, Views, Komente, Monetizim) si **opsione shtesë** për propozimet ekzistuese. Trajtohen GJITHMONË si shtesë, kurrë si zgjidhje kryesore.
+Goal: turn the chat AI in `/analizo-biznesin` from a polite consultant into a confident strategist that challenges the user, then produces a structured 5-section verdict. Keep the existing question-gathering flow intact — only the persona, the persuasion intensity, and the FINAL diagnosis format change.
 
-### 1. Database Schema (migration)
+## What changes
 
-**Enum-e të reja:**
-- `micro_platform`: facebook, instagram, tiktok, youtube, twitter, linkedin
-- `micro_category`: growth, engagement, engagement_high, visibility_boost, advanced
-- `micro_variant`: S, M, L, XL, none
-- `risk_level`: low, medium, high
-- `usage_status`: pending, approved, rejected, delivered
+### 1. Persona & tone (in `SYSTEM_PROMPT`)
+- Rewrite the persona block: "experienced business strategist", confident, never says "varet" / "it depends", challenges beliefs, uses comparisons (DIY vs professional management), names hidden losses (time, clients, missed opportunities).
+- Keep the existing safety rule: never invent monetary figures (€/$/Lekë) for lost revenue. "Cost of doing nothing" is described qualitatively + in time/clients/opportunities, not fake euros.
+- Keep the "max 2 questions at a time" rule and the existing context-gathering checklist.
+- Add psychological trigger questions to the asking pool: feels underperforming online? thinks clients are slipping away without knowing why? believes they can scale alone?
+- Add adaptive intensity:
+  - low consistency / no analytics / poor results → high persuasion intensity, sharper challenge.
+  - advanced operator → strategic upsell tone (Premium combined package, automation, ads).
 
-**Tabela `micro_services`:**
-- id, group_name (default 'Shërbime Individuale'), platform, category, service_name, variant, unit
-- standard_price, offer_price, currency (USD)
-- difference + discount_percentage si **GENERATED columns**
-- delivery_time, description, risk_level, recommended_use_case
-- active, display_order, created_at, updated_at
+### 2. Language auto-detection
+Add a rule at the top of the prompt: **detect the user's language from their messages and reply in the same language** (Albanian default, but switch to English / Italian / etc. if the user writes in that language). All section headers below have bilingual labels so the model can localize them.
 
-**Tabela `micro_service_usage`:**
-- id, recommendation_id (→ admin_recommendations.id), service_id (→ micro_services.id)
-- quantity, total_price, status, admin_notes, created_at
-- Lidhet me `admin_recommendations` (siç u vendos), jo me `businesses` që nuk ekziston
+### 3. New final diagnosis structure
+Replace the current `---DIAGNOZA--- … ---FUND---` template with the 5-section structure. The sentinel markers stay (`---DIAGNOZA---` / `---FUND---`) because `analizo-biznesin.tsx` already detects them at line 194/198 to gate lead capture — we don't touch that detection logic.
 
-**RLS:** të dyja tabelat → `Admins manage` (përdor `has_role(auth.uid(), 'admin')`), njëlloj si `service_packages` / `addon_services`.
-
-**Trigger auto-categorize:** funksion PL/pgSQL që vendos `category` automatikisht para INSERT/UPDATE bazuar në `service_name` (rregullat e specifikuara në brief).
-
-**Shtesë te `admin_recommendations`:**
-- `recommended_micro_services jsonb default '[]'` — array me {service_id, quantity, total_price, reason}
-- `micro_services_total numeric default 0`
-- `boost_eligible boolean default false` — rezultati i kontrollit "plotëson kushtet boost"
-
-### 2. Seed data
-
-~75 shërbime totale: Facebook (20), Instagram (15 — me çmime të ngjashme me FB sipas kërkesës), TikTok (7), YouTube (22), Twitter (13), LinkedIn (3). Të gjitha çmimet në USD me standard_price + offer_price + risk_level + recommended_use_case.
-
-### 3. Recommendation Engine — përditësim
-
-`src/server/recommendation-engine.server.ts`:
-
-**Hap 1: Eligibility gate** — `checkBoostEligibility(ctx)` kthen `boost_eligible: boolean` + arsyet. Kthen `true` VETËM nëse:
-- biznesi ka website (përgjigje në answers ose IG bio)
-- ka përmbajtje aktive (signal nga diagnoza/answers: "poston rregullisht")
-- AI rekomandon tashmë një paketë strategjike kryesore
-
-**Hap 2: AI tool i ri** — shtoj `recommended_micro_services` te `submit_recommendation` schema, i tipit array (0–4 items) me `service_id`, `quantity`, `reason`. Përfshihet katalogu i micro_services në prompt.
-
-**Hap 3: System prompt update** — rregulla strikte:
-- "STEP 1 paketë → STEP 2 add-ons → STEP 3 micro services (vetëm nëse boost_eligible=true)"
-- "MOS sugjero Followers/Likes/Views nëse mungon strategji+përmbajtje+website"
-- Sugjero vetëm kur ka: reach i ulët, fushatë aktive, launch produkti, event
-
-Nëse `boost_eligible=false`, AI thirret pa katalogun e micro services dhe array-i mbetet bosh.
-
-### 4. Backend functions
-
-`src/server/recommendations.functions.ts` — shto:
-- `updateRecommendationMicroServices({ recommendationId, items })` — ricalcullon `micro_services_total` dhe `offer_price_total`
-- `getMicroServicesCatalog()` — për UI
-
-`src/server/micro-services.functions.ts` (e re):
-- `listMicroServices()`, `createMicroService()`, `updateMicroService()`, `deleteMicroService()`, `toggleActive()`
-
-### 5. Admin Panel UI
-
-**Tab i ri "Boost Services"** te `src/routes/admin.tsx` → `<AdminMicroServices />`:
-- CRUD i plotë i katalogut (njëlloj si `AdminAddons`)
-- Filtra: platformë, kategori, risk level, active/inactive
-- Tabelë me kolona: Platform badge (ngjyra specifike), Service, Variant, Çmimi ofertë, Risk badge, Discount %
-- Zbritjet >30% portokalli, >50% e kuqe + bold
-
-**Përditësim te `AdminRecommendations.tsx`:**
-- Seksion i ri "🚀 Boost Suggestions" në modal-in e detajeve, **vetëm kur `boost_eligible=true`**
-- Banner paralajmërimi: "⚠️ Këto janë shërbime boost dhe nuk zëvendësojnë strategjinë organike."
-- Tabelë me micro services të sugjeruara nga AI: checkbox "Shto në propozim", quantity input, risk badge, arsyeja
-- Buton "Shfleto katalogun" për të shtuar manualisht
-- Total i ri: `Paketat + Add-ons + Micro Services = Grand Total`
-
-Nëse `boost_eligible=false`, shfaqet vetëm një notë: *"Biznesi nuk plotëson kushtet për boost services (mungon: …)"*.
-
-### 6. Proposal text (WhatsApp)
-
-Te tekstuara e propozimit për klientin, micro services shfaqen në fund në një seksion të ndarë:
+New body inside the markers:
 
 ```
-📦 Opsione Shtesë për Rritje të Përkohshme
-Për të përshpejtuar rezultatet, mund të shtohen edhe:
-• 5K Views Boost — $X
-• 1K Followers — $Y
-*Këto janë opsionale dhe nuk ndikojnë në paketën kryesore.
+1. KONTROLL I REALITETIT / REALITY CHECK
+   [what is actually happening with their online presence right now]
+
+2. ÇFARË MENDON / WHAT THEY THINK
+   [their stated belief, e.g. "mund ta bëj vetë" / "postimet mjaftojnë"]
+
+3. ÇFARË ËSHTË E VËRTETA / WHAT IS TRUE
+   [break that belief with logic, comparisons, industry patterns]
+
+4. KOSTOJA E MOSVEPRIMIT / COST OF DOING NOTHING
+   [qualitative losses: klientë që shkojnë te konkurrenti, orë të humbura,
+    mundësi të humbura çdo muaj — NO invented €/$ figures]
+
+5. REKOMANDIMI / RECOMMENDATION
+   [strong, specific recommendation tied to a Muslimi Digital service:
+    SEO, Web 3D, Foto/Video 360°, Social Media, Google Maps, Combined Premium,
+    Automation, Ads, Analytics — only if justified by the answers]
+
+Lër kontaktin tënd (email ose WhatsApp) dhe Muslimi Digital do ta dërgojë
+planin e plotë sa më shpejt.
 ```
 
-AI gjeneron këtë vetëm nëse ka micro services të zgjedhura.
+The model picks the localized header set based on detected language; bilingual labels are only a hint, output uses one language.
 
-### 7. Abuse protection
+### 4. No frontend / no DB changes
+- `src/routes/analizo-biznesin.tsx` already strips `---DIAGNOZA---` and triggers `setIsDiagnosis(true)` when the markers appear — works unchanged.
+- No new tables, no new server functions, no new components.
 
-Funksion `checkDailyLimit(recommendationId, serviceCategory)` te server: kontrollon `micro_service_usage` për sot:
-- max 10 views, 5 likes, 3 followers, 3 comments për recommendation/ditë
+## Files touched
 
-Thirret para se Admini të shtojë në propozim. Nëse tejkalohet → toast error.
+- `src/server/business-chat.functions.ts` — replace the `SYSTEM_PROMPT` constant (only). No changes to the schema, the gateway call, image handling, or error handling. Diagnosis-detection heuristic in the same file (`reply.includes("---DIAGNOZA---")`) stays as-is.
 
-### 8. Files
+## Out of scope
 
-**Të reja:**
-- `supabase/migrations/<timestamp>_micro_services.sql` (schema + trigger + seed)
-- `src/server/micro-services.functions.ts`
-- `src/components/AdminMicroServices.tsx`
-
-**Të modifikuara:**
-- `src/server/recommendation-engine.server.ts` — eligibility check + tool schema + prompt
-- `src/server/recommendations.functions.ts` — updateRecommendationMicroServices, daily limit
-- `src/components/AdminRecommendations.tsx` — seksioni Boost + total i ri
-- `src/routes/admin.tsx` — tab i ri "Boost"
-
-### Çfarë përjashtoj qëllimisht
-
-- **Tabelë `businesses`** — nuk ekziston; përdor `admin_recommendations` si pikë lidhjeje (vendimi yt).
-- **Faqe publike Micro Services** — sugjerimi #1 e propozonte, por bie ndesh me direktivën kryesore "rezultatet pas lead capture, asnjëherë çmimet agresive te klienti". Mbahet vetëm si modul Admin + opsion në propozim.
-- **Kombinime automatike pre-defined** (pika 9) — AI tashmë i gjeneron dinamikisht bazuar në kontekst; tabelë e veçantë do ishte mbingarkesë.
+- No changes to admin recommendations, micro-services, or packages.
+- No new UI in the chat page; persuasion is purely prompt-driven.
+- No monetary loss estimates (kept the existing safety rule — auto-generated € figures are still forbidden).
