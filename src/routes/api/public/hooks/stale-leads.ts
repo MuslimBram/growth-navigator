@@ -7,11 +7,16 @@ export const Route = createFileRoute("/api/public/hooks/stale-leads")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        // Auth: shared secret
+        // Auth: accept either CRON_SECRET (Bearer) or Supabase anon key (apikey header)
         const auth = request.headers.get("authorization") ?? "";
         const token = auth.replace(/^Bearer\s+/i, "");
-        const expected = process.env.CRON_SECRET;
-        if (!expected || token !== expected) {
+        const apikey = request.headers.get("apikey") ?? "";
+        const cronSecret = process.env.CRON_SECRET;
+        const anonKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+        const ok =
+          (cronSecret && token === cronSecret) ||
+          (anonKey && apikey === anonKey);
+        if (!ok) {
           return new Response(JSON.stringify({ error: "unauthorized" }), {
             status: 401,
             headers: { "Content-Type": "application/json" },
