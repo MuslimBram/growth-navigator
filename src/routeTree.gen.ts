@@ -27,6 +27,7 @@ import { Route as QyteteCityRouteImport } from './routes/qytete/$city'
 import { Route as ApiPublicUploadScreenshotRouteImport } from './routes/api/public/upload-screenshot'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 import { Route as ApiPublicExitSurveyRouteImport } from './routes/api/public/exit-survey'
+import { Route as ApiPublicHooksStaleLeadsRouteImport } from './routes/api/public/hooks/stale-leads'
 
 const KrahasoRoute = KrahasoRouteImport.update({
   id: '/krahaso',
@@ -119,6 +120,12 @@ const ApiPublicExitSurveyRoute = ApiPublicExitSurveyRouteImport.update({
   path: '/api/public/exit-survey',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksStaleLeadsRoute =
+  ApiPublicHooksStaleLeadsRouteImport.update({
+    id: '/api/public/hooks/stale-leads',
+    path: '/api/public/hooks/stale-leads',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/api/public/upload-screenshot': typeof ApiPublicUploadScreenshotRoute
+  '/api/public/hooks/stale-leads': typeof ApiPublicHooksStaleLeadsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -159,6 +167,7 @@ export interface FileRoutesByTo {
   '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/api/public/upload-screenshot': typeof ApiPublicUploadScreenshotRoute
+  '/api/public/hooks/stale-leads': typeof ApiPublicHooksStaleLeadsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -180,6 +189,7 @@ export interface FileRoutesById {
   '/api/public/exit-survey': typeof ApiPublicExitSurveyRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/api/public/upload-screenshot': typeof ApiPublicUploadScreenshotRoute
+  '/api/public/hooks/stale-leads': typeof ApiPublicHooksStaleLeadsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/api/public/exit-survey'
     | '/api/public/track'
     | '/api/public/upload-screenshot'
+    | '/api/public/hooks/stale-leads'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/api/public/exit-survey'
     | '/api/public/track'
     | '/api/public/upload-screenshot'
+    | '/api/public/hooks/stale-leads'
   id:
     | '__root__'
     | '/'
@@ -242,6 +254,7 @@ export interface FileRouteTypes {
     | '/api/public/exit-survey'
     | '/api/public/track'
     | '/api/public/upload-screenshot'
+    | '/api/public/hooks/stale-leads'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -263,6 +276,7 @@ export interface RootRouteChildren {
   ApiPublicExitSurveyRoute: typeof ApiPublicExitSurveyRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
   ApiPublicUploadScreenshotRoute: typeof ApiPublicUploadScreenshotRoute
+  ApiPublicHooksStaleLeadsRoute: typeof ApiPublicHooksStaleLeadsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -393,6 +407,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicExitSurveyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/stale-leads': {
+      id: '/api/public/hooks/stale-leads'
+      path: '/api/public/hooks/stale-leads'
+      fullPath: '/api/public/hooks/stale-leads'
+      preLoaderRoute: typeof ApiPublicHooksStaleLeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -415,6 +436,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicExitSurveyRoute: ApiPublicExitSurveyRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
   ApiPublicUploadScreenshotRoute: ApiPublicUploadScreenshotRoute,
+  ApiPublicHooksStaleLeadsRoute: ApiPublicHooksStaleLeadsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
