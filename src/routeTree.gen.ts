@@ -23,6 +23,7 @@ import { Route as ServicesSeoRouteImport } from './routes/services/seo'
 import { Route as ServicesGoogleMapsRouteImport } from './routes/services/google-maps'
 import { Route as Services360MediaRouteImport } from './routes/services/360-media'
 import { Route as RezultatiSessionIdRouteImport } from './routes/rezultati.$sessionId'
+import { Route as QyteteCityRouteImport } from './routes/qytete/$city'
 import { Route as ApiPublicUploadScreenshotRouteImport } from './routes/api/public/upload-screenshot'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 import { Route as ApiPublicExitSurveyRouteImport } from './routes/api/public/exit-survey'
@@ -97,6 +98,11 @@ const RezultatiSessionIdRoute = RezultatiSessionIdRouteImport.update({
   path: '/rezultati/$sessionId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QyteteCityRoute = QyteteCityRouteImport.update({
+  id: '/qytete/$city',
+  path: '/qytete/$city',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicUploadScreenshotRoute =
   ApiPublicUploadScreenshotRouteImport.update({
     id: '/api/public/upload-screenshot',
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/diagnoze': typeof DiagnozeRoute
   '/historiku': typeof HistorikuRoute
   '/krahaso': typeof KrahasoRoute
+  '/qytete/$city': typeof QyteteCityRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
   '/services/360-media': typeof Services360MediaRoute
   '/services/google-maps': typeof ServicesGoogleMapsRoute
@@ -142,6 +149,7 @@ export interface FileRoutesByTo {
   '/diagnoze': typeof DiagnozeRoute
   '/historiku': typeof HistorikuRoute
   '/krahaso': typeof KrahasoRoute
+  '/qytete/$city': typeof QyteteCityRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
   '/services/360-media': typeof Services360MediaRoute
   '/services/google-maps': typeof ServicesGoogleMapsRoute
@@ -162,6 +170,7 @@ export interface FileRoutesById {
   '/diagnoze': typeof DiagnozeRoute
   '/historiku': typeof HistorikuRoute
   '/krahaso': typeof KrahasoRoute
+  '/qytete/$city': typeof QyteteCityRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
   '/services/360-media': typeof Services360MediaRoute
   '/services/google-maps': typeof ServicesGoogleMapsRoute
@@ -183,6 +192,7 @@ export interface FileRouteTypes {
     | '/diagnoze'
     | '/historiku'
     | '/krahaso'
+    | '/qytete/$city'
     | '/rezultati/$sessionId'
     | '/services/360-media'
     | '/services/google-maps'
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/diagnoze'
     | '/historiku'
     | '/krahaso'
+    | '/qytete/$city'
     | '/rezultati/$sessionId'
     | '/services/360-media'
     | '/services/google-maps'
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/diagnoze'
     | '/historiku'
     | '/krahaso'
+    | '/qytete/$city'
     | '/rezultati/$sessionId'
     | '/services/360-media'
     | '/services/google-maps'
@@ -241,6 +253,7 @@ export interface RootRouteChildren {
   DiagnozeRoute: typeof DiagnozeRoute
   HistorikuRoute: typeof HistorikuRoute
   KrahasoRoute: typeof KrahasoRoute
+  QyteteCityRoute: typeof QyteteCityRoute
   RezultatiSessionIdRoute: typeof RezultatiSessionIdRoute
   Services360MediaRoute: typeof Services360MediaRoute
   ServicesGoogleMapsRoute: typeof ServicesGoogleMapsRoute
@@ -352,6 +365,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RezultatiSessionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/qytete/$city': {
+      id: '/qytete/$city'
+      path: '/qytete/$city'
+      fullPath: '/qytete/$city'
+      preLoaderRoute: typeof QyteteCityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/upload-screenshot': {
       id: '/api/public/upload-screenshot'
       path: '/api/public/upload-screenshot'
@@ -385,6 +405,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiagnozeRoute: DiagnozeRoute,
   HistorikuRoute: HistorikuRoute,
   KrahasoRoute: KrahasoRoute,
+  QyteteCityRoute: QyteteCityRoute,
   RezultatiSessionIdRoute: RezultatiSessionIdRoute,
   Services360MediaRoute: Services360MediaRoute,
   ServicesGoogleMapsRoute: ServicesGoogleMapsRoute,
