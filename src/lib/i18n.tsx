@@ -440,7 +440,7 @@ export const TRANSLATIONS = {
     "sections.how_3_desc": "Të rekomandojmë shërbimin që zgjidh problemin — pa supozime.",
     "sections.services_title": "Çfarë ofrojmë",
     "sections.services_subtitle": "6 shërbime që mbulojnë gjithçka prej shfaqjes deri te konvertimi.",
-    "sections.cta_title": "Konkurrentët e tu po e bëjnë tashmë.",
+    "sections.cta_title": "Konkurrentët e tu mundë ta bëjnë tashmë.",
     "sections.cta_desc": "Çdo ditë që vonon, dikush tjetër po merr klientët që do të kishin ardhur tek ti. Diagnoza është falas — humbja jo.",
 
     /* Diagnoze */
