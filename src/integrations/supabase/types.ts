@@ -366,6 +366,7 @@ export type Database = {
           diagnosis_notes: string | null
           email: string | null
           id: string
+          reminded_at: string | null
           session_id: string | null
           whatsapp: string | null
         }
@@ -376,6 +377,7 @@ export type Database = {
           diagnosis_notes?: string | null
           email?: string | null
           id?: string
+          reminded_at?: string | null
           session_id?: string | null
           whatsapp?: string | null
         }
@@ -386,6 +388,7 @@ export type Database = {
           diagnosis_notes?: string | null
           email?: string | null
           id?: string
+          reminded_at?: string | null
           session_id?: string | null
           whatsapp?: string | null
         }

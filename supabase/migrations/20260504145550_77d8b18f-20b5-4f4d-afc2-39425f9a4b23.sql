@@ -1,0 +1,2 @@
+ALTER TABLE public.diagnostic_leads ADD COLUMN IF NOT EXISTS reminded_at TIMESTAMPTZ;
+CREATE INDEX IF NOT EXISTS idx_diagnostic_leads_stale ON public.diagnostic_leads(created_at, contacted, reminded_at);
