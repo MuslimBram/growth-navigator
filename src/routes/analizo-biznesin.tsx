@@ -26,15 +26,14 @@ import { useT } from "@/lib/i18n";
 export const Route = createFileRoute("/analizo-biznesin")({
   head: () => ({
     meta: [
-      {
-        title: "Analyze Your Business | AI Performance Diagnosis — Muslimi Digital",
-      },
+      { title: "Analizë Biznesi me AI — Muslimi Digital" },
       {
         name: "description",
         content:
           "Talk to our AI consultant. They'll understand your business and find the bottleneck holding back growth.",
       },
-      { property: "og:title", content: "Analyze Your Business with AI" },
+      { property: "og:title", content: "Analizë Biznesi me AI — Muslimi Digital" },
+      { property: "og:url", content: "https://muslimi.lovable.app/analizo-biznesin" },
       {
         property: "og:description",
         content:
