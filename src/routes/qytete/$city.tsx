@@ -68,11 +68,12 @@ export const Route = createFileRoute("/qytete/$city")({
     if (!city) throw notFound();
     return { city };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     const c = loaderData?.city;
     if (!c) return { meta: [{ title: "Qytet — Muslimi Digital" }] };
-    const title = `Web Design, SEO & Marketing ${c.nameLocative} — Muslimi Digital`;
+    const title = `Marketing Digjital ${c.nameLocative} — Muslimi`;
     const description = `Shërbime digjitale për biznese ${c.nameLocative}: faqe interneti 3D, SEO në Google, Google Maps, foto/video 360°, menaxhim social media. Konsultim falas.`;
+    const url = `https://muslimi.lovable.app/qytete/${params.city}`;
     return {
       meta: [
         { title },
@@ -80,9 +81,24 @@ export const Route = createFileRoute("/qytete/$city")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "website" },
+        { property: "og:url", content: url },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Ballina", item: "https://muslimi.lovable.app/" },
+              { "@type": "ListItem", position: 2, name: c.name, item: url },
+            ],
+          }),
+        },
       ],
     };
   },
@@ -183,7 +199,7 @@ function CityPage() {
             Industri që mbulojmë {city.nameLocative}
           </h2>
           <div className="flex flex-wrap gap-2 justify-center max-w-3xl mx-auto">
-            {city.industries.map((ind) => (
+            {city.industries.map((ind: string) => (
               <span key={ind} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-border bg-surface text-sm">
                 <CheckCircle className="h-3.5 w-3.5 text-primary" /> {ind}
               </span>
