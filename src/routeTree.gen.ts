@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as KrahasoRouteImport } from './routes/krahaso'
 import { Route as HistorikuRouteImport } from './routes/historiku'
 import { Route as DiagnozeRouteImport } from './routes/diagnoze'
@@ -29,6 +30,11 @@ import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 import { Route as ApiPublicExitSurveyRouteImport } from './routes/api/public/exit-survey'
 import { Route as ApiPublicHooksStaleLeadsRouteImport } from './routes/api/public/hooks/stale-leads'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KrahasoRoute = KrahasoRouteImport.update({
   id: '/krahaso',
   path: '/krahaso',
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/diagnoze': typeof DiagnozeRoute
   '/historiku': typeof HistorikuRoute
   '/krahaso': typeof KrahasoRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/qytete/$city': typeof QyteteCityRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
   '/services/360-media': typeof Services360MediaRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/diagnoze': typeof DiagnozeRoute
   '/historiku': typeof HistorikuRoute
   '/krahaso': typeof KrahasoRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/qytete/$city': typeof QyteteCityRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
   '/services/360-media': typeof Services360MediaRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/diagnoze': typeof DiagnozeRoute
   '/historiku': typeof HistorikuRoute
   '/krahaso': typeof KrahasoRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/qytete/$city': typeof QyteteCityRoute
   '/rezultati/$sessionId': typeof RezultatiSessionIdRoute
   '/services/360-media': typeof Services360MediaRoute
@@ -202,6 +211,7 @@ export interface FileRouteTypes {
     | '/diagnoze'
     | '/historiku'
     | '/krahaso'
+    | '/sitemap.xml'
     | '/qytete/$city'
     | '/rezultati/$sessionId'
     | '/services/360-media'
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/diagnoze'
     | '/historiku'
     | '/krahaso'
+    | '/sitemap.xml'
     | '/qytete/$city'
     | '/rezultati/$sessionId'
     | '/services/360-media'
@@ -244,6 +255,7 @@ export interface FileRouteTypes {
     | '/diagnoze'
     | '/historiku'
     | '/krahaso'
+    | '/sitemap.xml'
     | '/qytete/$city'
     | '/rezultati/$sessionId'
     | '/services/360-media'
@@ -266,6 +278,7 @@ export interface RootRouteChildren {
   DiagnozeRoute: typeof DiagnozeRoute
   HistorikuRoute: typeof HistorikuRoute
   KrahasoRoute: typeof KrahasoRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   QyteteCityRoute: typeof QyteteCityRoute
   RezultatiSessionIdRoute: typeof RezultatiSessionIdRoute
   Services360MediaRoute: typeof Services360MediaRoute
@@ -281,6 +294,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/krahaso': {
       id: '/krahaso'
       path: '/krahaso'
@@ -426,6 +446,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiagnozeRoute: DiagnozeRoute,
   HistorikuRoute: HistorikuRoute,
   KrahasoRoute: KrahasoRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   QyteteCityRoute: QyteteCityRoute,
   RezultatiSessionIdRoute: RezultatiSessionIdRoute,
   Services360MediaRoute: Services360MediaRoute,
@@ -441,3 +462,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

@@ -1,0 +1,29 @@
+# Muslimi Digital
+
+> AI-powered digital business diagnosis for the Albanian market. A free 2-minute questionnaire reveals which digital services (web, SEO, Google Maps, social media, 360° media) a business is missing compared to competitors.
+
+## Pages
+
+- [Home](/): Hero, free diagnosis CTA, AI business analyzer.
+- [Diagnozë falas](/diagnoze): 6-question diagnostic flow.
+- [Analizo biznesin me AI](/analizo-biznesin): Conversational AI consultant that interviews the business.
+- [Case Studies](/case-studies): Real client results.
+- [Historiku](/historiku): Past diagnosis sessions.
+- [Krahaso](/krahaso): Compare your business with competitors.
+
+## Services
+
+- [Faqe 3D / Web 3D](/services/web-3d): Modern 3D websites that convert.
+- [SEO](/services/seo): Google first-page optimization.
+- [Google Maps](/services/google-maps): Local profile optimization.
+- [Social Media](/services/social-media): Content + strategy.
+- [Foto & Video 360°](/services/360-media): Immersive visual experiences.
+
+## Cities
+
+- [Tiranë](/qytete/tirane)
+- [Durrës](/qytete/durres)
+- [Vlorë](/qytete/vlore)
+- [Shkodër](/qytete/shkoder)
+- [Elbasan](/qytete/elbasan)
+- [Korçë](/qytete/korce)
