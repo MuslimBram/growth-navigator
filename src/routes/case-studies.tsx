@@ -19,9 +19,12 @@ export const Route = createFileRoute("/case-studies")({
       { property: "og:title", content: "Case Studies — Muslimi Digital" },
       {
         property: "og:description",
-        content: "Real results from our clients.",
+        content:
+          "Real client results: more leads, more sales, stronger brand. See how SEO, 3D web and automation moved the numbers.",
       },
+      { property: "og:url", content: "https://muslimi.lovable.app/case-studies" },
     ],
+    links: [{ rel: "canonical", href: "https://muslimi.lovable.app/case-studies" }],
   }),
 });
 

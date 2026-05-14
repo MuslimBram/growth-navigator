@@ -40,6 +40,7 @@ export const Route = createFileRoute("/analizo-biznesin")({
           "Professional online performance diagnosis. Our AI consultant analyzes your business and identifies the bottleneck.",
       },
     ],
+    links: [{ rel: "canonical", href: "https://muslimi.lovable.app/analizo-biznesin" }],
   }),
   component: AnalyzePage,
 });
